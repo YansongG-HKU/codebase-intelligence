@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  python:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,3 +24,31 @@ jobs:
         run: ruff check .
       - name: Test
         run: pytest
+      - name: CLI smoke
+        run: |
+          cbi version
+          cbi overview tests/fixtures/cli/demo_repo --json > /tmp/overview.json
+          python - <<'PY'
+          import json
+          payload = json.load(open("/tmp/overview.json", encoding="utf-8"))
+          assert payload["ok"] is True
+          assert payload["budgets"]["tokensEstimated"] <= payload["budgets"]["maxTokens"]
+          assert "fingerprint" in payload["index"]
+          PY
+
+  dsh-plugin:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integrations/deepseek-harness/plugin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax check
+        run: npm run check
+      - name: Unit tests
+        run: npm test
+      - name: Token footprint
+        run: npm run footprint

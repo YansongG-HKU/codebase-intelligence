@@ -1,0 +1,382 @@
+{
+  "engineVersion": "0.1.0",
+  "files": [
+    {
+      "language": "markdown",
+      "lineCount": 6,
+      "path": "docs/guide.md",
+      "sha256": "21f2a762a4477d04a28c6eefe655bb8c51d931191c8f18806c0f8dbea5d91f34",
+      "sizeBytes": 142
+    },
+    {
+      "language": "python",
+      "lineCount": 1,
+      "path": "src/app/__init__.py",
+      "sha256": "16d6fd7921933103f4e2bd2d10474f410232fc5743abea34d650df8ecc55b97c",
+      "sizeBytes": 19
+    },
+    {
+      "language": "python",
+      "lineCount": 12,
+      "path": "src/app/cli.py",
+      "sha256": "11b366ff16c06d210c05a0d66263174a4ce9f2197477e152305387a7e2e641b4",
+      "sizeBytes": 221
+    },
+    {
+      "language": "python",
+      "lineCount": 14,
+      "path": "src/app/core.py",
+      "sha256": "ccc92a3b1d69027676b5b82e6f74b2f07f445a5dccfe4a52cf103ce1b372cfeb",
+      "sizeBytes": 370
+    },
+    {
+      "language": "python",
+      "lineCount": 12,
+      "path": "src/app/model.py",
+      "sha256": "c87c7362afd7ea7594513c6a74d3b890fa12a924fe8ac6ac0ccf2561b5f27140",
+      "sizeBytes": 281
+    },
+    {
+      "language": "python",
+      "lineCount": 8,
+      "path": "tools/build.py",
+      "sha256": "ab113f76beb44b0cc2dff98a01c96edd0ba50c7731e812d926b472d7239a566e",
+      "sizeBytes": 136
+    }
+  ],
+  "fingerprint": "8ca96571fe2aede29db57acaf1177fac8ba1a52001425d2c3b32720458d7a20d",
+  "parseIssues": [],
+  "policyFingerprint": "fixture-policy-v1",
+  "relations": [
+    {
+      "confidence": 0.0,
+      "evidence": "resolver",
+      "from": "file:src/app/cli.py",
+      "span": {
+        "endColumn": 0,
+        "endLine": 3,
+        "path": "src/app/cli.py",
+        "startColumn": 0,
+        "startLine": 3
+      },
+      "status": "external",
+      "targetName": "requests",
+      "to": null,
+      "type": "imports"
+    },
+    {
+      "confidence": 1.0,
+      "evidence": "resolver",
+      "from": "file:src/app/cli.py",
+      "span": {
+        "endColumn": 0,
+        "endLine": 3,
+        "path": "src/app/cli.py",
+        "startColumn": 0,
+        "startLine": 3
+      },
+      "status": "resolved",
+      "targetName": "app.core",
+      "to": "file:src/app/core.py",
+      "type": "imports"
+    },
+    {
+      "confidence": 1.0,
+      "evidence": "resolver",
+      "from": "file:tools/build.py",
+      "span": {
+        "endColumn": 0,
+        "endLine": 3,
+        "path": "tools/build.py",
+        "startColumn": 0,
+        "startLine": 3
+      },
+      "status": "resolved",
+      "targetName": "app.core",
+      "to": "file:src/app/core.py",
+      "type": "imports"
+    },
+    {
+      "confidence": 0.8,
+      "evidence": "heuristic",
+      "from": "sym:src/app/cli.py#function:main@6",
+      "span": {
+        "endColumn": 0,
+        "endLine": 8,
+        "path": "src/app/cli.py",
+        "startColumn": 0,
+        "startLine": 8
+      },
+      "status": "resolved",
+      "targetName": "build_context",
+      "to": "sym:src/app/core.py#function:build_context@11",
+      "type": "calls"
+    },
+    {
+      "confidence": 0.8,
+      "evidence": "heuristic",
+      "from": "sym:tools/build.py#function:main@6",
+      "span": {
+        "endColumn": 0,
+        "endLine": 8,
+        "path": "tools/build.py",
+        "startColumn": 0,
+        "startLine": 8
+      },
+      "status": "resolved",
+      "targetName": "build_context",
+      "to": "sym:src/app/core.py#function:build_context@11",
+      "type": "calls"
+    }
+  ],
+  "schemaVersion": "1",
+  "symbols": [
+    {
+      "doc": null,
+      "evidence": "parser",
+      "id": "sym:src/app/cli.py#module:src.app.cli@1",
+      "kind": "module",
+      "language": "python",
+      "name": "cli",
+      "parentId": null,
+      "path": "src/app/cli.py",
+      "qualifiedName": "src.app.cli",
+      "signature": null,
+      "span": {
+        "endColumn": 0,
+        "endLine": 12,
+        "path": "src/app/cli.py",
+        "startColumn": 0,
+        "startLine": 1
+      }
+    },
+    {
+      "doc": "Run the command line interface.",
+      "evidence": "parser",
+      "id": "sym:src/app/cli.py#function:main@6",
+      "kind": "function",
+      "language": "python",
+      "name": "main",
+      "parentId": null,
+      "path": "src/app/cli.py",
+      "qualifiedName": "main",
+      "signature": "def main(argv=None):",
+      "span": {
+        "endColumn": 0,
+        "endLine": 8,
+        "path": "src/app/cli.py",
+        "startColumn": 0,
+        "startLine": 6
+      }
+    },
+    {
+      "doc": null,
+      "evidence": "parser",
+      "id": "sym:src/app/cli.py#function:_internal@11",
+      "kind": "function",
+      "language": "python",
+      "name": "_internal",
+      "parentId": null,
+      "path": "src/app/cli.py",
+      "qualifiedName": "_internal",
+      "signature": "def _internal():",
+      "span": {
+        "endColumn": 0,
+        "endLine": 12,
+        "path": "src/app/cli.py",
+        "startColumn": 0,
+        "startLine": 11
+      }
+    },
+    {
+      "doc": null,
+      "evidence": "parser",
+      "id": "sym:src/app/core.py#module:src.app.core@1",
+      "kind": "module",
+      "language": "python",
+      "name": "core",
+      "parentId": null,
+      "path": "src/app/core.py",
+      "qualifiedName": "src.app.core",
+      "signature": null,
+      "span": {
+        "endColumn": 0,
+        "endLine": 14,
+        "path": "src/app/core.py",
+        "startColumn": 0,
+        "startLine": 1
+      }
+    },
+    {
+      "doc": null,
+      "evidence": "parser",
+      "id": "sym:src/app/core.py#constant:DEFAULT_TOKENS@3",
+      "kind": "constant",
+      "language": "python",
+      "name": "DEFAULT_TOKENS",
+      "parentId": null,
+      "path": "src/app/core.py",
+      "qualifiedName": "DEFAULT_TOKENS",
+      "signature": "DEFAULT_TOKENS = 2200",
+      "span": {
+        "endColumn": 0,
+        "endLine": 3,
+        "path": "src/app/core.py",
+        "startColumn": 0,
+        "startLine": 3
+      }
+    },
+    {
+      "doc": "Rank files with deterministic lexical scoring.",
+      "evidence": "parser",
+      "id": "sym:src/app/core.py#function:rank_files@6",
+      "kind": "function",
+      "language": "python",
+      "name": "rank_files",
+      "parentId": null,
+      "path": "src/app/core.py",
+      "qualifiedName": "rank_files",
+      "signature": "def rank_files(items):",
+      "span": {
+        "endColumn": 0,
+        "endLine": 8,
+        "path": "src/app/core.py",
+        "startColumn": 0,
+        "startLine": 6
+      }
+    },
+    {
+      "doc": "构建有界的上下文包，控制在 token 预算之内。",
+      "evidence": "parser",
+      "id": "sym:src/app/core.py#function:build_context@11",
+      "kind": "function",
+      "language": "python",
+      "name": "build_context",
+      "parentId": null,
+      "path": "src/app/core.py",
+      "qualifiedName": "build_context",
+      "signature": "def build_context(items, *, max_tokens=DEFAULT_TOKENS):",
+      "span": {
+        "endColumn": 0,
+        "endLine": 14,
+        "path": "src/app/core.py",
+        "startColumn": 0,
+        "startLine": 11
+      }
+    },
+    {
+      "doc": null,
+      "evidence": "parser",
+      "id": "sym:src/app/model.py#module:src.app.model@1",
+      "kind": "module",
+      "language": "python",
+      "name": "model",
+      "parentId": null,
+      "path": "src/app/model.py",
+      "qualifiedName": "src.app.model",
+      "signature": null,
+      "span": {
+        "endColumn": 0,
+        "endLine": 12,
+        "path": "src/app/model.py",
+        "startColumn": 0,
+        "startLine": 1
+      }
+    },
+    {
+      "doc": "Immutable context pack for one task.",
+      "evidence": "parser",
+      "id": "sym:src/app/model.py#class:ContextPack@4",
+      "kind": "class",
+      "language": "python",
+      "name": "ContextPack",
+      "parentId": null,
+      "path": "src/app/model.py",
+      "qualifiedName": "ContextPack",
+      "signature": "class ContextPack:",
+      "span": {
+        "endColumn": 0,
+        "endLine": 12,
+        "path": "src/app/model.py",
+        "startColumn": 0,
+        "startLine": 4
+      }
+    },
+    {
+      "doc": null,
+      "evidence": "parser",
+      "id": "sym:src/app/model.py#method:ContextPack.__init__@7",
+      "kind": "method",
+      "language": "python",
+      "name": "__init__",
+      "parentId": "sym:src/app/model.py#class:ContextPack@4",
+      "path": "src/app/model.py",
+      "qualifiedName": "ContextPack.__init__",
+      "signature": "def __init__(self, task, items):",
+      "span": {
+        "endColumn": 0,
+        "endLine": 9,
+        "path": "src/app/model.py",
+        "startColumn": 0,
+        "startLine": 7
+      }
+    },
+    {
+      "doc": null,
+      "evidence": "parser",
+      "id": "sym:src/app/model.py#method:ContextPack.total_tokens@11",
+      "kind": "method",
+      "language": "python",
+      "name": "total_tokens",
+      "parentId": "sym:src/app/model.py#class:ContextPack@4",
+      "path": "src/app/model.py",
+      "qualifiedName": "ContextPack.total_tokens",
+      "signature": "def total_tokens(self):",
+      "span": {
+        "endColumn": 0,
+        "endLine": 12,
+        "path": "src/app/model.py",
+        "startColumn": 0,
+        "startLine": 11
+      }
+    },
+    {
+      "doc": null,
+      "evidence": "parser",
+      "id": "sym:tools/build.py#module:tools.build@1",
+      "kind": "module",
+      "language": "python",
+      "name": "build",
+      "parentId": null,
+      "path": "tools/build.py",
+      "qualifiedName": "tools.build",
+      "signature": null,
+      "span": {
+        "endColumn": 0,
+        "endLine": 8,
+        "path": "tools/build.py",
+        "startColumn": 0,
+        "startLine": 1
+      }
+    },
+    {
+      "doc": "Build the fixture output.",
+      "evidence": "parser",
+      "id": "sym:tools/build.py#function:main@6",
+      "kind": "function",
+      "language": "python",
+      "name": "main",
+      "parentId": null,
+      "path": "tools/build.py",
+      "qualifiedName": "main",
+      "signature": "def main():",
+      "span": {
+        "endColumn": 0,
+        "endLine": 8,
+        "path": "tools/build.py",
+        "startColumn": 0,
+        "startLine": 6
+      }
+    }
+  ]
+}

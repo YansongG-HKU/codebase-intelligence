@@ -1,0 +1,41 @@
+# dsh-codebase-intelligence bundle layer.
+#
+# One Host plugin row. It decorates every live/new Agent with six read-only
+# `codebase_*` tools and one short, static system-prompt section. All parsing,
+# graph and ranking work stays in the Python engine; this row only names where
+# that engine is and how much output each tool may return.
+#
+# Notes
+# - pythonPath / corePath / dataDir are empty on purpose: the plugin then uses
+#   CBI_PYTHON, the repository's own `src/` directory and
+#   `<DSH_HOME>/codebase-intelligence` respectively, which is the source-checkout
+#   default. Set them to absolute paths for a pip-installed engine or a shared
+#   index cache. Empty string means "use the default".
+# - maxTokens is the per-tool budget handed to the engine (clamped 200..8000;
+#   the engine enforces its own hard cap). values are bytes/tokens, not weights.
+# - tools toggles let a profile keep only a subset of the six tools.
+- insert:
+    - id: dsh-codebase-intelligence
+      name: dsh-codebase-intelligence
+      config:
+        maxTokens:
+          overview: 900
+          map: 1600
+          search: 1200
+          dependencies: 1200
+          context: 2200
+          impact: 1200
+        pythonPath: ''
+        corePath: ''
+        dataDir: ''
+        indexMaxFileBytes: 1048576
+        tools:
+          overview: true
+          map: true
+          search: true
+          dependencies: true
+          context: true
+          impact: true
+        promptSection: true
+        panel: true
+        exportDir: docs/codebase-intelligence

@@ -1,0 +1,67 @@
+{
+  "name": "dsh-codebase-intelligence",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Codebase Intelligence for DeepSeek Harness: six read-only, deterministic, token-budgeted repository tools (overview/map/search/dependencies/context/impact) backed by the local Python engine, plus a right-sidebar panel that browses the same engine and materializes deterministic repository files.",
+  "license": "MIT",
+  "author": "YansongG-HKU",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "lib",
+    "src",
+    "locale",
+    "scripts",
+    "cordis.patch.yml",
+    "PANEL_CONTRACT.md",
+    "README.md"
+  ],
+  "scripts": {
+    "build:client": "node scripts/build-client.mjs",
+    "test": "node --test \"test/unit/*.test.mjs\"",
+    "footprint": "node scripts/footprint.mjs",
+    "smoke": "node verify/bridge-smoke.mjs",
+    "check": "node --check index.js && node --check lib/bridge.js && node --check lib/config.js && node --check lib/panel.js && node --check lib/paths.js && node --check lib/prompt.js && node --check lib/service.js && node --check lib/tools.js && node --check lib/util.js && node --check client.js && node scripts/build-client.mjs --check && node --check scripts/footprint.mjs && node --check verify/harness.mjs && node --check verify/bridge-smoke.mjs"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "codebase-intelligence",
+    "repo-map",
+    "code-search",
+    "dependencies",
+    "context-pack",
+    "sidebar-panel",
+    "export"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-sidebar-right"
+      ],
+      "manifestVersion": 1
+    }
+  },
+  "engines": {
+    "node": ">=22",
+    "dsh": ">=0.2.2-rc.1"
+  }
+}

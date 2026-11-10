@@ -1,0 +1,4 @@
+*.tmp
+!important.tmp
+!nested.log
+/anchored.txt

@@ -24,10 +24,14 @@ packages = ["src/codebase_intelligence"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+# Fixture repositories are deliberately malformed / import-heavy sample code.
+norecursedirs = ["fixtures", "node_modules", ".git", ".*"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# Fixture repositories intentionally contain unused imports and odd syntax.
+extend-exclude = ["tests/fixtures"]
 
 [tool.mypy]
 python_version = "3.11"

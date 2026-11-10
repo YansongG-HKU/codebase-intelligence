@@ -1,0 +1,12 @@
+# root ignore rules
+# second comment line
+
+*.log
+!keep.log
+/root-only.txt
+src/generated/
+**/cache/
+temp-?.txt
+data[0-9].bin
+blocked/
+!blocked/include-me.py

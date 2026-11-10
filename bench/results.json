@@ -1,0 +1,274 @@
+{
+  "engineVersion": "0.1.0",
+  "indexCache": {
+    "cold": {
+      "command": "index",
+      "index": {
+        "engineVersion": "0.1.0",
+        "fingerprint": "fd1608e4f8403e6ef66f6e6aa4bac31f220da10bec6c31ca27ce0f8ccae68d5e",
+        "policyFingerprint": "c52dd0fc42cf986b2addbc195dc13b50351a5f70094f53cae5ada8bfbc208326",
+        "schemaVersion": "1"
+      },
+      "ok": true,
+      "parseIssues": {
+        "count": 1,
+        "sample": [
+          {
+            "message": "syntax error at line 1, column 12: invalid syntax",
+            "path": "tests/fixtures/parser/python_pkg/broken.py"
+          }
+        ]
+      },
+      "repo": {
+        "files": 164,
+        "languages": [
+          {
+            "files": 2,
+            "language": "go",
+            "symbols": 5
+          },
+          {
+            "files": 34,
+            "language": "javascript",
+            "symbols": 1810
+          },
+          {
+            "files": 5,
+            "language": "json",
+            "symbols": 0
+          },
+          {
+            "files": 26,
+            "language": "markdown",
+            "symbols": 0
+          },
+          {
+            "files": 8,
+            "language": "other",
+            "symbols": 0
+          },
+          {
+            "files": 83,
+            "language": "python",
+            "symbols": 1537
+          },
+          {
+            "files": 1,
+            "language": "toml",
+            "symbols": 0
+          },
+          {
+            "files": 4,
+            "language": "typescript",
+            "symbols": 13
+          },
+          {
+            "files": 1,
+            "language": "yaml",
+            "symbols": 0
+          }
+        ],
+        "relations": 4900,
+        "symbols": 3365
+      },
+      "schemaVersion": "1"
+    },
+    "coldDiagnostics": {
+      "cache": {
+        "cacheHit": false,
+        "filesRemoved": 0,
+        "filesReparsed": 164,
+        "filesReused": 0
+      },
+      "indexPath": "F:\\QuestionForAI\\codebase-intelligence\\.codebase-intelligence\\index.v1.json"
+    },
+    "plainIdentical": true,
+    "warm": {
+      "command": "index",
+      "index": {
+        "engineVersion": "0.1.0",
+        "fingerprint": "fd1608e4f8403e6ef66f6e6aa4bac31f220da10bec6c31ca27ce0f8ccae68d5e",
+        "policyFingerprint": "c52dd0fc42cf986b2addbc195dc13b50351a5f70094f53cae5ada8bfbc208326",
+        "schemaVersion": "1"
+      },
+      "ok": true,
+      "parseIssues": {
+        "count": 1,
+        "sample": [
+          {
+            "message": "syntax error at line 1, column 12: invalid syntax",
+            "path": "tests/fixtures/parser/python_pkg/broken.py"
+          }
+        ]
+      },
+      "repo": {
+        "files": 164,
+        "languages": [
+          {
+            "files": 2,
+            "language": "go",
+            "symbols": 5
+          },
+          {
+            "files": 34,
+            "language": "javascript",
+            "symbols": 1810
+          },
+          {
+            "files": 5,
+            "language": "json",
+            "symbols": 0
+          },
+          {
+            "files": 26,
+            "language": "markdown",
+            "symbols": 0
+          },
+          {
+            "files": 8,
+            "language": "other",
+            "symbols": 0
+          },
+          {
+            "files": 83,
+            "language": "python",
+            "symbols": 1537
+          },
+          {
+            "files": 1,
+            "language": "toml",
+            "symbols": 0
+          },
+          {
+            "files": 4,
+            "language": "typescript",
+            "symbols": 13
+          },
+          {
+            "files": 1,
+            "language": "yaml",
+            "symbols": 0
+          }
+        ],
+        "relations": 4900,
+        "symbols": 3365
+      },
+      "schemaVersion": "1"
+    },
+    "warmDiagnostics": {
+      "cache": {
+        "cacheHit": true,
+        "filesRemoved": 0,
+        "filesReparsed": 0,
+        "filesReused": 164
+      },
+      "indexPath": "F:\\QuestionForAI\\codebase-intelligence\\.codebase-intelligence\\index.v1.json"
+    }
+  },
+  "operations": {
+    "operations": [
+      {
+        "budgetTokens": 900,
+        "bytes": 2709,
+        "description": "repository overview",
+        "deterministic": true,
+        "firstMs": 1282.1,
+        "operation": "overview",
+        "secondMs": 1260.2,
+        "tokensEstimated": 678,
+        "truncated": true,
+        "withinBudget": true
+      },
+      {
+        "budgetTokens": 1600,
+        "bytes": 6180,
+        "description": "ranked repository map",
+        "deterministic": true,
+        "firstMs": 1123.3,
+        "operation": "map",
+        "secondMs": 1187.5,
+        "tokensEstimated": 1545,
+        "truncated": true,
+        "withinBudget": true
+      },
+      {
+        "budgetTokens": 1200,
+        "bytes": 4589,
+        "description": "search 'token budget'",
+        "deterministic": true,
+        "firstMs": 1353.3,
+        "operation": "search",
+        "secondMs": 1333.7,
+        "tokensEstimated": 1148,
+        "truncated": true,
+        "withinBudget": true
+      },
+      {
+        "budgetTokens": 1200,
+        "bytes": 4365,
+        "description": "dependencies of scripts/bench.py",
+        "deterministic": true,
+        "firstMs": 1157.2,
+        "operation": "dependencies",
+        "secondMs": 1141.0,
+        "tokensEstimated": 1092,
+        "truncated": false,
+        "withinBudget": true
+      },
+      {
+        "budgetTokens": 2200,
+        "bytes": 8497,
+        "description": "add a token budget to the DSH plugin",
+        "deterministic": true,
+        "firstMs": 1689.2,
+        "operation": "context",
+        "secondMs": 1446.8,
+        "tokensEstimated": 2125,
+        "truncated": true,
+        "withinBudget": true
+      },
+      {
+        "budgetTokens": 1200,
+        "bytes": 519,
+        "description": "impact of changing scripts/bench.py",
+        "deterministic": true,
+        "firstMs": 1100.9,
+        "operation": "impact",
+        "secondMs": 1088.8,
+        "tokensEstimated": 130,
+        "truncated": false,
+        "withinBudget": true
+      },
+      {
+        "budgetTokens": 1200,
+        "bytes": 4668,
+        "description": "neighborhood of sym:scripts/bench.py#module:scripts.bench@1",
+        "deterministic": true,
+        "firstMs": 1144.1,
+        "operation": "symbol-neighborhood",
+        "secondMs": 1048.8,
+        "tokensEstimated": 1167,
+        "truncated": true,
+        "withinBudget": true
+      }
+    ]
+  },
+  "pluginFootprint": {
+    "available": true,
+    "promptSectionBytes": 735,
+    "promptSectionTextHash": "0b51a141f3f1c4ecf7ad496eca48c31c4560c3f5f58cb65d98999dcb06a0d11d",
+    "promptSectionTokensEstimated": 184,
+    "toolCount": 6,
+    "toolSchemaBytes": 4756,
+    "toolSchemaTokensEstimated": 1189
+  },
+  "root": "F:\\QuestionForAI\\codebase-intelligence",
+  "tokenEstimator": "chars4-wide-v1",
+  "toolCatalogue": {
+    "bytes": 3612,
+    "chars": 3612,
+    "tokenEstimator": "chars4-wide-v1",
+    "tokensEstimated": 903,
+    "toolCount": 6
+  }
+}

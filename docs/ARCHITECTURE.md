@@ -57,6 +57,33 @@ The project will maintain a first-party native DSH plugin alongside the standalo
 
 The DSH adapter must use the official Cordis/DSH plugin contracts and package conventions for the targeted release. It must not duplicate parser, graph, or ranking logic. Initially, evaluate a bounded local bridge from the TypeScript plugin to the core engine (for example, a versioned JSON stdio protocol or local service); choose only after checking DSH process, filesystem, subprocess, and sandbox APIs. Do not assume a shell command is permitted merely because a tool is available.
 
-Compatibility is explicit: declare the supported DSH version range in package metadata and test exact versions, starting with the user's target `0.2.1-rc.3`. DSH is in developer preview and can introduce breaking changes, so keep the adapter isolated and maintain compatibility tests.
+Compatibility is explicit: declare the supported DSH version range in package metadata and test exact versions. The implemented release is verified on the installed `0.2.2-rc.1` (the original planning target `0.2.1-rc.3` is superseded by what runs on the machine); the adapter stays isolated and compatibility evidence is recorded in [DELIVERY.md](DELIVERY.md).
 
 See [DeepSeek Harness integration](../integrations/deepseek-harness/README.md).
+
+## Implementation status (v0.1.0)
+
+The shipped implementation follows this architecture with the following concrete
+choices, all covered by tests:
+
+- **No runtime dependencies.** Parsing uses the standard-library `ast` module for
+  Python; other languages use conservative regex adapters with explicit
+  `heuristic` evidence. Parser adapters sit behind a dispatch boundary so a
+  Tree-sitter implementation can replace them without touching the canonical model.
+- **Canonical JSON index instead of a database.** `indexing/` persists
+  `index.v1.json` + `cache.v1.json` (atomic writes, canonical bytes,
+  content-addressed reuse). Storage stays behind `ensure_index`/`IndexResult`, so
+  SQLite or a graph database can be evaluated later without changing callers.
+- **Import-level graph.** Relations carry evidence (`parser`/`resolver`/
+  `heuristic`), resolution status (`resolved`/`unresolved`/`ambiguous`/`external`)
+  and confidence; unresolved edges are preserved. Python CALLS edges are emitted
+  only for unambiguous same-file calls; cross-file calls are intentionally not
+  guessed.
+- **Retrieval** combines lexical match, resolved in-degree centrality, explicit
+  path proximity and entry/module bonuses; every budgeted payload reports its
+  measured size, the `chars4-wide-v1` estimator, and what was omitted.
+- **Integration transports**: CLI (`cbi`), stdio MCP server, and a DSH plugin that
+  drives the CLI over a versioned JSON stdio bridge. All three share `api.py` and
+  return the same payloads.
+- Not implemented yet: interactive explorer UI, large-monorepo benchmarks, and a
+  formal retrieval-relevance benchmark.
