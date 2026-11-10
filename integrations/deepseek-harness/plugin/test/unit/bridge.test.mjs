@@ -164,12 +164,21 @@ test('repairFor yields path-free structured repair hints', () => {
 })
 
 test('pythonPathFor prefers CBI_PYTHONPATH, then the core source dir, then inherited', () => {
-  const cfg = { corePath: 'F:/no-such-core' }
-  const env = { CBI_PYTHONPATH: `F:/fake-engine${delimiter}F:/extra`, PYTHONPATH: 'F:/inherited' }
-  assert.equal(pythonPathFor(cfg, env), `F:/fake-engine${delimiter}F:/extra${delimiter}F:/inherited`)
+  // Use the host separator for the fake entries: a Windows drive colon is not a
+  // path separator on POSIX, so a platform-neutral test must not embed one.
+  const prefix = process.platform === 'win32' ? 'F:/' : '/'
+  const cfg = { corePath: `${prefix}no-such-core` }
+  const env = {
+    CBI_PYTHONPATH: `${prefix}fake-engine${delimiter}${prefix}extra`,
+    PYTHONPATH: `${prefix}inherited`,
+  }
+  assert.equal(
+    pythonPathFor(cfg, env),
+    `${prefix}fake-engine${delimiter}${prefix}extra${delimiter}${prefix}inherited`,
+  )
   // Duplicates are removed (case-insensitively on Windows).
-  const envDuplicate = { CBI_PYTHONPATH: 'F:/fake', PYTHONPATH: 'F:/fake' }
-  assert.equal(pythonPathFor(cfg, envDuplicate), 'F:/fake')
+  const envDuplicate = { CBI_PYTHONPATH: `${prefix}fake`, PYTHONPATH: `${prefix}fake` }
+  assert.equal(pythonPathFor(cfg, envDuplicate), `${prefix}fake`)
 })
 
 test('run() spawns the fake engine and returns its payload verbatim', async (t) => {
