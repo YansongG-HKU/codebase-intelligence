@@ -3,14 +3,14 @@
 ## Summary
 
 - files: 169
-- symbols: 3830
-- relations: 5430
+- symbols: 3831
+- relations: 5431
 - parser issues: 1
 
 ## Languages
 
 - python: 86 files, 1569 symbols
-- javascript: 34 files, 2243 symbols
+- javascript: 34 files, 2244 symbols
 - markdown: 28 files, 0 symbols
 - other: 8 files, 0 symbols
 - json: 5 files, 0 symbols
@@ -66,8 +66,8 @@
 
 ## Confidence and evidence
 
-- heuristic relations (regex-derived edges): 3387
-- heuristic symbols (regex-derived declarations): 2261
+- heuristic relations (regex-derived edges): 3388
+- heuristic symbols (regex-derived declarations): 2262
 - resolved edges are parser/resolver facts; everything else is labelled
 
 ## Limitations

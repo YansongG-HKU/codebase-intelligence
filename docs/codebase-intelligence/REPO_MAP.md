@@ -1,15 +1,15 @@
 # Repository map
 
 - files: 169
-- symbols: 3830
-- relations: 5430
+- symbols: 3831
+- relations: 5431
 - parser issues: 1
 
 ## Top directories
 
 - tests: 74 files, 567 symbols
 - src: 38 files, 1021 symbols
-- integrations: 37 files, 2231 symbols
+- integrations: 37 files, 2232 symbols
 - docs: 14 files, 0 symbols
 - .: 4 files, 0 symbols
 - scripts: 1 files, 11 symbols
