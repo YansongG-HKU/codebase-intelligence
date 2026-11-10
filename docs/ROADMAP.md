@@ -32,7 +32,11 @@ This roadmap describes intended work, not shipped functionality. Status changes 
 
 ## Phase 4 — Agent integration
 - [ ] MCP server exposing repository map, symbol lookup, graph traversal, and context retrieval.
-- [ ] Document integration patterns for common coding agents.
+- [ ] First-party native DeepSeek Harness plugin with model-facing read-only tools.
+- [ ] Define a versioned, local bridge between the DSH adapter and core engine.
+- [ ] Declare and test DSH compatibility, starting with 0.2.1-rc.3.
+- [ ] Publish DSH installation, configuration, upgrade, and troubleshooting instructions.
+- [ ] Document integration patterns for other coding agents.
 - [ ] Add safe read-only defaults and explicit repository scope.
 
 ## Phase 5 — Scale and usability
