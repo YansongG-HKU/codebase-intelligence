@@ -40,3 +40,12 @@ Build Codebase Intelligence as a reliable, privacy-conscious, language-aware sys
 - Document limitations and unsupported languages.
 - Update docs when behavior or public interfaces change.
 - Use focused commits and descriptive pull requests.
+
+
+## DeepSeek Harness integration
+- Maintain a first-party DSH plugin as a supported product deliverable, not an example-only integration.
+- Keep the DSH adapter thin; core parsing, graph, ranking, and context logic belongs in the shared engine.
+- Follow the official DSH/Cordis plugin package conventions and verify them against the exact supported DSH release before relying on an API.
+- Declare compatibility explicitly; never claim a DSH version is supported without install and runtime smoke tests.
+- Default all DSH-exposed repository operations to read-only. Any future write/apply operation requires a separate explicit approval and policy design.
+- Keep DSH-specific dependencies and compatibility shims isolated from the core Python package.
