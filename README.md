@@ -18,7 +18,7 @@ The project is inspired by useful ideas from repository maps, syntax-aware code 
 2. **Evidence-linked output.** Every reported symbol or relationship should be traceable to a file and source location.
 3. **Token-aware context selection.** Rank and retrieve relevant context under an explicit token or byte budget.
 4. **Incremental by design.** Re-index only changed inputs where safe, while detecting when a full rebuild is required.
-5. **Human- and agent-readable.** Provide Markdown/JSON outputs, a CLI, and eventually an MCP server.
+5. **Human- and agent-readable.** Provide Markdown/JSON outputs, a CLI, an MCP server, and a native DeepSeek Harness (DSH) plugin.
 6. **Safe defaults.** Respect ignore rules, avoid secrets, never execute repository code during indexing, and make data collection boundaries explicit.
 7. **Language-aware, gracefully degraded.** Prefer parser-backed facts; clearly label heuristic or unresolved relationships.
 
@@ -34,6 +34,7 @@ The project is inspired by useful ideas from repository maps, syntax-aware code 
 | Architecture reports | Generate human-readable project documentation | Planned |
 | Change impact | Estimate downstream impact of proposed edits | Planned |
 | MCP integration | Expose repository intelligence to AI clients | Planned |
+| DeepSeek Harness plugin | Native DSH tools, configuration, lifecycle, and distribution | Planned |
 | Incremental indexing | Keep the index synchronized with Git changes | Planned |
 | Explorer UI | Browse graph and source evidence interactively | Planned |
 
@@ -63,6 +64,7 @@ Language Detection -> Parser Adapters
         +--------+---------+
         |        |         |
        CLI     Reports    MCP
+                         DSH Plugin
 ```
 
 The canonical model separates **facts** (parser-derived declarations and imports), **inferences** (heuristic relationships and ranking), and **rendered views** (maps, reports, and context packs). This distinction is essential for trustworthy results.
@@ -78,7 +80,9 @@ src/codebase_intelligence/
   indexing/      # persistence and incremental updates
   retrieval/     # task-aware context selection
   reporting/     # Markdown and JSON renderers
-  mcp/           # future MCP server integration
+  mcp/           # MCP server integration
+integrations/
+  deepseek-harness/ # native DSH plugin adapter and packaging
 tests/
 docs/
 examples/
@@ -98,7 +102,7 @@ The implementation is under active design. Installation and CLI commands will be
 
 ## Research references
 
-See [RESEARCH.md](docs/RESEARCH.md) for the initial landscape and the distinction between adjacent tools and the proposed system.
+See [RESEARCH.md](docs/RESEARCH.md) for the initial landscape and the distinction between adjacent tools and the proposed system. See [the DeepSeek Harness integration](integrations/deepseek-harness/README.md) for the native plugin workstream.
 
 ## Contributing
 
