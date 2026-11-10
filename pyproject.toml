@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "codebase-intelligence"
+version = "0.1.0"
+description = "AI-native codebase understanding and token-aware context retrieval."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary - license selection pending" }
+authors = [{ name = "Codebase Intelligence contributors" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6", "mypy>=1.10"]
+
+[project.scripts]
+cbi = "codebase_intelligence.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/codebase_intelligence"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+mypy_path = "src"
