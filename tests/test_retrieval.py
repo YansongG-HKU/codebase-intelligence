@@ -9,6 +9,7 @@ being written in parallel.  Context excerpts read the fixture sources from
 
 from __future__ import annotations
 
+import importlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -616,3 +617,21 @@ def test_context_dataclasses_expose_contract_fields() -> None:
     )
     assert mini.omitted == pack.omitted
     assert isinstance(ContextPack("task", (), (), 0, "chars4-wide-v1"), ContextPack)
+
+
+def test_rank_scores_each_path_once_per_query(monkeypatch: pytest.MonkeyPatch) -> None:
+    snapshot = load_snapshot()
+    graph = FakeGraph(snapshot)
+    module = importlib.import_module("codebase_intelligence.retrieval.rank")
+    original = module._path_score
+    expected = rank(snapshot, graph, "context pack build")
+    scored_paths: list[str] = []
+
+    def count(path: str, terms: tuple[str, ...], weights: dict[str, float]):
+        scored_paths.append(path)
+        return original(path, terms, weights)
+
+    monkeypatch.setattr(module, "_path_score", count)
+    assert rank(snapshot, graph, "context pack build") == expected
+    assert len(scored_paths) == len(set(scored_paths))
+    assert set(scored_paths) == {file.path for file in snapshot.files}

@@ -111,15 +111,17 @@ export function apply(ctx, config) {
     }
   }
 
+  const lifecycleDisposers = []
   try {
-    ctx.on('agent/created', (payload) => decorate(payload?.agent ?? payload))
-    ctx.on('agent/disposed', (payload) => {
+    lifecycleDisposers.push(ctx.on('agent/created', (payload) => decorate(payload?.agent ?? payload)))
+    lifecycleDisposers.push(ctx.on('agent/disposed', (payload) => {
       const agent = payload?.agent ?? payload
+      service.unregisterSession(agent?.id)
       const binding = bindings.get(agent?.id)
       if (!binding) return
       binding.dispose()
       bindings.delete(agent.id)
-    })
+    }))
   } catch (error) {
     log.warn(`could not subscribe to agent lifecycle events: ${messageOf(error)}`)
   }
@@ -184,6 +186,8 @@ export function apply(ctx, config) {
       /* panel disposal is best effort */
     }
     panelDispose = null
+    for (const dispose of lifecycleDisposers.splice(0)) safeDispose(dispose)
+    service.clearSessions()
     for (const binding of bindings.values()) binding.dispose()
     bindings.clear()
     try {

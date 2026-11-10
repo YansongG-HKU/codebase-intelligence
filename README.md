@@ -31,13 +31,17 @@ plugin with six read-only, deterministic, token-budgeted tools.
 | DSH client panel | Right-sidebar tab + full-page fallback: browse the engine without model tokens | Implemented |
 | Deterministic export | Write `docs/codebase-intelligence/` snapshot files (JSON/Markdown/Mermaid) + read-only git status | Implemented |
 | Incremental indexing | Content-addressed index cache that survives edits | Implemented |
-| Explorer UI | Browse graph and source evidence interactively | Not implemented |
+| Explorer UI | Browse saved repository, directory, file and symbol graphs with source evidence | Implemented in the Harness panel |
 
 Everything above is covered by the test suite and, for the DSH plugin, by a real
 isolated Harness run; the engine, bridge and panel were also exercised against a
 real external 169-file project (see [docs/DELIVERY.md](docs/DELIVERY.md)). The
 normative contract is [docs/SPEC.md](docs/SPEC.md); measured token/cache
 behaviour is in [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+
+Open [the saved project graph](docs/codebase-intelligence/REPO_MAP.md#project-graph)
+for a repository-level diagram, or load [the graph snapshot](docs/codebase-intelligence/graph.snapshot.json)
+in the Harness panel. Use `cbi export .` to update the versionable files.
 
 ## Design goals
 
@@ -73,6 +77,8 @@ cbi overview . --json                   # repository shape under a token budget
 cbi map . --max-tokens 1600             # ranked file/symbol map
 cbi search . --query "token budget"     # files and symbols with path:line evidence
 cbi dependencies . --target src/codebase_intelligence/api.py
+cbi graph . --focus "dir:src/codebase_intelligence/graph" --json   # bounded graph slice
+cbi graph . --source src/codebase_intelligence/api.py --line 40    # read-only source evidence
 cbi context . --task "add a new parser adapter" --max-tokens 2200
 cbi impact . --files src/codebase_intelligence/api.py
 cbi report . --out architecture.md      # Markdown architecture report
@@ -181,8 +187,8 @@ scripts/bench.py                 token-cache benchmark generator
 - The DSH panel writes files only on explicit confirmation and never runs git;
   commit/push stay manual. Custom generation directories must be passed to
   `--exclude` for commands other than the export itself.
-- A standalone graph explorer UI is not implemented; `report`/`map` and the DSH
-  panel are the human-readable views.
+- A standalone desktop graph UI is not implemented; the interactive drawer lives
+  in the DSH panel (`cbi graph` provides the same bounded data for other clients).
 
 ## Contributing
 

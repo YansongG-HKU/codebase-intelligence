@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { delimiter } from 'node:path'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { delimiter, join } from 'node:path'
 
 import {
   buildEngineArgs,
@@ -287,4 +288,20 @@ test('createBridge caches the probe and invalidate() re-probes', async (t) => {
   assert.equal(engine.calls().length, 0)
   // The bridge is created with a real interpreter and yields the module name it runs.
   assert.equal(ENGINE_MODULE, 'codebase_intelligence.cli')
+})
+
+
+test('tool and export execution do not resolve Python modules from the workspace', async (t) => {
+  const engine = fakeEngine(t)
+  const repo = fakeWorkspace(t)
+  const shadow = join(repo, 'codebase_intelligence')
+  mkdirSync(shadow)
+  writeFileSync(join(shadow, '__init__.py'), '')
+  writeFileSync(join(shadow, 'cli.py'), 'print(\'{"ok":true,"fixture_marker":true}\')')
+  const bridge = createBridge({ cfg: testConfig(tempDir(t, 'cbi-shadow')) })
+  const tool = await bridge.run('overview', { root: repo })
+  const exported = await bridge.runRaw({ command: 'export', root: repo, args: ['--check'] })
+  assert.equal(tool.payload.command, 'overview')
+  assert.equal(exported.payload.command, 'export')
+  assert.deepEqual(engine.calls().map((args) => args[0]), ['overview', 'export'])
 })

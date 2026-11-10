@@ -13,12 +13,18 @@ are exposed through explicit keyword arguments used by the CLI behind flags.
 from __future__ import annotations
 
 import re
+from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import TYPE_CHECKING, Any, Iterable, Sequence
 
 from codebase_intelligence.errors import RepositoryError, UsageError
 from codebase_intelligence.model import SCHEMA_VERSION, IndexSnapshot
 from codebase_intelligence.util import TOKEN_ESTIMATOR, canonical_json, estimate_tokens
+
+if TYPE_CHECKING:
+    from codebase_intelligence.graph import Graph
+    from codebase_intelligence.indexing import IndexResult
+    from codebase_intelligence.scanner import ScanPolicy
 
 #: Default and hard-cap token budgets for the six model-facing operations.
 DEFAULT_TOOL_TOKENS: dict[str, int] = {
@@ -35,7 +41,7 @@ MAX_TOOL_TOKENS = 8000
 # ---------------------------------------------------------------------------
 # Root / policy / index plumbing
 # ---------------------------------------------------------------------------
-def resolve_root(path: str | Path | None, *, must_exist: bool = True) -> Path:
+def resolve_root(path: str | PathLike[str] | None, *, must_exist: bool = True) -> Path:
     """Resolve a repository root and prove it is an existing directory."""
 
     raw = Path(path) if path not in (None, "") else Path(".")
@@ -48,7 +54,7 @@ def resolve_root(path: str | Path | None, *, must_exist: bool = True) -> Path:
     return root
 
 
-def resolve_cache_dir(cache_dir: str | Path | None) -> Path | None:
+def resolve_cache_dir(cache_dir: str | PathLike[str] | None) -> Path | None:
     if cache_dir in (None, ""):
         return None
     return Path(cache_dir).expanduser().resolve(strict=False)
@@ -59,7 +65,7 @@ def build_policy(
     max_file_bytes: int | None = None,
     excludes: Sequence[str] | None = None,
     include_hidden: bool = False,
-):
+) -> ScanPolicy:
     """Build a :class:`ScanPolicy` from CLI/tool flags (defaults from SPEC §5)."""
 
     from codebase_intelligence.scanner import default_policy
@@ -79,8 +85,8 @@ def open_index(
     *,
     cache_dir: Path | None = None,
     force: bool = False,
-    policy: Any = None,
-):
+    policy: ScanPolicy | None = None,
+) -> IndexResult:
     """Build or refresh the index for ``root`` (incremental unless ``force``)."""
 
     from codebase_intelligence.indexing import ensure_index
@@ -90,7 +96,7 @@ def open_index(
     return ensure_index(root, policy, cache_dir=cache_dir, force=force)
 
 
-def graph_for(snapshot: IndexSnapshot):
+def graph_for(snapshot: IndexSnapshot) -> Graph:
     from codebase_intelligence.graph import Graph
 
     return Graph(snapshot)

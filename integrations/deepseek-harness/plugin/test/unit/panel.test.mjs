@@ -3,9 +3,11 @@
  * export confirmation and git facts. Uses fake services — no engine required.
  */
 import assert from 'node:assert/strict'
+import { execFileSync, execSync } from 'node:child_process'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
-import { dirname, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 
 import {
   ROUTES,
@@ -17,6 +19,8 @@ import {
   readJsonBody,
   statusForCode,
 } from '../../lib/panel.js'
+
+import { tempDir } from './_helpers.mjs'
 
 const HEADER = 'x-dsh-codebase-intelligence'
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..')
@@ -152,7 +156,8 @@ test('handleRequest returns JSON 200 / 403 / 404 / 405', async () => {
   assert.equal(payload.ok, true)
   assert.equal(payload.data.root, '/tmp/workspace')
   assert.equal(payload.data.engine.available, true)
-  assert.equal(payload.data.git.command.includes('git add docs/codebase-intelligence'), true)
+  assert.equal(payload.data.git.available, false)
+  assert.equal(payload.data.git.command, null)
 })
 
 test('state reports workspace_unavailable without a live session root', async () => {
@@ -226,7 +231,7 @@ test('export preview and write: confirm is required and git facts are attached',
   assert.equal(preview.ok, true)
   assert.equal(preview.data.stale, true)
   assert.equal(preview.data.files.length, 2)
-  assert.ok(preview.data.git.command.includes('git add'))
+  assert.equal(preview.data.git.command, null)
 
   const denied = await dispatch({
     service,
@@ -285,8 +290,74 @@ test('POST body.session is a fallback when the query has no session', async () =
 test('gitFacts is read-only and yields the suggested command', async () => {
   const facts = await gitFacts(REPO_ROOT, 'docs/codebase-intelligence')
   assert.equal(typeof facts.command, 'string')
-  assert.ok(facts.command.startsWith('git add docs/codebase-intelligence'))
+  assert.ok(facts.command.startsWith('git add -- docs/codebase-intelligence'))
   assert.equal(typeof facts.available, 'boolean')
   assert.ok(Array.isArray(facts.exportChanges))
   assert.ok(facts.exportChanges.length <= 50)
+})
+
+
+test('git facts support unborn HEAD without running repository hooks', async (t) => {
+  const root = tempDir(t, 'cbi-git-facts')
+  const git = (...args) => execFileSync('git', args, { cwd: root, stdio: 'pipe' })
+  git('init', '-q', '-b', 'main')
+  const hook = join(root, 'fixture-hook.sh')
+  writeFileSync(hook, '#!/bin/sh\nprintf called > marker.txt\nexit 1\n', { mode: 0o755 })
+  git('config', 'core.fsmonitor', hook.replaceAll('\\', '/'))
+  const facts = await gitFacts(root, 'docs/codebase-intelligence')
+  assert.equal(facts.available, true)
+  assert.equal(facts.branch, 'main')
+  assert.equal(existsSync(join(root, 'marker.txt')), false)
+  assert.match(facts.command, /git commit --only .* -- docs\/codebase-intelligence/)
+  const unusual = await gitFacts(root, 'docs/unsafe & preview')
+  assert.equal(unusual.available, true)
+  assert.equal(unusual.command, null)
+})
+
+
+test('git facts identify detached HEAD and the suggested commit excludes unrelated staged files', async (t) => {
+  const root = tempDir(t, 'cbi-git-commit')
+  const git = (...args) => execFileSync('git', args, { cwd: root, stdio: 'pipe', encoding: 'utf8' }).trim()
+  git('init', '-q', '-b', 'main')
+  git('config', 'user.name', 'Fixture')
+  git('config', 'user.email', 'fixture@example.invalid')
+  git('config', 'commit.gpgsign', 'false')
+  git('config', 'core.hooksPath', join(root, 'no-hooks'))
+  writeFileSync(join(root, 'outside.txt'), 'original')
+  git('add', '--', 'outside.txt')
+  git('commit', '-qm', 'initial')
+  git('checkout', '--detach', '-q')
+  writeFileSync(join(root, 'outside.txt'), 'unrelated staged edit')
+  git('add', '--', 'outside.txt')
+  mkdirSync(join(root, 'docs', 'codebase-intelligence'), { recursive: true })
+  writeFileSync(join(root, 'docs', 'codebase-intelligence', 'overview.json'), '{}')
+  const facts = await gitFacts(root, 'docs/codebase-intelligence')
+  assert.equal(facts.available, true)
+  assert.equal(facts.branch, git('rev-parse', '--short', 'HEAD'))
+  assert.equal(facts.dirty, true)
+  execSync(facts.command, { cwd: root, stdio: 'pipe' })
+  assert.equal(git('diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD'), 'docs/codebase-intelligence/overview.json')
+  assert.equal(git('diff', '--cached', '--name-only'), 'outside.txt')
+})
+
+
+test('graph endpoint forwards its session and preserves structured stale errors', async () => {
+  const calls = []
+  const service = { async panelGraph(query, options) {
+    calls.push({ query, options })
+    return query.source ? { ok: false, code: 'stale_graph' } : { ok: true, payload: { nodes: [] } }
+  } }
+  const request = (params, method = 'GET', body = {}) => dispatch({
+    service, url: new URL('http://localhost/dsh-codebase-intelligence/api/graph?' + params),
+    descriptor: matchRoute('/dsh-codebase-intelligence/api/graph'), method, body,
+  })
+  assert.deepEqual(await request('session=s1&focus=dir%3Aapp&offset=0'), { ok: true, data: { nodes: [] } })
+  assert.equal(calls[0].options.sessionId, 's1')
+  assert.equal(calls[0].query.focus, 'dir:app')
+  assert.equal((await request('session=s1&source=app%2Fmain.py&line=1')).code, 'stale_graph')
+  await request('refresh=1', 'GET', { session: 's1' })
+  assert.equal(calls[2].options.refresh, undefined)
+  await request('source=ignored', 'POST', { session: 's1' })
+  assert.deepEqual(calls[3], { query: {}, options: { sessionId: 's1', refresh: true } })
+  assert.equal(statusForCode('stale_graph'), 409)
 })

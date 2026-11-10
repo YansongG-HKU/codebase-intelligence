@@ -1,16 +1,16 @@
 # Repository map
 
-- files: 164
-- symbols: 3365
-- relations: 4900
+- files: 169
+- symbols: 3830
+- relations: 5430
 - parser issues: 1
 
 ## Top directories
 
-- tests: 73 files, 556 symbols
-- integrations: 37 files, 1798 symbols
-- src: 36 files, 1000 symbols
-- docs: 12 files, 0 symbols
+- tests: 74 files, 567 symbols
+- src: 38 files, 1021 symbols
+- integrations: 37 files, 2231 symbols
+- docs: 14 files, 0 symbols
 - .: 4 files, 0 symbols
 - scripts: 1 files, 11 symbols
 - bench: 1 files, 0 symbols
@@ -20,7 +20,7 @@
 - integrations/deepseek-harness/plugin/verify/bridge-smoke.mjs:73 function integrations.deepseek-harness.plugin.verify.bridge-smoke.main
 - integrations/deepseek-harness/plugin/verify/harness.mjs:1071 function integrations.deepseek-harness.plugin.verify.harness.main
 - scripts/bench.py:234 function scripts.bench.main
-- src/codebase_intelligence/cli.py:501 function src.codebase_intelligence.cli.main
+- src/codebase_intelligence/cli.py:541 function src.codebase_intelligence.cli.main
 - src/codebase_intelligence/mcp/__main__.py:13 function src.codebase_intelligence.mcp.__main__.main
 - src/codebase_intelligence/mcp/server.py:1 file entry point
 - tests/fixtures/cli/demo_repo/src/demo/core.py:29 function tests.fixtures.cli.demo_repo.src.demo.core.main
@@ -39,7 +39,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### README.md (markdown, 203 lines)
+### README.md (markdown, 209 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -55,7 +55,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/DELIVERY.md (markdown, 194 lines)
+### docs/DELIVERY.md (markdown, 211 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -63,19 +63,19 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/DSH_PLUGIN.md (markdown, 482 lines)
+### docs/DSH_PLUGIN.md (markdown, 527 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/EXPORT.md (markdown, 164 lines)
+### docs/EXPORT.md (markdown, 172 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/RESEARCH.md (markdown, 43 lines)
+### docs/RESEARCH.md (markdown, 59 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/ROADMAP.md (markdown, 70 lines)
+### docs/ROADMAP.md (markdown, 72 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -83,7 +83,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/SPEC.md (markdown, 385 lines)
+### docs/SPEC.md (markdown, 389 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -95,11 +95,19 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
+### docs/acceptance/CLONE_REPRODUCIBILITY.md (markdown, 177 lines)
+
+- no declarations extracted (unsupported language or file-only index entry)
+
+### docs/acceptance/GUIDE_STYLE.md (markdown, 75 lines)
+
+- no declarations extracted (unsupported language or file-only index entry)
+
 ### integrations/deepseek-harness/README.md (markdown, 143 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### integrations/deepseek-harness/plugin/PANEL_CONTRACT.md (markdown, 181 lines)
+### integrations/deepseek-harness/plugin/PANEL_CONTRACT.md (markdown, 195 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -107,7 +115,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### integrations/deepseek-harness/plugin/client.js (javascript, 3872 lines)
+### integrations/deepseek-harness/plugin/client.js (javascript, 4849 lines)
 
 - integrations/deepseek-harness/plugin/client.js:1 module integrations.deepseek-harness.plugin.client [heuristic]
 - integrations/deepseek-harness/plugin/client.js:16 variable integrations.deepseek-harness.plugin.client.react `const react =` [heuristic]
@@ -119,13 +127,13 @@
 - integrations/deepseek-harness/plugin/client.js:32 constant integrations.deepseek-harness.plugin.client.REQ_HEADER `const REQ_HEADER =` [heuristic]
 - integrations/deepseek-harness/plugin/client.js:34 constant integrations.deepseek-harness.plugin.client.LANG_KEY `const LANG_KEY =` [heuristic]
 - integrations/deepseek-harness/plugin/client.js:35 constant integrations.deepseek-harness.plugin.client.REQUEST_TIMEOUT_MS `const REQUEST_TIMEOUT_MS =` [heuristic]
-- ... 432 more symbols in this file
+- ... 639 more symbols in this file
 
 ### integrations/deepseek-harness/plugin/cordis.patch.yml (yaml, 41 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### integrations/deepseek-harness/plugin/index.js (javascript, 212 lines)
+### integrations/deepseek-harness/plugin/index.js (javascript, 216 lines)
 
 - integrations/deepseek-harness/plugin/index.js:1 module integrations.deepseek-harness.plugin.index [heuristic]
 - integrations/deepseek-harness/plugin/index.js:25 variable integrations.deepseek-harness.plugin.index.inject `export const inject =` [heuristic]
@@ -137,9 +145,9 @@
 - integrations/deepseek-harness/plugin/index.js:70 function integrations.deepseek-harness.plugin.index.decorate `const decorate = (agent) =>` [heuristic]
 - integrations/deepseek-harness/plugin/index.js:85 variable integrations.deepseek-harness.plugin.index.disposers `const disposers =` [heuristic]
 - integrations/deepseek-harness/plugin/index.js:86 variable integrations.deepseek-harness.plugin.index.toolCount `let toolCount =` [heuristic]
-- ... 10 more symbols in this file
+- ... 11 more symbols in this file
 
-### integrations/deepseek-harness/plugin/lib/bridge.js (javascript, 650 lines)
+### integrations/deepseek-harness/plugin/lib/bridge.js (javascript, 651 lines)
 
 - integrations/deepseek-harness/plugin/lib/bridge.js:1 module integrations.deepseek-harness.plugin.lib.bridge [heuristic]
 - integrations/deepseek-harness/plugin/lib/bridge.js:31 constant integrations.deepseek-harness.plugin.lib.bridge.ENGINE_MODULE `export const ENGINE_MODULE =` [heuristic]
@@ -167,7 +175,7 @@
 - integrations/deepseek-harness/plugin/lib/config.js:58 constant integrations.deepseek-harness.plugin.lib.config.DATA_DIR_NAME `export const DATA_DIR_NAME =` [heuristic]
 - ... 27 more symbols in this file
 
-### integrations/deepseek-harness/plugin/lib/panel.js (javascript, 523 lines)
+### integrations/deepseek-harness/plugin/lib/panel.js (javascript, 538 lines)
 
 - integrations/deepseek-harness/plugin/lib/panel.js:1 module integrations.deepseek-harness.plugin.lib.panel [heuristic]
 - integrations/deepseek-harness/plugin/lib/panel.js:27 constant integrations.deepseek-harness.plugin.lib.panel.REQUEST_HEADER `export const REQUEST_HEADER =` [heuristic]
@@ -176,6 +184,26 @@
 - integrations/deepseek-harness/plugin/lib/panel.js:33 constant integrations.deepseek-harness.plugin.lib.panel.GET `const GET =` [heuristic]
 - integrations/deepseek-harness/plugin/lib/panel.js:34 constant integrations.deepseek-harness.plugin.lib.panel.POST `const POST =` [heuristic]
 - integrations/deepseek-harness/plugin/lib/panel.js:35 constant integrations.deepseek-harness.plugin.lib.panel.MAX_QUERY_CHARS `const MAX_QUERY_CHARS =` [heuristic]
-- integrations/deepseek-harness/plugin/lib/panel.js:36 constant integrations.deepseek-harness.plugin.lib.panel.GIT_TIMEOUT_MS `const GIT_TIMEOUT_MS =` [heuristic]
-- integrations/deepseek-harness/plugin/lib/panel.js:41 constant integrations.deepseek-harness.plugin.lib.panel.ROUTES `export const ROUTES =` [heuristic]
 - ... truncated: document size bound reached.
+
+## Project graph
+
+Top-level directories and files with resolved imports between them.
+Showing 10 of 10 top-level nodes.
+The [saved graph](graph.snapshot.json) includes the full directory, file, and symbol data.
+
+```mermaid
+flowchart LR
+    n0["bench"]
+    n1["docs"]
+    n2["integrations"]
+    n3["scripts"]
+    n4["src"]
+    n5["tests"]
+    n6["AGENTS.md"]
+    n7["CONTRIBUTING.md"]
+    n8["README.md"]
+    n9["pyproject.toml"]
+    n3 --> n4
+    n5 --> n4
+```

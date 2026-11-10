@@ -196,6 +196,7 @@
      */
     function apply(ctx) {
       if (!ctx || typeof ctx !== "object") return
+      try { ensureGlobalStyles() } catch (error) { /* styles are best effort */ }
       try {
         contributeLocale(ctx)
       } catch (error) {
@@ -305,6 +306,17 @@
       gitFactsOf: gitFactsOf,
       selectRecentSession: selectRecentSession,
       viewById: viewById,
+      /* graph explorer models */
+      graphNodeRows: graphNodeRows,
+      graphEdgeRows: graphEdgeRows,
+      graphNodeTone: graphNodeTone,
+      graphEdgeTone: graphEdgeTone,
+      graphVisibleEdges: graphVisibleEdges,
+      graphDegrees: graphDegrees,
+      graphNodeMatches: graphNodeMatches,
+      graphMatchMap: graphMatchMap,
+      graphLayout: graphLayout,
+      graphEdgeGeometry: graphEdgeGeometry,
       /* components (identity assertions in the headless suite) */
       components: {
         Panel: Panel,

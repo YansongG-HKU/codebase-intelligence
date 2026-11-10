@@ -339,6 +339,286 @@
     }
 
     /* ------------------------------------------------------------------ */
+    /* Graph explorer                                                     */
+    /* ------------------------------------------------------------------ */
+
+    const GRAPH_NODE_WIDTH = 184
+    const GRAPH_NODE_HEIGHT = 54
+    const GRAPH_COLUMN_GAP = 54
+    const GRAPH_ROW_GAP = 26
+    const GRAPH_PADDING = 28
+    const GRAPH_KIND_ORDER = { dir: 0, file: 1, symbol: 2, unresolved: 3 }
+
+    function graphNodeRows(nodes) {
+      const rows = []
+      const seen = Object.create(null)
+      safeArray(nodes).forEach(function (node, index) {
+        if (!isObject(node)) return
+        const id = toText(node.id)
+        if (!id || seen[id]) return
+        seen[id] = true
+        const kind = GRAPH_KIND_ORDER[toText(node.kind)] === undefined ? "file" : toText(node.kind)
+        rows.push({
+          key: id,
+          id: id,
+          label: toText(node.label) || id,
+          kind: kind,
+          path: toText(node.path),
+          symbolKind: toText(node.symbolKind),
+          line: toNumber(node.line, 0),
+          side: ["focus", "in", "out", "both"].indexOf(toText(node.side)) >= 0 ? toText(node.side) : "",
+          index: index,
+        })
+      })
+      return rows
+    }
+
+    function graphEdgeRows(edges) {
+      return safeArray(edges).map(function (edge, index) {
+        const sites = []
+        const seenSites = Object.create(null)
+        safeArray(isObject(edge) ? edge.sites : []).some(function (span) {
+          const path = toText(span && span.path)
+          const startLine = toNumber(span && span.startLine, 1)
+          const key = path + ":" + startLine
+          if (!path || seenSites[key]) return false
+          seenSites[key] = true
+          sites.push({
+            path: path,
+            startLine: startLine,
+            startColumn: toNumber(span && span.startColumn, 0),
+            endLine: toNumber(span && span.endLine, null),
+            endColumn: toNumber(span && span.endColumn, null),
+          })
+          return sites.length >= 3
+        })
+        return {
+          key: toText(edge && edge.from) + "\u0000" + toText(edge && edge.to) + "\u0000" + index,
+          from: toText(edge && edge.from),
+          to: toText(edge && edge.to),
+          type: toText(edge && edge.type),
+          status: toText(edge && edge.status) || "unresolved",
+          evidence: toText(edge && edge.evidence) || "heuristic",
+          count: Math.max(1, toNumber(edge && edge.count, 1)),
+          sites: sites,
+        }
+      })
+    }
+
+    function graphNodeTone(node) {
+      const kind = toText(node && node.kind)
+      return GRAPH_KIND_ORDER[kind] === undefined ? "file" : kind
+    }
+
+    function graphEdgeTone(edge) {
+      const status = toText(edge && edge.status)
+      const evidence = toText(edge && edge.evidence)
+      if (status === "resolved" && evidence !== "heuristic") return "resolved"
+      if (evidence === "heuristic") return "heuristic"
+      return "unresolved"
+    }
+
+    function graphVisibleEdges(edges, options) {
+      const value = isObject(options) ? options : {}
+      const relation = toText(value.relation)
+      const showUnresolved = value.showUnresolved !== false
+      const query = toText(value.query).toLowerCase()
+      const matches = value.matches
+      return safeArray(edges).filter(function (edge) {
+        if (!isObject(edge) || !toText(edge.from) || !toText(edge.to)) return false
+        if (!showUnresolved && graphEdgeTone(edge) !== "resolved") return false
+        if (relation && toText(edge.type) !== relation) return false
+        if (query && matches && (!matches[toText(edge.from)] && !matches[toText(edge.to)])) return false
+        return true
+      })
+    }
+
+    function graphDegrees(nodes, edges) {
+      const degrees = Object.create(null)
+      safeArray(nodes).forEach(function (node) {
+        if (node && toText(node.id)) degrees[toText(node.id)] = { in: 0, out: 0, total: 0 }
+      })
+      safeArray(edges).forEach(function (edge) {
+        if (!isObject(edge)) return
+        const from = degrees[toText(edge.from)]
+        const to = degrees[toText(edge.to)]
+        if (from) { from.out += 1; from.total += 1 }
+        if (to) { to.in += 1; to.total += 1 }
+      })
+      return degrees
+    }
+
+    function graphNodeMatches(node, query) {
+      const value = toText(query).trim().toLowerCase()
+      if (!value) return true
+      const haystack = [
+        toText(node && node.label),
+        toText(node && node.path),
+        toText(node && node.kind),
+        toText(node && node.symbolKind),
+      ].join("\n").toLowerCase()
+      return haystack.indexOf(value) >= 0
+    }
+
+    function graphMatchMap(nodes, query) {
+      const matches = Object.create(null)
+      safeArray(nodes).forEach(function (node) {
+        if (node && toText(node.id) && graphNodeMatches(node, query)) matches[toText(node.id)] = true
+      })
+      return matches
+    }
+
+    /** Deterministic, bounded layout: focus gets in/out columns; otherwise DAG
+     * columns when the slice has a small number of layers, else a kind-ordered
+     * grid. Returns absolute positions for node cards plus the canvas size. */
+    function graphLayout(nodes, edges) {
+      const list = graphNodeRows(nodes)
+      const edgeList = graphEdgeRows(edges).filter(function (edge) {
+        return edge.from !== edge.to
+      })
+      const positions = Object.create(null)
+      const byId = Object.create(null)
+      list.forEach(function (node) { byId[node.id] = node })
+      const focus = list.filter(function (node) { return node.side === "focus" })[0]
+      let width = 0
+      let height = 0
+      let mode = "grid"
+      if (focus) {
+        mode = "focus"
+        const incoming = []
+        const outgoing = []
+        list.forEach(function (node) {
+          if (node.id === focus.id) return
+          if (node.side === "in") incoming.push(node)
+          else if (node.side === "out" || node.side === "both") outgoing.push(node)
+          else outgoing.push(node)
+        })
+        const columns = [incoming, [focus], outgoing]
+        const rows = Math.max(1, incoming.length, outgoing.length)
+        const columnWidth = GRAPH_NODE_WIDTH + GRAPH_COLUMN_GAP
+        width = GRAPH_PADDING * 2 + (columns.length - 1) * columnWidth + GRAPH_NODE_WIDTH
+        height = GRAPH_PADDING * 2 + rows * GRAPH_NODE_HEIGHT + Math.max(0, rows - 1) * GRAPH_ROW_GAP
+        columns.forEach(function (column, columnIndex) {
+          column.forEach(function (node, rowIndex) {
+            const centered = columnIndex === 1 && column.length === 1
+            positions[node.id] = {
+              x: GRAPH_PADDING + columnIndex * columnWidth,
+              y: centered ? Math.round((height - GRAPH_NODE_HEIGHT) / 2) : GRAPH_PADDING + rowIndex * (GRAPH_NODE_HEIGHT + GRAPH_ROW_GAP),
+            }
+          })
+        })
+      } else if (edgeList.length > 0) {
+        const indegree = Object.create(null)
+        const adjacency = Object.create(null)
+        list.forEach(function (node) { indegree[node.id] = 0; adjacency[node.id] = [] })
+        edgeList.forEach(function (edge) {
+          if (!byId[edge.from] || !byId[edge.to] || edge.from === edge.to) return
+          indegree[edge.to] += 1
+          adjacency[edge.from].push(edge.to)
+        })
+        const sortKey = function (id) {
+          const node = byId[id]
+          return (GRAPH_KIND_ORDER[node.kind] * 100000) + node.label.toLowerCase() + "\u0000" + id
+        }
+        const ready = list.filter(function (node) { return indegree[node.id] === 0 }).map(function (node) { return node.id }).sort(function (a, b) { return sortKey(a) < sortKey(b) ? -1 : sortKey(a) > sortKey(b) ? 1 : 0 })
+        const level = Object.create(null)
+        list.forEach(function (node) { level[node.id] = -1 })
+        ready.forEach(function (id) { level[id] = 0 })
+        const queue = ready.slice()
+        while (queue.length > 0) {
+          const id = queue.shift()
+          adjacency[id].forEach(function (target) {
+            level[target] = Math.max(level[target], level[id] + 1)
+            indegree[target] -= 1
+            if (indegree[target] === 0) queue.push(target)
+          })
+        }
+        let maxLevel = -1
+        list.forEach(function (node) { if (level[node.id] >= 0) maxLevel = Math.max(maxLevel, level[node.id]) })
+        list.forEach(function (node) { if (level[node.id] < 0) level[node.id] = maxLevel + 1 })
+        const layers = []
+        list.forEach(function (node) {
+          const index = level[node.id]
+          if (!layers[index]) layers[index] = []
+          layers[index].push(node)
+        })
+        const sorted = layers.filter(Boolean).map(function (layer) {
+          return layer.slice().sort(function (a, b) { return sortKey(a.id) < sortKey(b.id) ? -1 : sortKey(a.id) > sortKey(b.id) ? 1 : 0 })
+        })
+        const rowMax = sorted.reduce(function (best, layer) { return Math.max(best, layer.length) }, 0)
+        if (sorted.length > 0 && sorted.length <= 6 && rowMax <= 16) {
+          mode = "layered"
+          const columnWidth = GRAPH_NODE_WIDTH + GRAPH_COLUMN_GAP
+          width = GRAPH_PADDING * 2 + (sorted.length - 1) * columnWidth + GRAPH_NODE_WIDTH
+          height = GRAPH_PADDING * 2 + rowMax * GRAPH_NODE_HEIGHT + Math.max(0, rowMax - 1) * GRAPH_ROW_GAP
+          sorted.forEach(function (layer, columnIndex) {
+            const offset = Math.round((rowMax - layer.length) * (GRAPH_NODE_HEIGHT + GRAPH_ROW_GAP) / 2)
+            layer.forEach(function (node, rowIndex) {
+              positions[node.id] = {
+                x: GRAPH_PADDING + columnIndex * columnWidth,
+                y: GRAPH_PADDING + offset + rowIndex * (GRAPH_NODE_HEIGHT + GRAPH_ROW_GAP),
+              }
+            })
+          })
+        }
+      }
+      if (mode === "grid") {
+        const columns = list.length > 12 ? 3 : list.length > 4 ? 2 : 1
+        const sorted = list.slice().sort(function (a, b) {
+          const order = GRAPH_KIND_ORDER[a.kind] - GRAPH_KIND_ORDER[b.kind]
+          if (order !== 0) return order
+          if (a.label.toLowerCase() < b.label.toLowerCase()) return -1
+          if (a.label.toLowerCase() > b.label.toLowerCase()) return 1
+          return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+        })
+        const rows = Math.ceil(sorted.length / columns)
+        const columnWidth = GRAPH_NODE_WIDTH + GRAPH_COLUMN_GAP
+        width = GRAPH_PADDING * 2 + (columns - 1) * columnWidth + GRAPH_NODE_WIDTH
+        height = GRAPH_PADDING * 2 + Math.max(1, rows) * GRAPH_NODE_HEIGHT + Math.max(0, rows - 1) * GRAPH_ROW_GAP
+        sorted.forEach(function (node, index) {
+          positions[node.id] = {
+            x: GRAPH_PADDING + (index % columns) * columnWidth,
+            y: GRAPH_PADDING + Math.floor(index / columns) * (GRAPH_NODE_HEIGHT + GRAPH_ROW_GAP),
+          }
+        })
+      }
+      return {
+        mode: mode,
+        nodes: list,
+        positions: positions,
+        width: Math.max(width, GRAPH_NODE_WIDTH + GRAPH_PADDING * 2),
+        height: Math.max(height, GRAPH_NODE_HEIGHT + GRAPH_PADDING * 2),
+      }
+    }
+
+    /** Cubic edge route between two node cards; returns the path and its midpoint. */
+    function graphEdgeGeometry(from, to) {
+      const same = from && to && from.x === to.x && from.y === to.y
+      if (same) {
+        const x = from.x + GRAPH_NODE_WIDTH
+        const y = from.y + 18
+        return {
+          path: "M " + x + " " + y + " C " + (x + 54) + " " + (y - 34) + " " + (x + 54) + " " + (y + 34) + " " + x + " " + (y + 18),
+          labelX: x + 40,
+          labelY: y,
+        }
+      }
+      const forward = to.x >= from.x
+      const sx = forward ? from.x + GRAPH_NODE_WIDTH : from.x
+      const tx = forward ? to.x : to.x + GRAPH_NODE_WIDTH
+      const sy = from.y + GRAPH_NODE_HEIGHT / 2
+      const ty = to.y + GRAPH_NODE_HEIGHT / 2
+      const bend = Math.max(36, Math.abs(tx - sx) * 0.45)
+      const c1 = forward ? sx + bend : sx - bend
+      const c2 = forward ? tx - bend : tx + bend
+      return {
+        path: "M " + sx + " " + sy + " C " + c1 + " " + sy + " " + c2 + " " + ty + " " + tx + " " + ty,
+        labelX: (sx + tx) / 2,
+        labelY: (sy + ty) / 2,
+      }
+    }
+
+    /* ------------------------------------------------------------------ */
     /* Export plan                                                        */
     /* ------------------------------------------------------------------ */
 
@@ -365,7 +645,7 @@
     }
 
     /**
-     * Map the preview/write `files` list onto the fixed seven-file checklist,
+     * Map the preview/write `files` list onto the fixed eight-file checklist,
      * matching by basename (paths may carry the outDir prefix).
      */
     function exportRowsFor(files) {

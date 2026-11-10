@@ -6,20 +6,20 @@ context: read it, do not edit it by hand.
 
 ## Snapshot
 
-- index fingerprint: `be2be6047f66ea90f433920a49989c4279f0c9ce5fe9d65707ff7c1b2bc179d3`
+- index fingerprint: `24b88b703fe03a72a3695c9be54da6d9dd33fdea5cab4fa957881744d8ce70ec`
 - index schema: `1` (engine `0.1.0`)
-- policy fingerprint: `c52dd0fc42cf986b2addbc195dc13b50351a5f70094f53cae5ada8bfbc208326`
-- files: 164
-- symbols: 3365
-- relations: 4900
+- policy fingerprint: `a8bce9a5ccfe9fd1075f9379011ac94db2551e270ea420e55c54988988f4cac7`
+- files: 169
+- symbols: 3830
+- relations: 5430
 - parser issues: 1
 - generated directory: `docs/codebase-intelligence` (excluded from the next scan)
 
 ## Languages
 
-- python: 83 files, 1537 symbols
-- javascript: 34 files, 1810 symbols
-- markdown: 26 files, 0 symbols
+- python: 86 files, 1569 symbols
+- javascript: 34 files, 2243 symbols
+- markdown: 28 files, 0 symbols
 - other: 8 files, 0 symbols
 - json: 5 files, 0 symbols
 - typescript: 4 files, 13 symbols
@@ -32,7 +32,7 @@ context: read it, do not edit it by hand.
 - `integrations/deepseek-harness/plugin/verify/bridge-smoke.mjs:73` function integrations.deepseek-harness.plugin.verify.bridge-smoke.main
 - `integrations/deepseek-harness/plugin/verify/harness.mjs:1071` function integrations.deepseek-harness.plugin.verify.harness.main
 - `scripts/bench.py:234` function scripts.bench.main
-- `src/codebase_intelligence/cli.py:501` function src.codebase_intelligence.cli.main
+- `src/codebase_intelligence/cli.py:541` function src.codebase_intelligence.cli.main
 - `src/codebase_intelligence/mcp/__main__.py:13` function src.codebase_intelligence.mcp.__main__.main
 - `src/codebase_intelligence/mcp/server.py:1` file entry point
 - `tests/fixtures/cli/demo_repo/src/demo/core.py:29` function tests.fixtures.cli.demo_repo.src.demo.core.main
@@ -43,31 +43,31 @@ context: read it, do not edit it by hand.
 
 ## Top modules by resolved in-degree
 
-- `src/codebase_intelligence/util.py` - imported by 32 file(s), imports 0
-- `src/codebase_intelligence/model/__init__.py` - imported by 27 file(s), imports 1
-- `src/codebase_intelligence/errors.py` - imported by 13 file(s), imports 0
+- `src/codebase_intelligence/util.py` - imported by 34 file(s), imports 0
+- `src/codebase_intelligence/model/__init__.py` - imported by 30 file(s), imports 1
+- `src/codebase_intelligence/errors.py` - imported by 16 file(s), imports 0
+- `src/codebase_intelligence/__init__.py` - imported by 11 file(s), imports 1
 - `integrations/deepseek-harness/plugin/lib/config.js` - imported by 10 file(s), imports 0
-- `src/codebase_intelligence/__init__.py` - imported by 9 file(s), imports 1
 - `integrations/deepseek-harness/plugin/lib/util.js` - imported by 8 file(s), imports 0
+- `src/codebase_intelligence/scanner/__init__.py` - imported by 6 file(s), imports 2
 - `src/codebase_intelligence/mcp/server.py` - imported by 5 file(s), imports 3
-- `src/codebase_intelligence/scanner/__init__.py` - imported by 5 file(s), imports 2
+- `integrations/deepseek-harness/plugin/test/unit/_helpers.mjs` - imported by 5 file(s), imports 1
 - `src/codebase_intelligence/parsers/__init__.py` - imported by 4 file(s), imports 5
-- `src/codebase_intelligence/retrieval/budget.py` - imported by 4 file(s), imports 2
-- ... 45 more module(s)
+- ... 48 more module(s)
 
 ## Files with the most declarations
 
-- `integrations/deepseek-harness/plugin/client.js` - 442 declaration(s), 3872 line(s)
+- `integrations/deepseek-harness/plugin/client.js` - 649 declaration(s), 4849 line(s)
+- `integrations/deepseek-harness/plugin/src/client/04-panel.js` - 271 declaration(s), 1873 line(s)
 - `integrations/deepseek-harness/plugin/verify/harness.mjs` - 205 declaration(s), 1125 line(s)
-- `integrations/deepseek-harness/plugin/src/client/04-panel.js` - 152 declaration(s), 1355 line(s)
+- `integrations/deepseek-harness/plugin/src/client/03-models.js` - 172 declaration(s), 729 line(s)
 - `src/codebase_intelligence/model/entities.py` - 135 declaration(s), 478 line(s)
-- `integrations/deepseek-harness/plugin/src/client/00-head.js` - 115 declaration(s), 687 line(s)
+- `integrations/deepseek-harness/plugin/src/client/00-head.js` - 115 declaration(s), 759 line(s)
 - `src/codebase_intelligence/parsers/heuristic.py` - 108 declaration(s), 1071 line(s)
-- `src/codebase_intelligence/retrieval/rank.py` - 103 declaration(s), 744 line(s)
-- `integrations/deepseek-harness/plugin/lib/service.js` - 98 declaration(s), 560 line(s)
-- `integrations/deepseek-harness/plugin/lib/bridge.js` - 97 declaration(s), 650 line(s)
-- `integrations/deepseek-harness/plugin/src/client/03-models.js` - 84 declaration(s), 449 line(s)
-- ... 112 more file(s)
+- `src/codebase_intelligence/retrieval/rank.py` - 105 declaration(s), 753 line(s)
+- `integrations/deepseek-harness/plugin/lib/service.js` - 105 declaration(s), 560 line(s)
+- `integrations/deepseek-harness/plugin/lib/bridge.js` - 97 declaration(s), 651 line(s)
+- ... 115 more file(s)
 
 ## How to query this codebase
 
@@ -84,7 +84,7 @@ stay consistent:
 - report: `cbi report . --out ARCHITECTURE.md`
 
 The rest of the bundle next to this file: `overview.json` and
-`repo-map.json` (canonical JSON), `ARCHITECTURE.generated.md`,
+`repo-map.json` (canonical JSON), `graph.snapshot.json`, `ARCHITECTURE.generated.md`,
 `REPO_MAP.md`, `dependencies.mmd` (Mermaid) and `manifest.json`
 (sha256 of every generated file; written last).
 

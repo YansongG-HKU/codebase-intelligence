@@ -114,7 +114,7 @@ export function candidateList({ cfg = {}, env = process.env, home = homedir() } 
 /**
  * `PYTHONPATH` value for the engine: extra test/dev paths, then the source
  * checkout's `src/` (unless `config.corePath` overrides it), then whatever the
- * host already had. Empty string means "leave `PYTHONPATH` alone" (the engine
+ * host already had. Empty string means "clear `PYTHONPATH`" (the engine
  * is a pip-installed package).
  *
  * @param {{corePath?: string | null}} cfg resolved config
@@ -307,7 +307,7 @@ export function createBridge({ cfg = {}, log = null, candidates = null, env = pr
     const pythonPath = pythonPathFor(cfg, env)
     const attempts = []
     for (const candidate of list) {
-      const result = await runCapture(candidate.command, [...candidate.args, '-c', PROBE_SNIPPET], {
+      const result = await runCapture(candidate.command, [...candidate.args, '-P', '-c', PROBE_SNIPPET], {
         cwd: PLUGIN_DIR,
         env: spawnEnv(pythonPath),
         timeoutMs: PROBE_TIMEOUT_MS,
@@ -376,8 +376,8 @@ export function createBridge({ cfg = {}, log = null, candidates = null, env = pr
 
       const argv = buildEngineArgs({ toolKey, root, cacheDir, cfg, args: request.args ?? {}, maxTokens: request.maxTokens })
       const timeoutMs = Number.isInteger(cfg.timeoutMs) ? cfg.timeoutMs : DEFAULT_TIMEOUT_MS
-      const result = await runCapture(ready.command, [...ready.args, '-m', ENGINE_MODULE, ...argv], {
-        cwd: root,
+      const result = await runCapture(ready.command, [...ready.args, '-P', '-m', ENGINE_MODULE, ...argv], {
+        cwd: PLUGIN_DIR,
         env: spawnEnv(pythonPathFor(cfg, env)),
         timeoutMs,
         signal: request.signal ?? null,
@@ -454,8 +454,8 @@ export function createBridge({ cfg = {}, log = null, candidates = null, env = pr
         : Number.isInteger(cfg.timeoutMs)
           ? cfg.timeoutMs
           : DEFAULT_TIMEOUT_MS
-      const result = await runCapture(ready.command, [...ready.args, '-m', ENGINE_MODULE, ...argv], {
-        cwd: root,
+      const result = await runCapture(ready.command, [...ready.args, '-P', '-m', ENGINE_MODULE, ...argv], {
+        cwd: PLUGIN_DIR,
         env: spawnEnv(pythonPathFor(cfg, env)),
         timeoutMs,
         signal: request.signal ?? null,
@@ -575,7 +575,8 @@ function tryParseObject(text) {
 function spawnEnv(pythonPath) {
   const childEnv = { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1', PYTHONUNBUFFERED: '1' }
   delete childEnv.ELECTRON_RUN_AS_NODE
-  if (typeof pythonPath === 'string' && pythonPath.length > 0) childEnv.PYTHONPATH = pythonPath
+  if (pythonPath) childEnv.PYTHONPATH = pythonPath
+  else delete childEnv.PYTHONPATH
   return childEnv
 }
 

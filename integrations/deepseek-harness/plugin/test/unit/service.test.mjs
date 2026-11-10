@@ -232,15 +232,50 @@ test('normalizeRepoPath accepts POSIX and Windows spellings, rejects escapes', (
   }
 })
 
-test('workspaceStamp is deterministic and changes with filesystem state', (t) => {
+test('workspaceStamp is deterministic and changes with filesystem state', async (t) => {
   const repo = fakeWorkspace(t)
-  const first = workspaceStamp(repo)
+  const first = await workspaceStamp(repo)
   assert.match(first, /^[0-9a-f]{16}$/)
-  assert.equal(workspaceStamp(repo), first)
+  assert.equal(await workspaceStamp(repo), first)
   writeFileSync(join(repo, 'second.py'), 'X = 2\n', 'utf8')
-  const second = workspaceStamp(repo)
+  const second = await workspaceStamp(repo)
   assert.notEqual(second, first)
-  assert.equal(workspaceStamp(repo), second)
+  assert.equal(await workspaceStamp(repo), second)
   // Backslashes in `relative()` must not leak into the stamp on Windows.
   assert.equal(first.includes(sep), false)
+})
+
+
+test('deep edits bypass the incomplete workspace memo and canceled calls do not reach the bridge', async (t) => {
+  const { service, agent, bridge, repo } = setup(t)
+  const nested = join(repo, ...Array(8).fill('nested'))
+  mkdirSync(nested, { recursive: true })
+  const source = join(nested, 'deep.py')
+  writeFileSync(source, 'x = 1')
+  assert.equal(await workspaceStamp(repo), null)
+  assert.equal((await service.call('overview', {}, { agent })).ok, true)
+  writeFileSync(source, 'x = 200')
+  assert.equal((await service.call('overview', {}, { agent })).ok, true)
+  assert.equal(bridge.calls.length, 2)
+  const signal = AbortSignal.abort()
+  assert.equal((await service.call('overview', {}, { agent, signal })).code, 'canceled')
+  assert.equal(bridge.calls.length, 2)
+})
+
+test('panel and export reject unknown and disposed session IDs', async (t) => {
+  const { service, agent, bridge, scratch, repo } = setup(t)
+  const other = join(scratch, 'other')
+  mkdirSync(other)
+  const second = fakeAgent({ id: 'second', cwd: other })
+  service.registerSession(agent)
+  service.registerSession(second)
+  assert.equal(service.resolveSessionRoot(), other)
+  assert.equal(service.resolveSessionRoot(agent.session.id), repo)
+  assert.equal((await service.panelCall('overview', {}, { sessionId: 'unknown' })).code, 'workspace_unavailable')
+  service.unregisterSession(second.id)
+  assert.equal(service.resolveSessionRoot(), repo)
+  assert.equal((await service.exportWrite({ sessionId: second.session.id })).code, 'workspace_unavailable')
+  assert.equal(bridge.calls.length, 0)
+  service.clearSessions()
+  assert.equal(service.resolveSessionRoot(), null)
 })

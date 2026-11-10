@@ -42,6 +42,7 @@ export const ROUTES = Object.freeze([
   { route: 'state', methods: Object.freeze([GET]), pattern: /^\/dsh-codebase-intelligence\/api\/state$/u },
   { route: 'overview', methods: Object.freeze([GET]), pattern: /^\/dsh-codebase-intelligence\/api\/overview$/u },
   { route: 'map', methods: Object.freeze([GET]), pattern: /^\/dsh-codebase-intelligence\/api\/map$/u },
+  { route: 'graph', methods: Object.freeze([GET, POST]), pattern: /^\/dsh-codebase-intelligence\/api\/graph$/u },
   { route: 'search', methods: Object.freeze([GET]), pattern: /^\/dsh-codebase-intelligence\/api\/search$/u },
   { route: 'dependencies', methods: Object.freeze([GET]), pattern: /^\/dsh-codebase-intelligence\/api\/dependencies$/u },
   { route: 'context', methods: Object.freeze([GET]), pattern: /^\/dsh-codebase-intelligence\/api\/context$/u },
@@ -63,6 +64,8 @@ export function statusForCode(code) {
       return 404
     case 'method_not_allowed':
       return 405
+    case 'stale_graph':
+      return 409
     case 'too_large':
       return 413
     case 'workspace_unavailable':
@@ -240,7 +243,7 @@ function runGit(root, args, timeoutMs = GIT_TIMEOUT_MS) {
     try {
       execFile(
         'git',
-        args,
+        ['--no-optional-locks', '--literal-pathspecs', '-c', 'core.fsmonitor=false', ...args],
         { cwd: root, timeout: timeoutMs, windowsHide: true, maxBuffer: 64 * 1024, encoding: 'utf8' },
         (error, stdout, stderr) => {
           resolvePromise({ ok: !error, stdout: typeof stdout === 'string' ? stdout : '', stderr: typeof stderr === 'string' ? stderr : '' })
@@ -261,8 +264,12 @@ function runGit(root, args, timeoutMs = GIT_TIMEOUT_MS) {
  */
 export async function gitFacts(root, outDir) {
   const safeDir = typeof outDir === 'string' && outDir.length > 0 ? outDir : 'docs/codebase-intelligence'
-  const branch = await runGit(root, ['rev-parse', '--abbrev-ref', 'HEAD'])
-  const status = await runGit(root, ['status', '--porcelain', '--', safeDir])
+  const [symbolic, status] = await Promise.all([
+    runGit(root, ['symbolic-ref', '--quiet', '--short', 'HEAD']),
+    runGit(root, ['status', '--porcelain', '--', safeDir]),
+  ])
+  const branch = symbolic.ok ? symbolic : await runGit(root, ['rev-parse', '--short', 'HEAD'])
+  const canSuggestCommand = status.ok && /^[A-Za-z0-9_.][A-Za-z0-9_./-]*$/u.test(safeDir)
   const lines = status.ok
     ? status.stdout
         .split(/\r?\n/u)
@@ -271,11 +278,13 @@ export async function gitFacts(root, outDir) {
         .slice(0, 50)
     : []
   return {
-    available: branch.ok,
+    available: status.ok,
     branch: branch.ok ? branch.stdout.trim() || null : null,
     dirty: lines.length > 0,
     exportChanges: lines,
-    command: `git add ${safeDir} && git commit -m "docs: refresh codebase intelligence snapshot"`,
+    command: canSuggestCommand
+      ? `git add -- ${safeDir} && git commit --only -m "docs: refresh codebase intelligence snapshot" -- ${safeDir}`
+      : null,
   }
 }
 
@@ -370,6 +379,12 @@ export async function dispatch({ service, url, descriptor, method, body, options
         { maxTokens: readBudget(query.maxTokens, 'map'), focus: query.focus || undefined },
         sessionId,
       )
+    case 'graph': {
+      const result = method === POST
+        ? await service.panelGraph({}, { sessionId, refresh: true })
+        : await service.panelGraph(query, { sessionId })
+      return result.ok === true ? { ok: true, data: result.payload } : result
+    }
     case 'search':
       return panelTool(service, 'search', { query: query.query ?? '', maxTokens: readBudget(query.maxTokens, 'search') }, sessionId)
     case 'dependencies':

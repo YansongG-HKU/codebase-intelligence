@@ -324,6 +324,23 @@ test('right-sidebar services add the tab type, pane body and guide entry', () =>
   assert.deepEqual(host.ledger.opens, [['session-1', T.NS]], 'a missing session must not open anything')
 })
 
+test('the guide entry follows the native Start-row structure', () => {
+  const element = T.components.GuideEntryCard({
+    t: T.makeT('zh'),
+    title: '代码库情报',
+    description: '浏览仓库结构',
+    open: () => {},
+  })
+  assert.equal(element.type, 'button')
+  assert.equal(element.props.className, 'cbi-guide-entry')
+  const [icon, text] = element.props.children
+  assert.equal(icon.props.className, 'cbi-guide-icon')
+  assert.equal(text.props.className, 'cbi-guide-text')
+  assert.deepEqual(text.props.children.map((child) => child.props.className), ['cbi-guide-title', 'cbi-guide-desc'])
+  assert.deepEqual(text.props.children[0].props.children, ['代码库情报'])
+  assert.deepEqual(text.props.children[1].props.children, ['浏览仓库结构'])
+})
+
 test('activation degrades to the fallback panel when the services are absent', () => {
   const host = createFakeHost()
   assert.doesNotThrow(() => T.apply(host.ctx))
@@ -410,6 +427,16 @@ test('generated locale/*.json mirrors the embedded dictionaries', () => {
   assert.deepEqual(files, ['en.json', 'zh.json'])
 })
 
+test('export counters are total-driven instead of hardcoded', () => {
+  for (const locale of ['zh', 'en']) {
+    const dictionary = T.DICTIONARIES[locale]
+    for (const key of ['export.fileCount', 'export.writeConfirm']) {
+      assert.ok(dictionary[key].includes('{total}'), `${locale}:${key} must use {total}`)
+      assert.ok(!/\b7\b/u.test(dictionary[key]), `${locale}:${key} still hardcodes the old file count`)
+    }
+  }
+})
+
 test('every t() key referenced by the fragments exists in the dictionaries', () => {
   const sourceDir = join(pluginRoot, 'src', 'client')
   const zh = T.DICTIONARIES.zh
@@ -429,10 +456,66 @@ test('every t() key referenced by the fragments exists in the dictionaries', () 
   assert.deepEqual(missing, [])
 })
 
+test('graph models normalize, filter, and lay out a focused slice', () => {
+  const nodes = [
+    { id: 'sym:a', label: 'main', kind: 'symbol', path: 'a.py', symbolKind: 'function', line: 3, side: 'focus' },
+    { id: 'sym:b', label: 'helper', kind: 'symbol', path: 'a.py', symbolKind: 'function', line: 9, side: 'out' },
+    { id: 'file:a.py', label: 'a.py', kind: 'file', path: 'a.py', side: 'in' },
+    { id: 'unresolved:missing', label: 'missing', kind: 'unresolved', side: 'out' },
+  ]
+  const edges = [
+    { from: 'sym:a', to: 'sym:b', type: 'calls', status: 'resolved', evidence: 'resolver', count: 2, sites: [{ path: 'a.py', startLine: 3 }] },
+    { from: 'sym:a', to: 'unresolved:missing', type: 'references', status: 'unresolved', evidence: 'heuristic', count: 1 },
+  ]
+  const rows = T.graphNodeRows(nodes)
+  const edgeRows = T.graphEdgeRows(edges)
+  assert.equal(rows.length, 4)
+  assert.equal(edgeRows.length, 2)
+  assert.equal(edgeRows[0].count, 2)
+  assert.equal(T.graphEdgeTone(edgeRows[0]), 'resolved')
+  assert.equal(T.graphEdgeTone(edgeRows[1]), 'heuristic')
+  assert.equal(T.graphVisibleEdges(edgeRows, { showUnresolved: true }).length, 2)
+  assert.equal(T.graphVisibleEdges(edgeRows, { showUnresolved: false }).length, 1)
+  assert.equal(T.graphNodeMatches(rows[1], 'HELPER'), true)
+  assert.equal(T.graphNodeMatches(rows[2], 'a.py'), true)
+  const matches = T.graphMatchMap(rows, 'helper')
+  assert.ok(matches['sym:b'])
+  assert.equal(matches['file:a.py'], undefined)
+  const degrees = T.graphDegrees(rows, edgeRows)
+  assert.equal(degrees['sym:a'].out, 2)
+  assert.equal(degrees['sym:a'].in, 0)
+  const layout = T.graphLayout(rows, edgeRows)
+  assert.equal(layout.mode, 'focus')
+  assert.ok(layout.positions['sym:a'])
+  assert.ok(layout.positions['sym:b'].x > layout.positions['sym:a'].x)
+  assert.ok(layout.positions['file:a.py'].x < layout.positions['sym:a'].x)
+  assert.deepEqual(T.graphLayout(rows, edgeRows).positions, layout.positions)
+  const geometry = T.graphEdgeGeometry(layout.positions['sym:a'], layout.positions['sym:b'])
+  assert.ok(geometry.path.startsWith('M '))
+  assert.ok(geometry.labelX > 0 && geometry.labelY > 0)
+})
+
+test('graph layout falls back to deterministic layers and a grid', () => {
+  const nodes = [
+    { id: 'dir:a', label: 'a', kind: 'dir' },
+    { id: 'file:x', label: 'x', kind: 'file' },
+    { id: 'file:y', label: 'y', kind: 'file' },
+  ]
+  const grid = T.graphLayout(nodes, [])
+  assert.equal(grid.mode, 'grid')
+  assert.ok(grid.positions['dir:a'])
+  assert.ok(grid.width > 0 && grid.height > 0)
+  const layered = T.graphLayout(nodes, [
+    { from: 'file:x', to: 'file:y', type: 'imports', status: 'resolved', evidence: 'resolver', count: 1 },
+  ])
+  assert.equal(layered.mode, 'layered')
+  assert.ok(layered.positions['file:x'].x < layered.positions['file:y'].x)
+})
+
 test('views and export files follow the contract order', () => {
   assert.deepEqual(
     T.VIEWS.map((view) => view.id),
-    ['overview', 'map', 'search', 'dependencies', 'context', 'export'],
+    ['overview', 'map', 'graph', 'search', 'dependencies', 'context', 'export'],
   )
   for (const view of T.VIEWS) {
     assert.ok(Object.prototype.hasOwnProperty.call(T.DICTIONARIES.zh, view.labelKey), `missing ${view.labelKey}`)
@@ -441,13 +524,14 @@ test('views and export files follow the contract order', () => {
   assert.deepEqual(T.EXPORT_FILES, [
     'overview.json',
     'repo-map.json',
+    'graph.snapshot.json',
     'ARCHITECTURE.generated.md',
     'REPO_MAP.md',
     'dependencies.mmd',
     'CONTEXT_BRIEF.md',
     'manifest.json',
   ])
-  assert.equal(T.EXPORT_FILES.length, 7)
+  assert.equal(T.EXPORT_FILES.length, 8)
   assert.equal(T.MAX_ROWS, 50)
   assert.equal(T.viewById('search').id, 'search')
   assert.equal(T.viewById('nope').id, 'overview')
@@ -674,14 +758,14 @@ test('map/search/dependency/context payload rows are derived defensively', () =>
   assert.deepEqual(T.splitCommaList('', 50), [])
 })
 
-test('export checklist maps the fixed seven files onto preview statuses', () => {
+test('export checklist maps the fixed eight files onto preview statuses', () => {
   const rows = T.exportRowsFor([
     { path: 'docs/codebase-intelligence/overview.json', status: 'created', bytes: 1024 },
     { path: 'docs/codebase-intelligence/repo-map.json', status: 'unchanged', bytes: 20 },
     { path: 'docs/codebase-intelligence/ARCHITECTURE.generated.md', status: 'updated', bytes: 2048 },
     { path: 'docs/codebase-intelligence/manifest.json', status: 'unchanged', bytes: 512 },
   ])
-  assert.equal(rows.length, 7)
+  assert.equal(rows.length, T.EXPORT_FILES.length)
   assert.deepEqual(
     rows.map((row) => row.name),
     T.EXPORT_FILES,
@@ -693,7 +777,7 @@ test('export checklist maps the fixed seven files onto preview statuses', () => 
   assert.equal(byName['REPO_MAP.md'].status, 'missing')
   assert.equal(byName['overview.json'].bytes, 1024)
   const counts = T.exportCounts(rows)
-  assert.deepEqual(counts, { created: 1, updated: 1, unchanged: 2, missing: 3, total: 7 })
+  assert.deepEqual(counts, { created: 1, updated: 1, unchanged: 2, missing: 4, total: 8 })
   assert.equal(T.exportStatusTone('created'), 'ok')
   assert.equal(T.exportStatusTone('updated'), 'warn')
   assert.equal(T.exportStatusTone('unchanged'), 'muted')
@@ -745,7 +829,7 @@ test('git facts and bounded helpers are deterministic', () => {
 /* Artifact freshness and size                                            */
 /* ---------------------------------------------------------------------- */
 
-test('the shipped bundle stays under the 150 KiB contract cap', () => {
+test('the shipped bundle stays under the 224 KiB contract cap', () => {
   const bytes = Buffer.byteLength(clientSource, 'utf8')
   assert.ok(bytes <= T.MAX_BUNDLE_BYTES, `client.js is ${bytes} bytes (> ${T.MAX_BUNDLE_BYTES})`)
   assert.ok(clientSource.includes('window.__ModuleLoader__.load({'))

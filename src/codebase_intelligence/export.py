@@ -11,7 +11,8 @@ snapshot and writes it into the generation directory
 ``REPO_MAP.md``               ``reporting.markdown_map``
 ``dependencies.mmd``          Mermaid ``graph LR`` of resolved file imports
 ``CONTEXT_BRIEF.md``          agent/human orientation brief
-``manifest.json``             sha256 of the six files above (written last)
+``graph.snapshot.json``        layered graph with evidence locations
+``manifest.json``             sha256 of the seven content files above (written last)
 ============================  =================================================
 
 Contract properties enforced here:
@@ -32,10 +33,10 @@ Contract properties enforced here:
   are not touched at all (mtime is preserved).
 * **``--check``.**  Renders the full bundle but writes nothing and reports the
   per-file plan (``created``/``updated``/``unchanged``).  The CLI exits ``0``
-  only when all seven files exist with identical bytes.
+  only when all eight files exist with identical bytes.
 * **Strict path safety.**  ``--out`` must be a repository-relative directory
   inside the resolved workspace root: absolute paths, ``..`` segments, drive
-  letters and symlinked components are refused, only the seven fixed file names
+  letters and symlinked components are refused, only the eight fixed file names
   are ever written, and nothing outside ``outDir`` is touched or deleted.
 
 All generated paths are repository-relative POSIX paths.
@@ -48,10 +49,12 @@ import stat
 import tempfile
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Mapping, Sequence
 
 from codebase_intelligence import api
 from codebase_intelligence.errors import OutsideRootError, RepositoryError, UsageError
+from codebase_intelligence.graph.explorer import graph_view
+from codebase_intelligence.graph.snapshot import GRAPH_DIRECTORY, GRAPH_FILE_NAME, graph_snapshot, snapshot_document
 from codebase_intelligence.model import (
     SCHEMA_VERSION,
     IndexSnapshot,
@@ -66,7 +69,7 @@ from codebase_intelligence.util import (
 )
 
 #: Repository-relative directory the panel reads and writes by default.
-DEFAULT_OUT_DIR = "docs/codebase-intelligence"
+DEFAULT_OUT_DIR = GRAPH_DIRECTORY
 
 #: Version of the export payload and of ``manifest.json`` (contract §1: "1").
 EXPORT_SCHEMA_VERSION = SCHEMA_VERSION
@@ -88,6 +91,7 @@ MAX_BRIEF_KEY_FILES = 10
 GENERATED_FILE_NAMES: tuple[str, ...] = (
     "overview.json",
     "repo-map.json",
+    GRAPH_FILE_NAME,
     "ARCHITECTURE.generated.md",
     "REPO_MAP.md",
     "dependencies.mmd",
@@ -255,6 +259,11 @@ def _is_path_covered(relative: str, policy: Any) -> bool:
     return False
 
 
+if TYPE_CHECKING:
+    from codebase_intelligence.indexing import IndexResult
+    from codebase_intelligence.scanner import ScanPolicy
+
+
 def _build_export_policy(
     *,
     root: Path,
@@ -263,7 +272,7 @@ def _build_export_policy(
     max_file_bytes: int | None,
     excludes: Sequence[str],
     include_hidden: bool,
-):
+) -> ScanPolicy:
     """Build the scan policy used for the export's single index build.
 
     The generation directory and (when it lives inside the workspace) the cache
@@ -545,7 +554,7 @@ def render_context_brief(
             "- report: `cbi report . --out ARCHITECTURE.md`",
             "",
             "The rest of the bundle next to this file: `overview.json` and",
-            "`repo-map.json` (canonical JSON), `ARCHITECTURE.generated.md`,",
+            "`repo-map.json` (canonical JSON), `graph.snapshot.json`, `ARCHITECTURE.generated.md`,",
             "`REPO_MAP.md`, `dependencies.mmd` (Mermaid) and `manifest.json`",
             "(sha256 of every generated file; written last).",
             "",
@@ -564,16 +573,46 @@ def render_context_brief(
     return "\n".join(lines) + "\n"
 
 
+def _render_project_graph(snapshot: IndexSnapshot) -> str:
+    view = graph_view(snapshot)
+    nodes = {node["id"]: f"n{i}" for i, node in enumerate(view["nodes"])}
+    lines = [
+        "## Project graph",
+        "",
+        "Top-level directories and files with resolved imports between them.",
+        f"Showing {len(nodes)} of {view['totalNodes']} top-level nodes.",
+        f"The [saved graph]({GRAPH_FILE_NAME}) includes the full directory, file, and symbol data.",
+        "",
+    ]
+    if nodes:
+        lines.extend(("```mermaid", "flowchart LR"))
+        lines.extend(
+            f'    {nodes[node["id"]]}["{_mermaid_label(node["path"][:120])}"]'
+            for node in view["nodes"]
+        )
+        resolved = {
+            (edge["from"], edge["to"])
+            for edge in view["edges"]
+            if edge["status"] == ResolutionStatus.RESOLVED.value
+        }
+        lines.extend(f"    {nodes[left]} --> {nodes[right]}" for left, right in sorted(resolved))
+        lines.extend(("```", ""))
+        if view["omittedEdges"]:
+            lines.extend(("Some relationships are omitted from this overview.", ""))
+    return "\n".join(lines)
+
+
 def render_bundle(
     snapshot: IndexSnapshot,
     graph: Any,
     *,
     out_dir: str = DEFAULT_OUT_DIR,
+    policy: ScanPolicy | None = None,
 ) -> dict[str, bytes]:
-    """Render the complete bundle (all seven files) for one snapshot.
+    """Render the complete bundle (all eight files) for one snapshot.
 
     Returns an ordered ``{file name: bytes}`` mapping in :data:`EXPORT_FILE_NAMES`
-    order: the six content files first, then ``manifest.json`` (which describes
+    order: the seven content files first, then ``manifest.json`` (which describes
     them).  Pure and deterministic apart from the caller's out dir string, which
     only appears inside the manifest and the brief.
     """
@@ -581,6 +620,7 @@ def render_bundle(
     from codebase_intelligence import reporting
 
     index = api.index_block(snapshot)
+    saved = graph_snapshot(snapshot)
     contents: dict[str, bytes] = {
         "overview.json": _json_bytes(
             reporting.overview_payload(snapshot, graph, max_tokens=OVERVIEW_MAX_TOKENS)
@@ -588,8 +628,9 @@ def render_bundle(
         "repo-map.json": _json_bytes(
             reporting.map_payload(snapshot, graph, max_tokens=MAP_MAX_TOKENS)
         ),
+        GRAPH_FILE_NAME: _json_bytes(snapshot_document(saved, policy or api.build_policy())),
         "ARCHITECTURE.generated.md": _text_bytes(reporting.markdown_report(snapshot, graph)),
-        "REPO_MAP.md": _text_bytes(reporting.markdown_map(snapshot)),
+        "REPO_MAP.md": _text_bytes(reporting.markdown_map(snapshot) + "\n" + _render_project_graph(saved)),
         "dependencies.mmd": _text_bytes(render_dependencies_mermaid(snapshot, index)),
         "CONTEXT_BRIEF.md": _text_bytes(
             render_context_brief(snapshot, graph, index, out_dir=out_dir)
@@ -775,7 +816,7 @@ def build_export(
     index_result = _ensure_index(root_path, policy, cache_path, force)
     snapshot = index_result.snapshot
     graph = api.graph_for(snapshot)
-    contents = render_bundle(snapshot, graph, out_dir=out_relative)
+    contents = render_bundle(snapshot, graph, out_dir=out_relative, policy=policy)
     index = api.index_block(snapshot)
     manifest_fingerprint = sha256_bytes(contents[MANIFEST_FILE_NAME])
 
@@ -822,7 +863,9 @@ def build_export(
     )
 
 
-def _ensure_index(root: Path, policy: Any, cache_path: Path | None, force: bool):
+def _ensure_index(
+    root: Path, policy: ScanPolicy, cache_path: Path | None, force: bool
+) -> IndexResult:
     """Build/refresh the index exactly once via the shared engine entry point."""
 
     from codebase_intelligence.indexing import ensure_index

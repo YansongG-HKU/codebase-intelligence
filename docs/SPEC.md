@@ -22,7 +22,8 @@ Deliver, in this repository:
 4. Tests, benchmarks, docs, and a real isolated-DSH acceptance run.
 
 Non-goals: executing scanned code, uploading repository content, editing files,
-IDE/language-server replacement, graph databases, a web explorer UI.
+IDE/language-server replacement, graph databases, a standalone desktop web
+explorer outside the DSH panel.
 
 ## 1. Ownership (write scopes)
 
@@ -299,6 +300,7 @@ Payload shapes (fields may be omitted when empty, never renamed):
 - `dependencies`: `... index, target{path|symbol}, direction, nodes[{id,path,distance}], edges[{from,to,type,status,evidence}], budgets, truncated`
 - `context`: `... index, task, items[{path,startLine,endLine,kind,symbol,reason,tokensEstimated,excerpt}], omitted[{path,reason}], budgets, truncated`
 - `impact`: `... index, changed{files,symbols}, affectedFiles[{path,distance,confidence,reason}], affectedSymbols[{id,path,symbol,distance,confidence}], budgets, truncated`
+- `graph`: `ok, fingerprint, snapshotSource{cache|repository|built|refreshed}, focus, relation, nodes[{id,label,kind,path,symbolKind?,line?,side?}], edges[{from,to,type,status,evidence,count,sites[{path,startLine,startColumn,endLine,endColumn}]}], breadcrumbs, totalNodes, offset, nextOffset, omittedEdges`; page is bounded to 80 nodes / 160 edges. `cbi graph --source PATH --line N` returns `ok, fingerprint, path, line, startLine, lines[]` after a hash + fingerprint check.
 
 `markdown_map` / `markdown_report` are human-readable, bounded, cite paths+lines,
 and state limitations (heuristic edges, unsupported languages).
@@ -311,12 +313,13 @@ diagnostics. Errors: JSON envelope + exit code (2 usage, 3 repository/index,
 4 internal). Commands:
 
 `version`, `doctor`, `scan`, `index`, `overview`, `map`, `search`,
-`dependencies`, `context`, `impact`, `report`, `mcp`.
+`dependencies`, `graph`, `context`, `impact`, `report`, `export`, `mcp`.
 
 Tool-facing commands (`overview`, `map`, `search`, `dependencies`, `context`,
-`impact`) must be byte-stable for identical repository content and flags, and
-must print exactly one canonical JSON object + newline (no timing, no logs on
-stdout). Human-readable output is the default for `scan`/`index`/`report`.
+`impact`) and the read-only `graph` command must be byte-stable for identical
+repository content and flags, and must print exactly one canonical JSON object +
+newline (no timing, no logs on stdout). Human-readable output is the default for
+`scan`/`index`/`report`.
 File-like arguments (`--files`, `--target`, `--focus`, `--path-prefix`) are
 validated as repository-relative paths: absolute, drive-qualified, `~`-relative
 or `..`-escaping values fail with `invalid_arguments` (exit 2).
@@ -365,7 +368,7 @@ decorates every live/new agent (see `plugins/dsh-rea` for the proven pattern).
 Per module: normal cases, edge cases, malformed input, determinism. Cross-cutting
 acceptance (Lead):
 
-1. `python -m pytest` and `python -m ruff check .` green.
+1. `python -m pytest`, `python -m ruff check .` and `python -m mypy src` green.
 2. Scanner: gitignore/negation/symlink/size/binary/secret/unicode/determinism.
 3. Parser/graph/index: Python + heuristic fixtures, unresolved edges preserved,
    incremental rebuild after edit/delete, identical bytes on repeat.
@@ -376,10 +379,11 @@ acceptance (Lead):
    never-throw envelopes, workspace boundary.
 8. Isolated DSH 0.2.2-rc.1 instance: plugin installs via bundle row + junction,
    `--dump-config` shows the row with clean stderr, GUI loads, a real model turn
-   calls the tools, screenshot captured; `--without-plugin` control run shows no
-   tools.
+   calls the tools, screenshot captured, graph explorer drilldown/source evidence
+   renders, `--without-plugin` control run shows no tools.
 9. Token/cache evidence: measured prompt-section + tool-schema token cost,
    representative tool outputs under budget, two identical calls byte-identical,
    second index build reports cache hits with no output change.
 10. Docs updated: README capability matrix, ROADMAP only for verified items,
-    `docs/SCANNER_POLICY.md`, `docs/DSH_PLUGIN.md`, `docs/TOKENS.md`.
+    `docs/SCANNER_POLICY.md`, `docs/DSH_PLUGIN.md`, `docs/EXPORT.md`,
+    `docs/TOKENS.md`.

@@ -120,3 +120,21 @@ test('a malformed row config degrades to defaults', () => {
   assert.equal(agent.__test.sections.length, 1)
   dispose()
 })
+
+
+test('panel-only sessions are removed on agent disposal and plugin unload', () => {
+  const first = fakeAgent({ id: 'first', noTools: true })
+  const second = fakeAgent({ id: 'second', noTools: true })
+  const host = fakeHost([first])
+  let interop
+  host.ctx.reflect = { provide(_name, service) { interop = service } }
+  const dispose = apply(host.ctx, {})
+  host.emit('agent/created', second)
+  assert.ok(interop.resolveRoot('second'))
+  host.emit('agent/disposed', second)
+  assert.equal(interop.resolveRoot('second'), null)
+  assert.equal(interop.resolveRoot(), interop.resolveRoot('first'))
+  dispose()
+  host.emit('agent/created', second)
+  assert.equal(interop.resolveRoot(), null)
+})

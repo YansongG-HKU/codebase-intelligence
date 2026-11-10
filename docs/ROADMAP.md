@@ -8,17 +8,18 @@ item is only partially met, the note says exactly what remains.
 ## Current status (v0.1.0)
 
 Phase 1 (local MVP), Phase 2 (relationship intelligence), Phase 3's first three
-items (task-aware context), and Phase 4's core integration deliverables
-(MCP server + first-party DSH plugin) are implemented and verified. Phase 0 is
-mostly complete; typing enforcement and the formal retrieval-relevance benchmark
-remain open. The explorer UI and large-monorepo benchmarks are not started.
+items (task-aware context), Phase 4's core integration deliverables
+(MCP server + first-party DSH plugin), the interactive graph explorer and the
+eight-file deterministic export are implemented and verified. Phase 0 typing is
+enforced in CI; the formal retrieval-relevance benchmark and large-monorepo
+benchmarks remain open.
 
 ## Phase 0 — Foundation
 - [x] Define product requirements and non-goals. (README, VISION.md)
 - [x] Establish canonical data model and canonical JSON contract. (model/entities.py, SPEC §2/§10)
 - [x] Define scanner ignore, symlink, and size policies. (docs/SCANNER_POLICY.md)
 - [x] Create representative fixture repositories and evaluation tasks. (tests/fixtures/**; deterministic cost/determinism evaluation in scripts/bench.py)
-- [ ] Establish CI, linting, typing, and test conventions. (CI + ruff + pytest shipped; `mypy strict` is configured but not yet enforced in CI)
+- [x] Establish CI, linting, typing, and test conventions. (CI + ruff + strict `mypy src` + pytest shipped in `.github/workflows/ci.yml`; Node plugin checks run on Ubuntu and Windows)
 
 ## Phase 1 — Useful local MVP
 - [x] Repository scanner with deterministic output.
@@ -54,7 +55,7 @@ remain open. The explorer UI and large-monorepo benchmarks are not started.
 - [x] Incremental indexing.
 - [x] Multi-language adapter expansion (heuristic/regex adapters for JS/TS/Go/Rust/Java/C/C++/C#/Ruby/PHP/Shell; Python is parser-backed).
 - [x] Right-sidebar client panel + deterministic `cbi export` snapshot (L2: browse without model tokens, explicit write, read-only git status; full-page fallback when the right sidebar services are absent).
-- [ ] Interactive graph explorer.
+- [x] Interactive graph explorer. (saved `graph.snapshot.json` + bounded panel explorer: directory → file → symbol, relation filter, pagination, read-only source evidence; max 80 nodes / 160 edges per page)
 - [ ] Large monorepo performance and memory benchmarks.
 
 ## Release gates
@@ -62,9 +63,10 @@ A phase is complete only when tests, documented limitations, reproducible
 examples, and acceptance criteria are satisfied. Do not mark roadmap items
 complete merely because a design document exists.
 
-Current release gate status: `pytest` 401 passed / 7 skipped (symlink tests
-unavailable on the Windows host), `ruff` clean, plugin `node --test` 95 passed,
-isolated DSH 0.2.2-rc.1 install + real model turn + right-sidebar panel +
-deterministic export verified, plus a real-project run on an external 169-file
-repository (engine CLI, MCP/bridge smoke, panel, JSON-stdio bridge). See
+Current release gate status: `pytest` 408 passed / 7 skipped (symlink tests
+unavailable on the Windows host), `ruff` clean, strict `mypy src` clean,
+plugin `node --test` 106 passed, isolated DSH 0.2.2-rc.1 install + real model
+turn + right-sidebar panel + graph explorer + deterministic eight-file export
+verified, plus a real-project run on an external 169-file repository (engine CLI,
+MCP/bridge smoke, panel, JSON-stdio bridge, graph drilldown). See
 [DELIVERY.md](DELIVERY.md).

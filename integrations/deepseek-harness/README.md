@@ -51,7 +51,7 @@ The plugin also ships a client half (web profile): a **right-sidebar tab**
 browses the same engine with no model-token cost (概览 / 地图 / 搜索 / 依赖 /
 上下文 / 生成) and can materialize the deterministic snapshot:
 
-- `cbi export` writes seven files under `docs/codebase-intelligence/`
+- `cbi export` writes eight files under `docs/codebase-intelligence/`
   (`overview.json`, `repo-map.json`, `ARCHITECTURE.generated.md`, `REPO_MAP.md`,
   `dependencies.mmd`, `CONTEXT_BRIEF.md`, `manifest.json`); the panel previews
   them, writes only after an explicit confirmation, then shows read-only git

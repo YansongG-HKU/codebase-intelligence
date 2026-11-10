@@ -23,7 +23,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from codebase_intelligence import __version__
 from codebase_intelligence.errors import IndexError as CbiIndexError
@@ -50,6 +50,9 @@ from codebase_intelligence.model import (
 )
 from codebase_intelligence.parsers import ParseResult, parse_file
 from codebase_intelligence.util import bounded_text, is_within
+
+if TYPE_CHECKING:
+    from codebase_intelligence.scanner import ScanPolicy, ScanResult
 
 #: Engine version serialized into every index (cache invalidation input).
 ENGINE_VERSION = __version__
@@ -83,7 +86,7 @@ def resolve_root(root: str | os.PathLike[str]) -> Path:
     return resolved
 
 
-def _scanner_api() -> tuple[Any, Any]:
+def _scanner_api() -> tuple[Callable[..., ScanPolicy], Callable[[Path, ScanPolicy | None], ScanResult]]:
     """Load the scanner lazily (keeps indexing importable during bootstrap)."""
 
     from codebase_intelligence.scanner import default_policy, scan_repository
@@ -91,7 +94,7 @@ def _scanner_api() -> tuple[Any, Any]:
     return default_policy, scan_repository
 
 
-def resolve_policy(policy: Any = None) -> Any:
+def resolve_policy(policy: ScanPolicy | None = None) -> ScanPolicy:
     if policy is not None:
         return policy
     default_policy, _scan_repository = _scanner_api()

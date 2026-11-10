@@ -12,11 +12,11 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 
 from codebase_intelligence import ENGINE_VERSION
 from codebase_intelligence import api
-from codebase_intelligence.errors import CbiError, UsageError, error_envelope
+from codebase_intelligence.errors import CbiError, RepositoryError, UsageError, error_envelope
 from codebase_intelligence.model import SCHEMA_VERSION
 from codebase_intelligence.util import canonical_json, force_utf8_stdio
 
@@ -109,6 +109,18 @@ def build_parser() -> argparse.ArgumentParser:
     dependencies.add_argument("--direction", choices=["both", "imports", "dependents"], default="both")
     dependencies.add_argument("--depth", type=int, default=1, help="Traversal depth (1-5).")
 
+    explorer = subparsers.add_parser("graph", help="Read a bounded graph slice or source excerpt.")
+    _add_root_options(explorer)
+    _add_json(explorer)
+    _add_index_options(explorer)
+    explorer.add_argument("--refresh", action="store_true", help="Update the saved workspace graph.")
+    explorer.add_argument("--focus", default="")
+    explorer.add_argument("--relation", default="")
+    explorer.add_argument("--offset", type=int, default=0)
+    explorer.add_argument("--source", default=None)
+    explorer.add_argument("--line", type=int, default=1)
+    explorer.add_argument("--fingerprint", default=None)
+
     context = subparsers.add_parser("context", help="Task-aware context pack under a token budget.")
     _add_root_options(context)
     _add_json(context)
@@ -185,7 +197,11 @@ def _cache_dir_of(args: argparse.Namespace) -> Path | None:
     return api.resolve_cache_dir(getattr(args, "cache_dir", None))
 
 
-def _policy_of(args: argparse.Namespace):
+if TYPE_CHECKING:
+    from codebase_intelligence.scanner import ScanPolicy
+
+
+def _policy_of(args: argparse.Namespace) -> ScanPolicy:
     return api.build_policy(
         max_file_bytes=getattr(args, "max_file_bytes", None),
         excludes=getattr(args, "exclude", ()),
@@ -431,6 +447,29 @@ def _cmd_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_graph(args: argparse.Namespace) -> int:
+    from codebase_intelligence.graph.explorer import graph_view, source_excerpt
+    from codebase_intelligence.graph.snapshot import open_graph_snapshot
+
+    if args.offset < 0:
+        raise UsageError("graph offset must be nonnegative")
+    root = _root_of(args)
+    if (args.refresh or args.force) and args.source is not None:
+        raise UsageError("refresh the graph separately from a source request")
+    snapshot, origin = open_graph_snapshot(
+        root, _policy_of(args), _cache_dir_of(args), refresh=args.refresh, force=args.force,
+    )
+    fingerprint = snapshot.fingerprint()
+    if args.fingerprint and args.fingerprint != fingerprint:
+        raise RepositoryError("the index changed; refresh the graph", code="stale_graph")
+    data = (
+        source_excerpt(root, snapshot.files, args.source, args.line)
+        if args.source is not None else graph_view(snapshot, args.focus, args.offset, args.relation)
+    )
+    _emit({"ok": True, "fingerprint": fingerprint, "snapshotSource": origin, **data}, as_json=args.json)
+    return 0
+
+
 def _cmd_mcp(args: argparse.Namespace) -> int:
     from codebase_intelligence.mcp.server import serve
 
@@ -454,6 +493,7 @@ _COMMANDS = {
     "report": _cmd_report,
     "export": _cmd_export,
     "mcp": _cmd_mcp,
+    "graph": _cmd_graph,
 }
 
 

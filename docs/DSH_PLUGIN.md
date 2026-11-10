@@ -271,13 +271,11 @@ Cache behavior:
   reuse by size+mtime+sha256, atomic writes, and a content `index.fingerprint`
   that changes only when the model changes. The workspace is never written.
 - **Plugin payload memo** — bounded to 64 entries / 6 MiB per plugin instance,
-  keyed by `(root, tool, canonical normalized args, budget)`. Each entry records
-  the engine's `index.fingerprint` and a cheap workspace stat stamp (names,
-  sizes and mtimes of up to 4096 entries, excluding VCS/vendor/venv dirs).
-  A repeated identical call returns the memoized payload only while the stamp
-  matches; any workspace change forces a fresh engine call. `refresh: true`
-  always bypasses and replaces the entry. Cache state is never present in a
-  tool value.
+  keyed by root, tool, normalized arguments and budget. Reuse requires a complete,
+  matching asynchronous stat stamp of names, sizes and timestamps. If the walk
+  reaches the depth or entry limit or cannot read metadata, the request goes to
+  the Python engine's incremental index. `refresh: true` also bypasses reuse.
+  Cache state never appears in the tool value.
 - **Determinism** — the engine payload is byte-stable for identical repository
   content + policy + engine version (SPEC §3). The plugin preserves the object
   key order it received, so `JSON.stringify(value)` in the output projector
@@ -300,10 +298,12 @@ generated `locale/zh.json` + `locale/en.json`.
 - **Full-page fallback (independence).** Always registers `sidebar.panellist` +
   `main`, so the plugin works on DSH builds without the right-sidebar services
   and remains usable as a full-page view.
-- **Views:** 概览 / 地图 / 搜索 / 依赖 / 上下文 / 生成, Chinese by default with an
-  EN toggle. Bounded tables, `path:line` evidence, budget/truncation badges,
+- **Views:** 概览 / 地图 / 项目图谱 / 搜索 / 依赖 / 上下文 / 生成, Chinese by default with an
+  EN toggle. The Start-guide entry is styled as a native host row (26 px icon,
+  14 px title, 11 px description, 20 px radius) and the namespaced stylesheet is
+  mounted globally so the row is styled before the panel opens. Bounded tables, `path:line` evidence, budget/truncation badges,
   loading/error/empty states, refresh.
-- **生成 (export):** previews the seven-file bundle (`--check`), shows
+- **生成 (export):** previews the eight-file bundle (`--check`), shows
   created/updated/unchanged badges, writes only after an explicit confirmation,
   then shows read-only git facts (branch, changes under the generation dir) and
   the suggested `git add … && git commit …` command with a copy button. The
@@ -322,7 +322,7 @@ generated `locale/zh.json` + `locale/en.json`.
   dependency exists in either direction; with no plugin installed the
   engine/CLI/MCP stay fully functional, and missing collaborators only skip the
   optional integration.
-- **Generated files:** `docs/codebase-intelligence/{overview.json,repo-map.json,
+- **Generated files:** `docs/codebase-intelligence/{overview.json,repo-map.json,graph.snapshot.json,
   ARCHITECTURE.generated.md,REPO_MAP.md,dependencies.mmd,CONTEXT_BRIEF.md,
   manifest.json}` — deterministic (no timestamps/absolute paths), written
   atomically, listed in `manifest.json` and excluded from scanning through the
@@ -371,7 +371,7 @@ exercised against scripted success/error/invalid-JSON/timeout modes.
 
 ```powershell
 cd integrations\deepseek-harness\plugin
-node --test "test/unit/*.test.mjs"   # 95 tests, 0 failures (bundled Node 24.22.2)
+node --test "test/unit/*.test.mjs"   # 106 tests, 0 failures (bundled Node 24.22.2)
 node scripts/footprint.mjs
 node --check index.js
 ```
@@ -403,6 +403,50 @@ fingerprint and bytes; a traversal argument is rejected with
 `workspace_boundary`; empty `search` input is rejected with `invalid_args`. The
 JSON report lists per-tool byte size, estimated tokens and truncation state.
 
+### Production checks
+
+- Git facts disable repository FSMonitor hooks and optional index writes. The
+  adapter supports freshly initialized repositories, labels unavailable status,
+  and only offers a copyable commit command for shell-safe paths. That command
+  scopes the commit to the export directory.
+  [Git configuration reference](https://git-scm.com/docs/git-config#Documentation/git-config.txt-corefsmonitor)
+- CI gates the engine with strict mypy and tests the Node 22 plugin and real
+  Python bridge on Ubuntu and Windows.
+
+### Code graph explorer
+
+Open **项目图谱 / Code graph** in the panel. The view borrows the standard patterns
+from code-navigation tools: directory-first drilldown, a stable layered chart,
+typed relation lines, an inspector, and a legend instead of an opaque hairball.
+
+- **Layout:** deterministic focus layout (incoming ← focus → outgoing) for symbols;
+  DAG layers for small directory/file slices; a kind-ordered grid when there are
+  no edges or too many layers. Positions are stable across renders and pages.
+- **Toolbar:** back/root breadcrumbs, search-in-graph with match count and
+  highlighting, relation-type filter, unresolved/heuristic visibility toggle,
+  refresh, zoom controls and fit. Nodes and edges are keyboard focusable with
+  Enter/Space activation; double-click drills into a directory, file or symbol.
+- **Inspector:** selecting a node shows kind, path, line, in/out degree, and
+  incoming/outgoing relation rows; selecting an edge highlights it on the canvas
+  and opens a read-only source excerpt at the evidence line. Source excerpts
+  require a matching graph fingerprint and indexed file hash.
+- **Visual language:** directory/file/symbol/unresolved node tones, resolved /
+  heuristic / unresolved edge tones, dashed unresolved routes, hover/selection
+  emphasis, a legend, node counts and explicit omitted-edge counts. Edges are
+  curved and clickable with a wide invisible hit target.
+- **Bounded:** at most 80 nodes and 160 edges per page, including up to three
+  evidence samples per edge; directory edges aggregate underlying import
+  relationships. Graph queries are local and use no model tokens. The view has
+  no new frontend dependency and the bundle stays under its 224 KiB cap.
+
+The graph opens a saved workspace snapshot first, then a compatible
+`docs/codebase-intelligence/graph.snapshot.json` from the repository. If both
+are missing, it builds and saves a local snapshot once. Navigation and source
+evidence reuse that snapshot after a Harness restart. Use **刷新图谱 / Refresh
+graph** to pick up workspace changes. To update the files under version control,
+write the export from the **生成 / Export** tab or run `cbi export .`.
+The exported `REPO_MAP.md` includes the repository-level diagram.
+
 ## 11. Known limitations
 
 - **Python engine required.** Without a Python ≥ 3.11 interpreter that can
@@ -415,11 +459,11 @@ JSON report lists per-tool byte size, estimated tokens and truncation state.
 - **One workspace per session.** The root is the session cwd; there is no
   multi-root support and no way to inspect a repository outside the session
   workspace.
-- **Memo staleness edge cases.** The stat stamp has a depth cap (6) and an
-  entry cap (4096) and ignores VCS/vendor/venv directories. Changes below those
-  limits, or inside ignored directories, may not invalidate the memo; call with
-  `refresh: true` to force a rebuild. The engine's own index cache remains the
-  source of truth for content.
+- **Memo scope.** The Host checks up to 4,096 entries and six directory levels,
+  excluding default ignored directories. It falls back to the engine on incomplete
+  coverage. Changes invisible to filesystem metadata still require `refresh: true`.
+- **Python launch.** The bridge runs in the plugin directory with Python safe-path
+  mode. The inspected repository is supplied separately through `--root`.
 - **List arguments are comma-joined.** `codebase_impact` joins `files` and
   `symbols` into comma-separated CLI values, so a repository path containing a
   literal comma cannot be expressed.
@@ -428,7 +472,7 @@ JSON report lists per-tool byte size, estimated tokens and truncation state.
 - **Panel is web-profile only.** The client half targets the DSH web client
   (`dsh.client.platform: web`); headless profiles get the tools only, and a
   profile with `panel: false` skips the host routes as well.
-- **Writes are explicit and bounded.** Only the seven fixed files under
+- **Writes are explicit and bounded.** Only the eight fixed files under
   `exportDir` are written (atomic, confirmed in the panel); the plugin never
   deletes other files, never stages/commits/pushes, and never writes the
   workspace from the six model tools.
@@ -459,15 +503,16 @@ machine (`F:\QuestionForAI\codebase-intelligence`):
 | Gate | Command | Result |
 |---|---|---|
 | Syntax | `node --check index.js && node --check client.js` / `lib/*.js` / `client.js` / `scripts/*.mjs` / `verify/*.mjs` | exit 0 |
-| Unit tests | `node --test "test/unit/*.test.mjs"` | **95 / 95 pass, 0 fail** (61 host + 10 panel routes + 24 client) |
-| Client build | `node scripts/build-client.mjs --check` | up to date (6 fragments, 147,692 bytes, 183 locale keys) |
+| Unit tests | `node --test "test/unit/*.test.mjs"` | **106 / 106 pass, 0 fail** (host bridge/panel/graph routes + client models/views/graph explorer) |
+| Client build | `node scripts/build-client.mjs --check` | up to date (6 fragments, 201,197 bytes, 253 locale keys) |
 | Footprint | `node scripts/footprint.mjs` | 1,189 + 184 = **1,373** estimated tokens (panel adds 0) |
 | Dump-config | `node verify/harness.mjs prepare` | 6/6 checks, stderr `""` (row discovered) |
 | Boot/health | `node verify/harness.mjs up` | healthy in ~10 s; token redeem, auth cookie, shell 200 `<title>DeepSeek Harness</title>`, no-token 401; instance stderr 0 bytes / 0 activation warnings |
 | Engine probe | `prepare` fact | Python 3.13.13 found via `python`; a DSH runtime Python is used when `DSH_HOME` points at a provisioned home |
 | Live bridge | `node verify/bridge-smoke.mjs` | **6/6 tools ok**, deterministic repeats, budgets respected |
 | Right-sidebar panel | isolated DSH GUI | Start guide shows **打开 Codebase Intelligence**; tab `代码库情报` opens with 概览/地图/搜索/依赖/上下文/生成; header shows workspace, index fingerprint, engine status, snapshot staleness |
-| 生成 view | isolated DSH GUI | preview 7/7 files with badges; explicit confirm writes them; read-only git branch/status + copyable commit command; panel never runs git |
+| 项目图谱 view | isolated DSH GUI | repository → directory → file → symbol drilldown, bounded nodes/edges, breadcrumbs, relation filter, read-only source excerpt at the evidence line; loads the published `graph.snapshot.json` before building a local snapshot |
+| 生成 view | isolated DSH GUI | preview 8/8 files with badges and a dynamic `{n} / {total}` count; explicit confirm writes them; read-only git branch/status + copyable commit command; panel never runs git |
 | Full-page fallback | isolated DSH GUI | left navigation icon opens the same panel full-page (right-sidebar services not required) |
 | Control run | `node verify/harness.mjs dump-config --without-plugin` | row removed, no plugin layer, exit 0 |
 | Export | `python -m codebase_intelligence.cli export . --json` twice + `--check` | byte-identical; second run all `unchanged`; `--check` exit 0; `cbi scan` omits `docs/codebase-intelligence/*` |

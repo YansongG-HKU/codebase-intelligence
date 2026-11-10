@@ -26,11 +26,12 @@ to `docs/codebase-intelligence`. `--max-file-bytes`, `--exclude` and
 |---|---|---|
 | `overview.json` | `reporting.overview_payload` — counts, languages, top directories, entry points | 2000 estimated tokens |
 | `repo-map.json` | `reporting.map_payload` — ranked files with bounded symbol lists | 4000 estimated tokens |
+| `graph.snapshot.json` | Portable file, symbol and relationship records with evidence locations | Used by the explorer when there is no compatible local cache |
 | `ARCHITECTURE.generated.md` | `reporting.markdown_report` — architecture report with `path:line` citations | 16 000 chars |
-| `REPO_MAP.md` | `reporting.markdown_map` — compact structural map | 12 000 chars |
+| `REPO_MAP.md` | `reporting.markdown_map` — compact structural map | 12 000 chars for the structural map, plus a bounded Mermaid overview |
 | `dependencies.mmd` | Mermaid `graph LR` over **resolved** import edges between indexed files | ≤ 400 edges |
 | `CONTEXT_BRIEF.md` | Orientation brief: snapshot identity, language mix, entry points, top modules by resolved in-degree, files with the most declarations, how to query, limitations | bounded sections |
-| `manifest.json` | `{schemaVersion, engineVersion, policyFingerprint, fingerprint, outDir, files[{path, bytes, sha256}]}` for the six files above | written last |
+| `manifest.json` | `{schemaVersion, engineVersion, policyFingerprint, fingerprint, outDir, files[{path, bytes, sha256}]}` for the seven content files above | written last |
 
 Every path inside a generated file is a repository-relative POSIX path
 (`/` separators, never absolute, never `..`). `manifest.json` is written last
@@ -42,6 +43,13 @@ target are both indexed files. Unresolved/ambiguous/external edges are never
 drawn as dependencies; their count appears in one header comment. Nodes are
 labelled with repository-relative paths (quoted and HTML-escaped), numbered in
 sorted path order, and the header carries the index fingerprint.
+
+The default published graph can be opened from a fresh checkout by the panel
+or by `cbi graph . --json`. It must match the engine version, graph schema and
+scan settings, and be at most 64 MiB to load from the repository. The graph
+carries its own fingerprint because it omits symbol signatures, docstrings
+and parse diagnostics. Use `cbi graph . --refresh` to update the local workspace
+graph, and `cbi export .` to refresh the files intended for version control.
 
 ## Determinism
 
@@ -69,7 +77,7 @@ reports the per-file plan: `created`, `updated` or `unchanged`.
 
 | Exit | Meaning |
 |---|---|
-| `0` | Success; with `--check`: all seven files exist with identical bytes |
+| `0` | Success; with `--check`: all eight files exist with identical bytes |
 | `1` | `--check` only: something is missing or stale |
 | `2` | Usage error (bad path, bad flag, unknown arguments) |
 | `3` | Repository/index error (missing root, unwritable target, symlink escape) |
@@ -98,7 +106,7 @@ successful write always returns `false`. Errors use the shared envelope
   segments, drive letters, control characters and symlinked path components are
   refused (`invalid_arguments` / `outside_root`); the resolved directory is
   re-checked for containment before anything is written.
-- Only the seven fixed file names are ever written below `outDir`; nothing is
+- Only the eight fixed file names are ever written below `outDir`; nothing is
   ever deleted, renamed or written elsewhere. Other files in the generation
   directory (for example an operator note) are left alone.
 - Writes are atomic: each changed file goes to a `mkstemp` temporary file in

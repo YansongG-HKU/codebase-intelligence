@@ -1,0 +1,12 @@
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.gif binary
+*.webp binary
+*.pfx binary
+*.p12 binary
+*.kdbx binary
+*.bin binary
+*.pyc binary

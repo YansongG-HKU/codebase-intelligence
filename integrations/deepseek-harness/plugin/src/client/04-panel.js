@@ -2,7 +2,7 @@
  * dsh-codebase-intelligence — 04-panel
  *
  * The one Panel component shared by the right-sidebar pane and the full-page
- * fallback: header facts, six views (概览/地图/搜索/依赖/上下文/生成), bounded
+ * fallback: header facts, seven views (概览/地图/项目图谱/搜索/依赖/上下文/生成), bounded
  * tables with path:line citations, budget/truncation markers, and the explicit
  * two-step export flow. Every request goes through the host routes in
  * PANEL_CONTRACT.md §3; the panel never runs git.
@@ -906,7 +906,7 @@
       const git = gitFactsOf(gitRemote.data || plan.git)
       const write = function () {
         if (writing) return
-        if (!confirmWrite(t("export.writeConfirm", { dir: outDir }))) return
+        if (!confirmWrite(t("export.writeConfirm", { dir: outDir, total: fmtInt(counts.total) }))) return
         setWriting(true)
         setWriteError(null)
         apiPost("/api/export", exportWriteBody(p.sessionId), withSession(p.sessionId)).then(
@@ -959,13 +959,15 @@
                 ),
               )
             : null,
-          h(
-            "div",
-            { className: "cbi-command" },
-            h(Glyph, { name: "file", size: 13 }),
-            h("code", null, git.command),
-            h(CopyButton, { t: t, text: git.command, label: t("common.copyCommand") }),
-          ),
+          git.command
+            ? h(
+                "div",
+                { className: "cbi-command" },
+                h(Glyph, { name: "file", size: 13 }),
+                h("code", null, git.command),
+                h(CopyButton, { t: t, text: git.command, label: t("common.copyCommand") }),
+              )
+            : null,
           h("div", { className: "cbi-more" }, t("export.noRun")),
         ),
       )
@@ -1007,7 +1009,7 @@
           h(Facts, {
             facts: [
               { key: "outDir", label: t("export.outDir"), value: outDir },
-              { key: "count", label: t("export.previewFacts"), value: t("export.fileCount", { n: fmtInt(counts.total - counts.missing) }) },
+              { key: "count", label: t("export.previewFacts"), value: t("export.fileCount", { n: fmtInt(counts.total - counts.missing), total: fmtInt(counts.total) }) },
               { key: "manifest", label: t("export.manifestFingerprint"), value: shortHash(manifestFingerprint) || "—", raw: manifestFingerprint },
             ],
           }),
@@ -1171,6 +1173,494 @@
       )
     }
 
+    let graphInstance = 0
+
+    const GRAPH_RELATIONS = ["imports", "calls", "inherits", "implements", "references", "contains", "defines"]
+    const GRAPH_EDGE_TONES = ["resolved", "heuristic", "unresolved"]
+    const GRAPH_EDGE_KINDS = ["parser", "resolver", "heuristic"]
+
+    function graphKindLabel(t, kind) {
+      const key = "graph.kind." + kind
+      const label = t(key)
+      return label === key ? kind : label
+    }
+
+    function graphRelationLabel(t, kind) {
+      const value = toText(kind) || "other"
+      const key = "graph.relation." + value
+      const label = t(key)
+      return label === key ? value : label
+    }
+
+    function graphStatusLabel(t, status) {
+      const value = toText(status) || "unresolved"
+      const key = "graph.status." + value
+      const label = t(key)
+      return label === key ? value : label
+    }
+
+    function graphEvidenceLabel(t, evidence) {
+      const value = toText(evidence) || "heuristic"
+      const key = "graph.evidence." + value
+      const label = t(key)
+      return label === key ? value : label
+    }
+
+    function graphEdgeToneLabel(t, tone) {
+      const key = "graph.edge." + toText(tone)
+      const label = t(key)
+      return label === key ? toText(tone) : label
+    }
+
+    function graphSourceLabel(t, source) {
+      const value = toText(source)
+      const key = "graph.source." + value
+      const label = t(key)
+      return label === key ? value : label
+    }
+
+    function graphNodeGlyph(node) {
+      const kind = graphNodeTone(node)
+      return kind === "dir" ? "▸" : kind === "file" ? "▤" : kind === "symbol" ? "ƒ" : "?"
+    }
+
+    function graphNodeMeta(node, t) {
+      const kind = graphNodeTone(node)
+      if (kind === "symbol") {
+        return clampText((node.symbolKind || graphKindLabel(t, "symbol")) + (node.line ? " · " + node.line : ""), 28)
+      }
+      if (kind === "unresolved") return graphKindLabel(t, "unresolved")
+      return clampText(node.path || graphKindLabel(t, kind), 28)
+    }
+
+    function graphEdgeText(t, edge, labels) {
+      const from = labels[edge.from] || edge.from
+      const to = labels[edge.to] || edge.to
+      return from + " → " + to + " · " + graphRelationLabel(t, edge.type) + " · "
+        + graphStatusLabel(t, edge.status) + " · " + graphEvidenceLabel(t, edge.evidence) + " ×" + edge.count
+    }
+
+    function GraphSource(props) {
+      const t = props.t
+      const span = props.span
+      const request = useLoad(function () {
+        return apiGet("/api/graph", withSession(props.sessionId, {
+          source: span.path, line: span.startLine, fingerprint: props.fingerprint,
+        }))
+      }, [props.sessionId, span.path, span.startLine, props.fingerprint])
+      if (request.status === "loading") return h(Loading, { t: t })
+      if (request.status === "error") return h(ErrorBox, { t: t, error: request.error, onRetry: request.reload })
+      const result = request.data
+      return h("div", { className: "cbi-graph-source-wrap" },
+        h("div", { className: "cbi-graph-source-head" }, h(PathRef, { path: result.path, line: result.line })),
+        h("pre", { className: "cbi-graph-source", tabIndex: 0, "aria-label": result.path },
+          safeArray(result.lines).map(function (line, index) {
+            const number = result.startLine + index
+            return h("span", { key: number, className: number === result.line ? "cbi-graph-highlight" : "" },
+              h("span", { className: "cbi-graph-line-no" }, String(number).padStart(4, " ")),
+              "  " + line + "\n")
+          }),
+        ),
+      )
+    }
+
+    function GraphCanvas(props) {
+      const t = props.t
+      const markerId = useMemo(function () { graphInstance += 1; return "cbi-arrow-" + graphInstance }, [])
+      const viewport = useRef(null)
+      const layout = props.layout
+      const positions = layout.positions
+      const nodes = layout.nodes
+      const edges = props.edges
+      const selectedNodeId = props.selected && props.selected.type === "node" ? props.selected.node.id : ""
+      const selectedEdgeKey = props.selected && props.selected.type === "edge" ? props.selected.edge.key : ""
+      const hasQuery = toText(props.query).trim().length > 0
+      const matches = props.matches || Object.create(null)
+      const labels = Object.create(null)
+      nodes.forEach(function (node) { labels[node.id] = node.label })
+      const related = Object.create(null)
+      if (selectedNodeId) {
+        edges.forEach(function (edge) {
+          if (edge.from === selectedNodeId) related[edge.to] = true
+          if (edge.to === selectedNodeId) related[edge.from] = true
+        })
+      }
+      useEffect(function () {
+        if (viewport.current && props.scroll) {
+          viewport.current.scrollLeft = props.scroll.left
+          viewport.current.scrollTop = props.scroll.top
+        }
+      }, [])
+      useEffect(function () {
+        if (viewport.current) {
+          viewport.current.scrollLeft = 0
+          viewport.current.scrollTop = 0
+        }
+      }, [props.resetToken])
+      const clearOnBackground = function (event) {
+        if (event.target === event.currentTarget && typeof props.onClear === "function") props.onClear()
+      }
+      return h("div", {
+        className: "cbi-graph-stage", ref: viewport, tabIndex: 0,
+        role: "region", "aria-label": t("graph.canvasLabel"),
+        onScroll: function (event) {
+          if (typeof props.onScroll === "function") {
+            props.onScroll({ left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop })
+          }
+        },
+        onClick: clearOnBackground,
+      },
+        h("svg", {
+          className: "cbi-graph-canvas",
+          width: layout.width * props.zoom,
+          height: layout.height * props.zoom,
+          viewBox: "0 0 " + layout.width + " " + layout.height,
+          role: "group",
+          "aria-label": t("graph.canvasLabel"),
+          onClick: clearOnBackground,
+        },
+          h("defs", null, GRAPH_EDGE_TONES.map(function (tone) {
+            return h("marker", {
+              key: tone, id: markerId + tone, viewBox: "0 0 10 10",
+              refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: "auto",
+            }, h("path", { d: "M 0 0 L 10 5 L 0 10 z", className: "cbi-graph-arrow cbi-graph-arrow--" + tone }))
+          })),
+          h("g", { className: "cbi-graph-edges" }, edges.map(function (edge) {
+            const from = positions[edge.from]
+            const to = positions[edge.to]
+            if (!from || !to) return null
+            const geometry = graphEdgeGeometry(from, to)
+            const tone = graphEdgeTone(edge)
+            const selected = selectedEdgeKey === edge.key
+            const dim = (selectedNodeId && edge.from !== selectedNodeId && edge.to !== selectedNodeId)
+              || (selectedEdgeKey && !selected)
+              || (hasQuery && !matches[edge.from] && !matches[edge.to])
+            const classes = ["cbi-graph-edge", "cbi-graph-edge--" + tone]
+            if (selected) classes.push("cbi-graph-edge--selected")
+            if (dim) classes.push("cbi-graph-edge--dim")
+            const aria = graphEdgeText(t, edge, labels)
+            return h("g", {
+              key: edge.key, className: classes.join(" "), role: "button", tabIndex: 0, "aria-label": aria,
+              onClick: function (event) { event.stopPropagation(); props.onEdge(edge) },
+              onKeyDown: function (event) {
+                if (event.key === "Enter" || event.key === " ") { event.preventDefault(); props.onEdge(edge) }
+              },
+            },
+              h("title", null, aria),
+              h("path", { className: "cbi-graph-edge-hit", d: geometry.path }),
+              h("path", {
+                className: "cbi-graph-edge-line", d: geometry.path,
+                "marker-end": "url(#" + markerId + tone + ")",
+                "stroke-width": Math.min(3.4, 1.1 + Math.log2(edge.count)),
+              }),
+              selected ? h("text", { className: "cbi-graph-edge-label", x: geometry.labelX, y: geometry.labelY - 6 },
+                graphRelationLabel(t, edge.type) + " ×" + edge.count) : null,
+            )
+          })),
+          h("g", { className: "cbi-graph-nodes" }, nodes.map(function (node) {
+            const pos = positions[node.id]
+            if (!pos) return null
+            const kind = graphNodeTone(node)
+            const selected = selectedNodeId === node.id
+            const dim = (selectedEdgeKey && !selected)
+              || (selectedNodeId && !selected && !related[node.id])
+              || (hasQuery && !matches[node.id])
+              || (!props.showUnresolved && kind === "unresolved")
+            const classes = ["cbi-graph-node", "cbi-graph-node--" + kind]
+            if (node.side === "focus") classes.push("cbi-graph-node--focus")
+            if (selected) classes.push("cbi-graph-node--selected")
+            if (related[node.id]) classes.push("cbi-graph-node--related")
+            if (dim) classes.push("cbi-graph-node--dim")
+            const enter = function () {
+              if (node.kind !== "unresolved" && node.side !== "focus") props.onEnter(node)
+            }
+            return h("g", {
+              key: node.id, className: classes.join(" "), transform: "translate(" + pos.x + "," + pos.y + ")",
+              role: "button", tabIndex: 0, "aria-label": node.label, "aria-pressed": selected ? "true" : "false",
+              onClick: function (event) { event.stopPropagation(); props.onSelect(node) },
+              onDoubleClick: function (event) { event.stopPropagation(); enter() },
+              onKeyDown: function (event) {
+                if (event.key === "Enter" || event.key === " ") { event.preventDefault(); props.onSelect(node) }
+              },
+            },
+              h("title", null, node.path ? node.path + (node.line ? ":" + node.line : "") : node.label),
+              h("rect", { className: "cbi-graph-node-card", width: GRAPH_NODE_WIDTH, height: GRAPH_NODE_HEIGHT, rx: 10 }),
+              h("rect", { className: "cbi-graph-node-accent", width: 4, height: GRAPH_NODE_HEIGHT, rx: 2 }),
+              h("text", { className: "cbi-graph-node-glyph", x: 18, y: 32 }, graphNodeGlyph(node)),
+              h("text", { className: "cbi-graph-node-label", x: 38, y: 24 }, clampText(node.label, 23)),
+              h("text", { className: "cbi-graph-node-meta", x: 38, y: 42 }, graphNodeMeta(node, t)),
+            )
+          })),
+        ),
+      )
+    }
+
+    function GraphView(props) {
+      const t = props.t
+      const [trail, setTrail] = useState([{ id: "", offset: 0, relation: "" }])
+      const [zoom, setZoom] = useState(1)
+      const [selection, select] = useState(null)
+      const [query, setQuery] = useState("")
+      const [showUnresolved, setShowUnresolved] = useState(true)
+      const [refreshing, setRefreshing] = useState(false)
+      const [refreshError, setRefreshError] = useState(null)
+      const [resetToken, setResetToken] = useState(0)
+      const scrollPositions = useRef(new Map())
+      const position = trail[trail.length - 1]
+      const focus = position.id
+      const offset = position.offset
+      const relation = position.relation
+      const viewKey = JSON.stringify([focus, offset, relation])
+      const clearSelection = function () { select(null) }
+      const open = function (node, nextOffset) {
+        if (node.id === focus && (nextOffset || 0) === offset) return
+        select(null)
+        setQuery("")
+        setTrail(function (old) {
+          return old.slice(-63).concat({ id: node.id, offset: nextOffset || 0, relation: node.id === focus ? relation : "" })
+        })
+      }
+      const back = function () {
+        select(null)
+        setTrail(function (old) { return old.length > 1 ? old.slice(0, -1) : old })
+      }
+      const request = useLoad(function () {
+        return apiGet("/api/graph", withSession(props.sessionId, { focus: focus, offset: offset, relation: relation }))
+      }, [props.sessionId, props.refreshToken, focus, offset, relation])
+      const refresh = async function () {
+        setRefreshing(true)
+        setRefreshError(null)
+        try {
+          await apiPost("/api/graph", refreshBody(props.sessionId))
+          select(null)
+          setQuery("")
+          setResetToken(function (value) { return value + 1 })
+          scrollPositions.current.clear()
+          setTrail([{ id: "", offset: 0, relation: "" }])
+          request.reload()
+        } catch (error) {
+          setRefreshError({ message: messageOf(error), code: errorCodeOf(error) })
+        } finally {
+          setRefreshing(false)
+        }
+      }
+      const graph = request.data && request.data.focus === focus && request.data.offset === offset && request.data.relation === relation ? request.data : null
+      const nodes = useMemo(function () { return graphNodeRows(graph && graph.nodes) }, [graph])
+      const edges = useMemo(function () { return graphEdgeRows(graph && graph.edges) }, [graph])
+      const matches = useMemo(function () { return graphMatchMap(nodes, query) }, [nodes, query])
+      const visibleEdges = useMemo(function () {
+        return graphVisibleEdges(edges, { relation: relation, showUnresolved: showUnresolved, query: query, matches: matches })
+      }, [edges, relation, showUnresolved, query, matches])
+      const layout = useMemo(function () { return graphLayout(nodes, edges) }, [nodes, edges])
+      const degrees = useMemo(function () { return graphDegrees(nodes, edges) }, [nodes, edges])
+      const labels = useMemo(function () {
+        const value = Object.create(null)
+        nodes.forEach(function (node) { value[node.id] = node.label })
+        return value
+      }, [nodes])
+      const selectedNode = selection && selection.type === "node" ? selection.node : null
+      const selectedEdge = selection && selection.type === "edge" && selection.fingerprint === graph?.fingerprint ? selection.edge : null
+      const selectedSpan = selectedEdge ? selection.span : null
+      const currentSource = selection && selection.type === "source" && selection.fingerprint === graph?.fingerprint
+        ? { path: selection.path, startLine: selection.line, line: selection.line }
+        : selectedSpan
+          ? { path: selectedSpan.path, startLine: selectedSpan.startLine, line: selectedSpan.startLine }
+          : null
+      useEffect(function () {
+        if (!selection || selection.type !== "node") return
+        if (!nodes.some(function (node) { return node.id === selection.node.id })) select(null)
+      }, [nodes, selection])
+      const chooseNode = function (node) { select({ type: "node", node: node }) }
+      const chooseEdge = function (edge) {
+        select({ type: "edge", edge: edge, span: safeArray(edge.sites)[0] || null, fingerprint: graph.fingerprint })
+      }
+      const enterNode = function (node) {
+        if (node.kind === "unresolved" || node.side === "focus") return
+        open({ id: node.id })
+      }
+      const viewNodeSource = function (node) {
+        if (!node.path) return
+        select({ type: "source", path: node.path, line: node.line || 1, fingerprint: graph.fingerprint })
+      }
+      const matchCount = nodes.filter(function (node) { return matches[node.id] }).length
+      const rootButton = function (label, onClick, disabled) {
+        return h(Btn, { size: "sm", tone: "ghost", onClick: onClick, disabled: disabled }, label)
+      }
+      const crumbs = safeArray(graph && graph.breadcrumbs)
+      const relationSelect = focus && !focus.startsWith("dir:")
+        ? h("label", { className: "cbi-graph-select" }, h("span", null, t("graph.filter")),
+          h("select", { value: relation, onChange: function (event) {
+            const value = event.currentTarget.value
+            select(null)
+            setTrail(function (old) { return old.slice(0, -1).concat({ id: focus, offset: 0, relation: value }) })
+          } }, [""].concat(GRAPH_RELATIONS).map(function (kind) {
+            return h("option", { key: kind, value: kind }, kind ? graphRelationLabel(t, kind) : t("graph.all"))
+          })))
+        : null
+      const selectedFacts = selectedNode
+        ? [
+            { key: "kind", label: t("graph.nodeKind"), value: graphKindLabel(t, selectedNode.kind) },
+            { key: "path", label: t("graph.nodePath"), value: selectedNode.path || "—", raw: selectedNode.path || undefined },
+            { key: "line", label: t("graph.nodeLine"), value: selectedNode.line ? String(selectedNode.line) : "—" },
+            { key: "degree", label: t("graph.nodeDegree"), value: (degrees[selectedNode.id]?.in || 0) + " ← · → " + (degrees[selectedNode.id]?.out || 0) },
+          ]
+        : []
+      const touching = selectedNode
+        ? edges.filter(function (edge) { return edge.from === selectedNode.id || edge.to === selectedNode.id })
+        : []
+      const relationRow = function (edge) {
+        const otherId = edge.from === selectedNode.id ? edge.to : edge.from
+        const other = labels[otherId] || otherId
+        return h("button", {
+          type: "button", key: edge.key, className: "cbi-graph-rel-row",
+          onClick: function () { chooseEdge(edge) },
+        },
+          h("span", { className: "cbi-graph-rel-type" }, graphRelationLabel(t, edge.type)),
+          h("span", { className: "cbi-graph-rel-target" }, (edge.from === selectedNode.id ? "→ " : "← ") + other),
+          h("span", { className: "cbi-graph-rel-meta" }, graphStatusLabel(t, edge.status) + " ×" + edge.count),
+        )
+      }
+      return h("section", null,
+        h(ViewLead, { title: t("view.graph"), subtitle: t("graph.help") }),
+        h("div", { className: "cbi-graph-toolbar" },
+          h("div", { className: "cbi-graph-nav" },
+            rootButton(t("graph.back"), back, trail.length < 2),
+            rootButton(t("graph.root"), function () { open({ id: "" }) }, !focus && offset === 0),
+            crumbs.map(function (crumb) {
+              return h("button", {
+                type: "button", key: crumb.id, className: "cbi-graph-crumb",
+                disabled: crumb.id === focus && offset === 0,
+                onClick: function () { open(crumb) },
+              }, clampText(crumb.label, 20))
+            }),
+          ),
+          h("div", { className: "cbi-graph-tools" },
+            h(Btn, { size: "sm", glyph: "refresh", onClick: refresh, disabled: refreshing },
+              refreshing ? t("graph.refreshing") : t("graph.refresh")),
+            relationSelect,
+            h("input", {
+              type: "search", className: "cbi-graph-search", value: query,
+              placeholder: t("graph.searchPlaceholder"), "aria-label": t("graph.searchPlaceholder"),
+              onChange: function (event) { setQuery(event.currentTarget.value) },
+            }),
+            query ? h("button", { type: "button", className: "cbi-chip", onClick: function () { setQuery("") } }, t("graph.clearSearch")) : null,
+            h("button", {
+              type: "button", className: "cbi-chip", "aria-pressed": showUnresolved ? "true" : "false",
+              onClick: function () { setShowUnresolved(function (value) { return !value }) },
+            }, t(showUnresolved ? "graph.hideUnresolved" : "graph.showUnresolved")),
+            h("div", { className: "cbi-graph-zoom" },
+              h(Btn, { size: "sm", tone: "ghost", onClick: function () { setZoom(Math.max(0.5, zoom - 0.25)) }, disabled: zoom <= 0.5 }, "−"),
+              h(Btn, { size: "sm", tone: "ghost", onClick: function () { setZoom(1); setResetToken(function (value) { return value + 1 }) } }, t("graph.fit")),
+              h(Btn, { size: "sm", tone: "ghost", onClick: function () { setZoom(Math.min(2, zoom + 0.25)) }, disabled: zoom >= 2 }, "+"),
+            ),
+          ),
+        ),
+        h("div", { className: "cbi-graph-legend" },
+          ["dir", "file", "symbol", "unresolved"].map(function (kind) {
+            return h("span", { key: kind, className: "cbi-graph-legend-item" },
+              h("i", { className: "cbi-graph-dot cbi-graph-dot--" + kind }), graphKindLabel(t, kind))
+          }),
+          h("span", { className: "cbi-graph-legend-sep" }),
+          GRAPH_EDGE_TONES.map(function (tone) {
+            return h("span", { key: tone, className: "cbi-graph-legend-item" },
+              h("i", { className: "cbi-graph-line cbi-graph-line--" + tone }),
+              graphEdgeToneLabel(t, tone))
+          }),
+        ),
+        refreshError ? h(ErrorBox, { t: t, error: refreshError, onRetry: refresh }) : null,
+        request.status === "error" ? h(ErrorBox, { t: t, error: request.error, onRetry: request.reload })
+          : !graph ? h(Loading, { t: t })
+          : nodes.length === 0 ? h(EmptyState, { title: t("graph.empty"), hint: t("graph.emptyHint") })
+          : h(GraphCanvas, {
+              key: viewKey, t: t, layout: layout, edges: visibleEdges, zoom: zoom, selected: selection,
+              query: query, matches: matches, resetToken: resetToken,
+              scroll: scrollPositions.current.get(viewKey), onScroll: function (scroll) {
+                if (scrollPositions.current.size >= 64 && !scrollPositions.current.has(viewKey)) {
+                  scrollPositions.current.delete(scrollPositions.current.keys().next().value)
+                }
+                scrollPositions.current.set(viewKey, scroll)
+              },
+              onSelect: chooseNode, onEnter: enterNode, onEdge: chooseEdge, onClear: clearSelection,
+              showUnresolved: showUnresolved,
+            }),
+        graph ? h("div", { className: "cbi-graph-status" },
+          h("span", null, t("graph.stats", {
+            shown: fmtInt(nodes.length), total: fmtInt(graph.totalNodes),
+            edges: fmtInt(visibleEdges.length), hidden: fmtInt(graph.omittedEdges),
+          })),
+          h("span", null, graphSourceLabel(t, graph.snapshotSource)),
+          query ? h("span", { className: "cbi-graph-match" }, t("graph.searchCount", { n: fmtInt(matchCount), total: fmtInt(nodes.length) })) : null,
+          h("span", { className: "cbi-graph-pager" },
+            offset > 0 ? rootButton(t("graph.previous"), function () { open({ id: focus }, Math.max(0, offset - (focus.startsWith("sym:") ? 79 : 80))) }) : null,
+            graph.nextOffset !== null ? rootButton(t("graph.next"), function () { open({ id: focus }, graph.nextOffset) }) : null,
+          ),
+        ) : null,
+        graph ? h("div", { className: "cbi-graph-detail-grid" },
+          selectedNode ? h(Section, {
+            title: t("graph.inspector"),
+            actions: h(Btn, { size: "sm", tone: "ghost", onClick: clearSelection }, t("graph.clearSelection")),
+          },
+            h("div", { className: "cbi-graph-inspector" },
+              h("div", { className: "cbi-graph-inspector-head" },
+                h("strong", null, selectedNode.label),
+                h(Badge, { tone: "muted" }, graphKindLabel(t, selectedNode.kind)),
+                selectedNode.side === "focus" ? h(Badge, { tone: "brand" }, t("graph.focusBadge")) : null,
+              ),
+              h(Facts, { facts: selectedFacts }),
+              h("div", { className: "cbi-graph-actions" },
+                selectedNode.kind !== "unresolved" && selectedNode.side !== "focus"
+                  ? h(Btn, { size: "sm", tone: "primary", onClick: function () { enterNode(selectedNode) } }, t("graph.enter"))
+                  : null,
+                selectedNode.path && selectedNode.kind !== "dir" && selectedNode.kind !== "unresolved"
+                  ? h(Btn, { size: "sm", glyph: "file", onClick: function () { viewNodeSource(selectedNode) } }, t("graph.viewSource"))
+                  : null,
+              ),
+              touching.length ? h("div", { className: "cbi-graph-relations" },
+                h("div", { className: "cbi-graph-relations-head" }, t("graph.relations"), " ", h("span", { className: "cbi-muted" }, fmtInt(touching.length))),
+                touching.map(relationRow),
+              ) : h("p", { className: "cbi-muted" }, t("graph.noRelations")),
+            ),
+          ) : null,
+          selectedEdge ? h(Section, {
+            title: t("graph.evidence"),
+            actions: h(Btn, { size: "sm", tone: "ghost", onClick: clearSelection }, t("graph.clearSelection")),
+          },
+            h("div", { className: "cbi-graph-evidence" },
+              h("strong", null, graphEdgeText(t, selectedEdge, labels)),
+              h("div", { className: "cbi-graph-actions" },
+                safeArray(selectedEdge.sites).map(function (span) {
+                  return h(Btn, {
+                    key: span.path + ":" + span.startLine, size: "sm", glyph: "file",
+                    onClick: function () { select({ type: "edge", edge: selectedEdge, span: span, fingerprint: graph.fingerprint }) },
+                    disabled: selectedSpan && selectedSpan.path === span.path && selectedSpan.startLine === span.startLine,
+                  }, span.path + ":" + span.startLine)
+                }),
+              ),
+              currentSource ? h(GraphSource, {
+                key: currentSource.path + ":" + currentSource.startLine + ":" + graph.fingerprint,
+                t: t, sessionId: props.sessionId,
+                span: { path: currentSource.path, startLine: currentSource.startLine },
+                fingerprint: graph.fingerprint,
+              }) : h("p", { className: "cbi-muted" }, t("graph.noSource")),
+            ),
+          ) : null,
+          selection && selection.type === "source" ? h(Section, {
+            title: t("graph.sourceExcerpt"),
+            actions: h(Btn, { size: "sm", tone: "ghost", onClick: clearSelection }, t("graph.clearSelection")),
+          },
+            h(GraphSource, {
+              key: selection.path + ":" + selection.line + ":" + selection.fingerprint,
+              t: t, sessionId: props.sessionId,
+              span: { path: selection.path, startLine: selection.line },
+              fingerprint: selection.fingerprint,
+            }),
+          ) : null,
+          !selection ? h("p", { className: "cbi-muted cbi-graph-hint" }, t("graph.selectHint")) : null,
+        ) : null,
+      )
+    }
+
+
     function ViewRouter(props) {
       const p = props || {}
       const shared = {
@@ -1183,6 +1673,8 @@
       switch (p.view) {
         case "map":
           return h(MapView, shared)
+        case "graph":
+          return h(GraphView, Object.assign({ key: p.sessionId }, shared))
         case "search":
           return h(SearchView, shared)
         case "dependencies":
@@ -1331,7 +1823,27 @@
       return h(Panel, { sessionId: sessionId, variant: "main" })
     }
 
-    /** Guide/Start card that opens the tab; `open` is injected by the host plugin. */
+    /** Mount the namespaced stylesheet once in document.head so the Start-guide
+     * card (rendered outside the panel root) is styled before the panel opens. */
+    function ensureGlobalStyles() {
+      if (typeof document === "undefined" || !document.head) return
+      try {
+        let node = document.getElementById("dsh-codebase-intelligence-styles")
+        if (!node) {
+          node = document.createElement("style")
+          node.id = "dsh-codebase-intelligence-styles"
+          node.setAttribute("data-dsh-codebase-intelligence", "styles")
+          document.head.appendChild(node)
+        }
+        if (node.textContent !== STYLES) node.textContent = STYLES
+      } catch (error) {
+        /* style injection is best effort; the panel still has its inline sheet */
+      }
+    }
+
+    /** Guide/Start card that opens the tab; `open` is injected by the host plugin.
+     * Rendered by DSH as a row in the right-sidebar Start list, so it mirrors the
+     * host row geometry instead of looking like a separate embedded card. */
     function GuideEntryCard(props) {
       const p = props || {}
       const t = typeof p.t === "function" ? p.t : makeT("zh")
@@ -1339,6 +1851,7 @@
       const description =
         typeof p.description === "string" && p.description.length > 0 ? p.description : t("guide.description")
       const open = typeof p.open === "function" ? p.open : null
+      ensureGlobalStyles()
       return h(
         "button",
         {
@@ -1349,7 +1862,12 @@
             if (open) open()
           },
         },
-        h("span", { className: "cbi-guide-title" }, h(PanelMark, { size: 16 }), h("span", null, title)),
-        h("span", { className: "cbi-guide-desc" }, description),
+        h("span", { className: "cbi-guide-icon" }, h(PanelMark, { size: 26 })),
+        h(
+          "span",
+          { className: "cbi-guide-text" },
+          h("span", { className: "cbi-guide-title" }, title),
+          h("span", { className: "cbi-guide-desc" }, description),
+        ),
       )
     }

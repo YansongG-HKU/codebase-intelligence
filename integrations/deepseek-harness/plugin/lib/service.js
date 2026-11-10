@@ -11,15 +11,15 @@
  * 2. **Never throw.** Any validation, spawn or engine failure becomes the
  *    shared `{ok:false, code, message, repair}` envelope.
  * 3. **Determinism.** A bounded in-memory payload memo returns the exact same
- *    bytes for repeated identical calls. Entries record the engine's
- *    `index.fingerprint` and are guarded by a cheap workspace stat stamp; a
- *    changed workspace forces a fresh engine call. Cache state is never
+ *    bytes for repeated identical calls with a matching workspace stat stamp.
+ *    Incomplete scans defer freshness to the engine. Cache state is never
  *    present in a tool value.
  *
  * @module dsh-codebase-intelligence/service
  */
 
-import { readdirSync, statSync } from 'node:fs'
+import { statSync } from 'node:fs'
+import { readdir, stat } from 'node:fs/promises'
 import { isAbsolute, join, relative, resolve } from 'node:path'
 
 import { createBridge, repairFor } from './bridge.js'
@@ -109,39 +109,31 @@ export function createService({ cfg, log = null, bridge = null } = {}) {
     return { ok: true, root }
   }
 
-  /** sessionId → workspace root for panel/web requests (filled by agent decoration). */
-  const sessionRoots = new Map()
-  let lastRoot = null
+  /** One live registration per agent, ordered by registration time. */
+  const sessions = new Map()
 
-  /**
-   * Remember one live Agent's session workspace so the panel (which has no
-   * Agent object of its own) can resolve a repository root by session id.
-   *
-   * @param {object} agent live Agent (session.header.cwd)
-   * @returns {boolean} whether a root was recorded
-   */
   function registerSession(agent) {
-    try {
-      const header = agent?.session?.header ?? {}
-      const raw = header?.cwd ?? header?.config?.cwd ?? agent?.cwd
-      if (typeof raw !== 'string' || raw.trim().length === 0) return false
-      const root = resolve(raw.trim())
-      lastRoot = root
-      for (const id of [agent?.id, agent?.session?.id, header?.id, header?.sessionId]) {
-        if (typeof id === 'string' && id.length > 0) sessionRoots.set(id, root)
-      }
-      return true
-    } catch {
-      return false
-    }
+    const header = agent?.session?.header ?? {}
+    const raw = header?.cwd ?? header?.config?.cwd ?? agent?.cwd
+    if (typeof agent?.id !== 'string' || typeof raw !== 'string' || raw.trim().length === 0) return false
+    const ids = new Set([agent.id, agent.session?.id, header.id, header.sessionId])
+    sessions.delete(agent.id)
+    sessions.set(agent.id, { ids, root: resolve(raw.trim()) })
+    return true
   }
 
-  /** Resolve the panel's repository root: exact session id first, then the latest one. */
+  function unregisterSession(agentId) {
+    sessions.delete(agentId)
+  }
+
+  /** Explicit ids must be live; an unscoped panel can use the latest live root. */
   function resolveSessionRoot(sessionId) {
-    if (typeof sessionId === 'string' && sessionId.length > 0 && sessionRoots.has(sessionId)) {
-      return sessionRoots.get(sessionId)
+    const scoped = typeof sessionId === 'string' && sessionId.length > 0
+    let root = null
+    for (const session of sessions.values()) {
+      if (!scoped || session.ids.has(sessionId)) root = session.root
     }
-    return lastRoot
+    return root
   }
 
   /** Minimal agent-shaped object so panel calls share the six-tool pipeline. */
@@ -188,6 +180,25 @@ export function createService({ cfg, log = null, bridge = null } = {}) {
     })
   }
 
+  async function panelGraph(query, { sessionId, signal, refresh = false } = {}) {
+    const root = resolveSessionRoot(sessionId)
+    if (root === null) return failure('workspace_unavailable', 'no live session workspace', repair('workspace_unavailable'))
+    if (typeof engine.runRaw !== 'function') {
+      return failure('engine_unavailable', 'graph queries are not available', repairFor('engine_unavailable'))
+    }
+    for (const key of ['offset', 'line']) {
+      if (query[key] !== undefined && !/^\d{1,9}$/u.test(query[key])) {
+        return failure('invalid_arguments', `invalid graph ${key}`, repairFor('invalid_arguments'))
+      }
+    }
+    const args = [`--max-file-bytes=${cfg.indexMaxFileBytes}`]
+    if (refresh) args.push('--refresh')
+    for (const key of ['focus', 'offset', 'relation', 'source', 'line', 'fingerprint']) {
+      if (typeof query[key] === 'string') args.push(`--${key}=${query[key]}`)
+    }
+    return engine.runRaw({ command: 'graph', root, cacheDir: cacheDirFor(cfg, root), args, signal })
+  }
+
   /** Export preview (writes nothing). */
   function exportPreview(options = {}) {
     return runExport({ ...options, check: true })
@@ -212,6 +223,7 @@ export function createService({ cfg, log = null, bridge = null } = {}) {
       if (!TOOL_KEYS.includes(toolKey)) {
         return failure('invalid_args', `unknown tool key ${JSON.stringify(toolKey)}`, repairFor('invalid_args'))
       }
+      if (options.signal?.aborted) return failure('canceled', 'the call was aborted', repairFor('canceled'))
       const workspace = resolveWorkspaceRoot(options.agent)
       if (!workspace.ok) return failure('workspace_unavailable', workspace.message, repair('workspace_unavailable'))
 
@@ -225,9 +237,10 @@ export function createService({ cfg, log = null, bridge = null } = {}) {
       const memoArgs = { ...collected.args }
       delete memoArgs.refresh
       const key = `${workspace.root}\u0000${toolKey}\u0000${canonicalJson(memoArgs)}\u0000${maxTokens}`
-      const stamp = workspaceStamp(workspace.root)
+      const stamp = await workspaceStamp(workspace.root, options.signal)
+      if (options.signal?.aborted) return failure('canceled', 'the call was aborted', repairFor('canceled'))
 
-      if (collected.args.refresh !== true) {
+      if (stamp !== null && collected.args.refresh !== true) {
         const hit = memo.get(key)
         if (hit && hit.stamp === stamp) return deepClone(hit.payload)
       }
@@ -248,11 +261,7 @@ export function createService({ cfg, log = null, bridge = null } = {}) {
         return failure('engine_invalid_json', 'the engine returned an invalid payload', repairFor('engine_invalid_json'))
       }
       const payload = result.payload
-      memoStore(key, {
-        stamp,
-        fingerprint: typeof payload.index?.fingerprint === 'string' ? payload.index.fingerprint : null,
-        payload,
-      })
+      if (stamp !== null) memoStore(key, { stamp, payload })
       return deepClone(payload)
     } catch (error) {
       log?.warn?.(`tool ${toolKey} failed: ${messageOf(error)}`)
@@ -265,7 +274,7 @@ export function createService({ cfg, log = null, bridge = null } = {}) {
     if (bytes > MEMO_MAX_BYTES) return
     const previous = memo.get(key)
     if (previous !== undefined) {
-      memoBytes -= utf8Bytes(JSON.stringify(previous.payload))
+      memoBytes -= previous.bytes
       memo.delete(key)
     }
     memo.set(key, { ...entry, bytes })
@@ -285,7 +294,10 @@ export function createService({ cfg, log = null, bridge = null } = {}) {
     resolveWorkspaceRoot,
     resolveSessionRoot,
     registerSession,
+    unregisterSession,
+    clearSessions: () => sessions.clear(),
     panelCall,
+    panelGraph,
     exportPreview,
     exportWrite,
     call,
@@ -508,53 +520,41 @@ function dedupe(items) {
   return out
 }
 
-/**
- * Cheap bounded stat stamp of a workspace: names, sizes and mtimes of up to
- * 4096 entries at depth ≤ 6, excluding the directories the scanner excludes by
- * default. Deterministic for identical filesystem state; used only to decide
- * whether a memoized payload may still be returned.
- *
- * @param {string} root absolute workspace root
- * @returns {string} 16-hex stamp
- */
-export function workspaceStamp(root) {
+/** Return a deterministic stamp only when the bounded walk covers the workspace. */
+export async function workspaceStamp(root, signal) {
   const entries = []
   const queue = [{ dir: root, depth: 0 }]
+  let inspected = 0
   try {
-    while (queue.length > 0 && entries.length < STAMP_MAX_ENTRIES) {
-      const current = queue.shift()
-      let dirents
-      try {
-        dirents = readdirSync(current.dir, { withFileTypes: true })
-      } catch {
-        entries.push(`e:${current.depth}`)
-        continue
-      }
+    for (let index = 0; index < queue.length; index += 1) {
+      if (signal?.aborted) return null
+      const { dir, depth } = queue[index]
+      const dirents = await readdir(dir, { withFileTypes: true })
+      inspected += dirents.length
+      if (inspected > STAMP_MAX_ENTRIES) return null
       dirents.sort((left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0))
-      for (const dirent of dirents) {
-        if (entries.length >= STAMP_MAX_ENTRIES) break
-        const absolute = join(current.dir, dirent.name)
-        const rel = relative(root, absolute).split('\\').join('/')
-        if (dirent.isDirectory()) {
-          entries.push(`d:${rel}`)
-          if (!STAMP_EXCLUDED_DIRS.has(dirent.name) && current.depth < STAMP_MAX_DEPTH) {
-            queue.push({ dir: absolute, depth: current.depth + 1 })
+      for (let offset = 0; offset < dirents.length; offset += 32) {
+        if (signal?.aborted) return null
+        const batch = await Promise.all(dirents.slice(offset, offset + 32).map(async (dirent) => {
+          const absolute = join(dir, dirent.name)
+          const rel = relative(root, absolute).split('\\').join('/')
+          if (dirent.isDirectory()) {
+            if (!STAMP_EXCLUDED_DIRS.has(dirent.name)) {
+              if (depth >= STAMP_MAX_DEPTH) return null
+              queue.push({ dir: absolute, depth: depth + 1 })
+            }
+            return `d:${rel}`
           }
-        } else if (dirent.isFile()) {
-          try {
-            const stats = statSync(absolute)
-            entries.push(`f:${rel}:${stats.size}:${Math.trunc(stats.mtimeMs)}`)
-          } catch {
-            entries.push(`f:${rel}:?`)
-          }
-        } else {
-          entries.push(`o:${rel}`)
-        }
+          if (!dirent.isFile()) return `o:${rel}`
+          const stats = await stat(absolute, { bigint: true })
+          return `f:${rel}:${stats.size}:${stats.mtimeNs}:${stats.ctimeNs}`
+        }))
+        if (batch.includes(null)) return null
+        entries.push(...batch)
       }
     }
   } catch {
-    return ''
+    return null
   }
-  if (entries.length >= STAMP_MAX_ENTRIES) entries.push('cap')
   return sha256Hex(entries.join('\n')).slice(0, 16)
 }

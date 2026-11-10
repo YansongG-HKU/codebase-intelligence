@@ -36,7 +36,7 @@ window.__ModuleLoader__.load({
     /** Hard bound on rendered rows in every table and list. */
     const MAX_ROWS = 50
     /** The shipped bundle stays well below this size. */
-    const MAX_BUNDLE_BYTES = 150 * 1024
+    const MAX_BUNDLE_BYTES = 224 * 1024
     /** Default generation directory (the host may report a different one). */
     const DEFAULT_EXPORT_DIR = "docs/codebase-intelligence"
 
@@ -44,6 +44,7 @@ window.__ModuleLoader__.load({
     const EXPORT_FILES = [
       "overview.json",
       "repo-map.json",
+      "graph.snapshot.json",
       "ARCHITECTURE.generated.md",
       "REPO_MAP.md",
       "dependencies.mmd",
@@ -58,6 +59,7 @@ window.__ModuleLoader__.load({
     const VIEWS = [
       { id: "overview", labelKey: "view.overview", glyph: "overview" },
       { id: "map", labelKey: "view.map", glyph: "map" },
+      { id: "graph", labelKey: "view.graph", glyph: "link" },
       { id: "search", labelKey: "view.search", glyph: "search" },
       { id: "dependencies", labelKey: "view.dependencies", glyph: "link" },
       { id: "context", labelKey: "view.context", glyph: "context" },
@@ -126,6 +128,76 @@ window.__ModuleLoader__.load({
       ["header.workspaceTitle", "会话工作区绝对路径", "Absolute workspace path"],
       ["header.staleTitle", "生成目录与当前索引不同步", "The export directory is out of sync with the index"],
       ["view.overview", "概览", "Overview"],
+      ["view.graph", "项目图谱", "Code graph"],
+      ["graph.root", "仓库", "Repository"],
+      ["graph.help", "逐层展开目录、文件和符号；选中节点查看入向/出向关系，选中连线查看只读源码证据。", "Drill into folders, files and symbols. Select a node for incoming/outgoing relations or an edge for read-only source evidence."],
+      ["graph.back", "返回上一层", "Back"],
+      ["graph.previous", "上一页", "Previous page"],
+      ["graph.next", "下一页", "Next page"],
+      ["graph.empty", "当前范围没有可展示的节点", "No nodes in this scope"],
+      ["graph.emptyHint", "换一个目录或使用刷新图谱重建快照。", "Try another directory or refresh the graph snapshot."],
+      ["graph.edges", "关系与源码证据", "Relationships and source evidence"],
+      ["graph.filter", "关系类型", "Relation type"],
+      ["graph.all", "全部", "All"],
+      ["graph.hidden", "未显示的关系", "Relationships not shown"],
+      ["graph.noSource", "此关系没有源码位置", "No source location for this relationship"],
+      ["graph.zoomIn", "放大", "Zoom in"],
+      ["graph.refresh", "刷新图谱", "Refresh graph"],
+      ["graph.refreshing", "正在重建…", "Rebuilding…"],
+      ["graph.zoomOut", "缩小", "Zoom out"],
+      ["graph.in", "调用方 / 入向", "Incoming"],
+      ["graph.out", "被调用方 / 出向", "Outgoing"],
+      ["graph.both", "双向", "Both directions"],
+      ["graph.canvasLabel", "仓库关系图", "Repository relationship graph"],
+      ["graph.searchPlaceholder", "在图谱中搜索节点…", "Search nodes in this graph…"],
+      ["graph.searchCount", "匹配 {n} / {total} 个节点", "Matched {n} / {total} nodes"],
+      ["graph.clearSearch", "清除搜索", "Clear search"],
+      ["graph.showUnresolved", "显示未解析/启发式关系", "Show unresolved/heuristic relations"],
+      ["graph.hideUnresolved", "隐藏未解析/启发式关系", "Hide unresolved/heuristic relations"],
+      ["graph.fit", "适应", "Fit"],
+      ["graph.stats", "显示 {shown} / {total} 个节点 · 可见关系 {edges} · 省略 {hidden}", "Showing {shown} / {total} nodes · {edges} visible relations · {hidden} omitted"],
+      ["graph.inspector", "节点详情", "Node details"],
+      ["graph.focusBadge", "焦点", "Focus"],
+      ["graph.nodeKind", "类型", "Kind"],
+      ["graph.nodePath", "路径", "Path"],
+      ["graph.nodeLine", "行号", "Line"],
+      ["graph.nodeDegree", "入向 / 出向", "In / out"],
+      ["graph.enter", "展开节点", "Open node"],
+      ["graph.viewSource", "查看源码", "View source"],
+      ["graph.clearSelection", "取消选择", "Clear selection"],
+      ["graph.relations", "关系", "Relations"],
+      ["graph.noRelations", "此节点在当前页没有关系。", "This node has no relations on this page."],
+      ["graph.evidence", "源码证据", "Source evidence"],
+      ["graph.sourceExcerpt", "源码摘录", "Source excerpt"],
+      ["graph.sourceLabel", "来源", "Source"],
+      ["graph.selectHint", "选择节点或连线查看详情；双击目录、文件或符号可继续展开。", "Select a node or edge for details; double-click a directory, file or symbol to drill in."],
+      ["graph.selectEdgeHint", "选择一条连线查看源码位置，或在上方关系列表中选择。", "Select an edge for its source location, or pick one from the relation list above."],
+      ["graph.kind.dir", "目录", "Directory"],
+      ["graph.kind.file", "文件", "File"],
+      ["graph.kind.symbol", "符号", "Symbol"],
+      ["graph.kind.unresolved", "未解析", "Unresolved"],
+      ["graph.edge.resolved", "已解析", "Resolved"],
+      ["graph.edge.heuristic", "启发式", "Heuristic"],
+      ["graph.edge.unresolved", "未解析", "Unresolved"],
+      ["graph.status.resolved", "已解析", "Resolved"],
+      ["graph.status.ambiguous", "歧义", "Ambiguous"],
+      ["graph.status.unresolved", "未解析", "Unresolved"],
+      ["graph.status.external", "外部", "External"],
+      ["graph.evidence.parser", "parser", "parser"],
+      ["graph.evidence.resolver", "resolver", "resolver"],
+      ["graph.evidence.heuristic", "heuristic", "heuristic"],
+      ["graph.relation.imports", "导入", "Imports"],
+      ["graph.relation.calls", "调用", "Calls"],
+      ["graph.relation.inherits", "继承", "Inherits"],
+      ["graph.relation.implements", "实现", "Implements"],
+      ["graph.relation.references", "引用", "References"],
+      ["graph.relation.contains", "包含", "Contains"],
+      ["graph.relation.defines", "定义", "Defines"],
+      ["graph.relation.other", "其他", "Other"],
+      ["graph.source.cache", "来源：本地快照", "Source: local snapshot"],
+      ["graph.source.repository", "来源：仓库快照", "Source: repository snapshot"],
+      ["graph.source.built", "来源：即时构建", "Source: freshly built"],
+      ["graph.source.refreshed", "来源：已刷新", "Source: refreshed"],
       ["view.map", "地图", "Map"],
       ["view.search", "搜索", "Search"],
       ["view.dependencies", "依赖", "Dependencies"],
@@ -259,8 +331,8 @@ window.__ModuleLoader__.load({
       ["export.write", "写入文件", "Write files"],
       [
         "export.writeConfirm",
-        "将把 7 个文件写入 {dir}。继续吗？",
-        "This will write 7 files into {dir}. Continue?",
+        "将把 {total} 个文件写入 {dir}。继续吗？",
+        "This will write {total} files into {dir}. Continue?",
       ],
       ["export.writing", "正在写入…", "Writing…"],
       ["export.writeDone", "已写入 {n} 个文件", "Wrote {n} files"],
@@ -284,7 +356,7 @@ window.__ModuleLoader__.load({
         "The export directory is out of sync with the index",
       ],
       ["export.freshMark", "生成目录与索引一致", "The export directory is in sync with the index"],
-      ["export.fileCount", "{n} / 7 个文件", "{n} / 7 files"],
+      ["export.fileCount", "{n} / {total} 个文件", "{n} / {total} files"],
       ["budget.bar", "预算 {used}/{max} tokens", "Budget {used}/{max} tokens"],
       ["budget.estimator", "估算器 {name}", "estimator {name}"],
       ["budget.truncated", "结果已按预算截断", "Result truncated to fit the budget"],
@@ -696,7 +768,8 @@ window.__ModuleLoader__.load({
  */
 
     const STYLES = `
-.cbi-root {
+.cbi-root,
+.cbi-guide-entry {
   --cbi-bg: var(--dsw-alias-bg-base, #fbfbfa);
   --cbi-layer1: var(--dsw-alias-bg-layer-1, #ffffff);
   --cbi-layer2: var(--dsw-alias-bg-layer-2, #f4f4f1);
@@ -1219,28 +1292,122 @@ window.__ModuleLoader__.load({
 
 .cbi-guide-entry {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--cbi-border);
-  border-radius: var(--cbi-radius-lg);
+  height: auto;
+  min-height: 68px;
+  padding: 14px 20px;
+  border: 1px solid var(--cbi-border2);
+  border-radius: 20px;
   background: var(--cbi-layer1);
   color: var(--cbi-ink);
+  font-family: var(--cbi-sans);
+  font-size: 14px;
+  line-height: normal;
   text-align: left;
   cursor: pointer;
   min-width: 0;
+  overflow: visible;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
 }
 @media (hover: hover) { .cbi-guide-entry:hover { background: var(--cbi-hover); border-color: var(--cbi-border2); } }
-.cbi-guide-entry:focus-visible { outline: 2px solid var(--cbi-brand); outline-offset: 1px; }
-.cbi-guide-title { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; }
-.cbi-guide-desc { font-size: 11px; color: var(--cbi-ink3); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.cbi-guide-entry:focus-visible { outline: 2px solid var(--cbi-brand); outline-offset: 2px; }
+.cbi-guide-icon { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex: none; color: var(--cbi-brand); }
+.cbi-guide-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1 1 auto; }
+.cbi-guide-title { display: block; font-size: 14px; font-weight: 400; line-height: 19.6px; color: var(--cbi-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cbi-guide-desc { display: block; font-size: 11px; line-height: 15.4px; color: var(--cbi-ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Scrollbars --------------------------------------------------------- */
 .cbi-root ::-webkit-scrollbar { width: 8px; height: 8px; }
 .cbi-root ::-webkit-scrollbar-thumb { background: var(--cbi-border2); border-radius: 4px; }
 .cbi-root ::-webkit-scrollbar-track { background: transparent; }
+
+.cbi-graph-toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin:8px 0; }
+.cbi-graph-nav, .cbi-graph-tools, .cbi-graph-zoom { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.cbi-graph-crumb { border:0; background:transparent; color:var(--cbi-ink2); font:inherit; font-size:12px; padding:3px 7px; border-radius:999px; cursor:pointer; }
+.cbi-graph-crumb:hover:not(:disabled) { background:var(--cbi-hover); color:var(--cbi-ink); }
+.cbi-graph-crumb:disabled { color:var(--cbi-ink); font-weight:600; cursor:default; }
+.cbi-graph-crumb + .cbi-graph-crumb::before { content:"/"; color:var(--cbi-caption); margin-right:6px; }
+.cbi-graph-select { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--cbi-ink2); }
+.cbi-graph-select select { font:inherit; font-size:12px; background:var(--cbi-layer1); color:var(--cbi-ink); border:1px solid var(--cbi-border2); border-radius:7px; padding:4px 6px; }
+.cbi-graph-search { width:170px; font:inherit; font-size:12px; background:var(--cbi-layer1); color:var(--cbi-ink); border:1px solid var(--cbi-border2); border-radius:7px; padding:5px 8px; }
+.cbi-graph-search:focus { outline:2px solid var(--cbi-brand); outline-offset:1px; }
+.cbi-chip { font:inherit; font-size:12px; background:var(--cbi-layer1); color:var(--cbi-ink2); border:1px solid var(--cbi-border2); border-radius:999px; padding:4px 9px; cursor:pointer; }
+.cbi-chip[aria-pressed="true"] { border-color:var(--cbi-brand); color:var(--cbi-brand); background:var(--cbi-hover); }
+.cbi-chip:hover { background:var(--cbi-hover); }
+.cbi-graph-legend { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:2px 0 8px; color:var(--cbi-ink3); font-size:11px; }
+.cbi-graph-legend-item { display:inline-flex; align-items:center; gap:5px; }
+.cbi-graph-legend-sep { width:1px; height:12px; background:var(--cbi-border2); }
+.cbi-graph-dot { width:8px; height:8px; border-radius:2px; display:inline-block; }
+.cbi-graph-dot--dir { background:var(--cbi-brand); }
+.cbi-graph-dot--file { background:var(--cbi-ink2); }
+.cbi-graph-dot--symbol { background:var(--cbi-ok); border-radius:50%; }
+.cbi-graph-dot--unresolved { background:transparent; border:1px dashed var(--cbi-ink3); }
+.cbi-graph-line { width:16px; height:0; border-top:2px solid var(--cbi-ink3); display:inline-block; }
+.cbi-graph-line--resolved { border-top-color:var(--cbi-brand); border-top-style:solid; }
+.cbi-graph-line--heuristic { border-top-color:var(--cbi-warn); border-top-style:dashed; }
+.cbi-graph-line--unresolved { border-top-color:var(--cbi-ink3); border-top-style:dotted; }
+.cbi-graph-stage { overflow:auto; max-height:58vh; border:1px solid var(--cbi-border2); border-radius:10px;
+  background-image:radial-gradient(circle at 1px 1px, var(--cbi-border) 1px, transparent 0);
+  background-size:18px 18px; background-color:var(--cbi-bg); }
+.cbi-graph-stage:focus-visible { outline:2px solid var(--cbi-brand); outline-offset:2px; }
+.cbi-graph-canvas { display:block; min-width:100%; }
+.cbi-graph-arrow--resolved { fill:var(--cbi-brand); }
+.cbi-graph-arrow--heuristic { fill:var(--cbi-warn); }
+.cbi-graph-arrow--unresolved { fill:var(--cbi-ink3); }
+.cbi-graph-edges { pointer-events:auto; }
+.cbi-graph-edge { cursor:pointer; }
+.cbi-graph-edge-hit { fill:none; stroke:transparent; stroke-width:14; }
+.cbi-graph-edge-line { fill:none; }
+.cbi-graph-edge--resolved .cbi-graph-edge-line { stroke:var(--cbi-brand); }
+.cbi-graph-edge--heuristic .cbi-graph-edge-line { stroke:var(--cbi-warn); stroke-dasharray:5 4; }
+.cbi-graph-edge--unresolved .cbi-graph-edge-line { stroke:var(--cbi-ink3); stroke-dasharray:2 4; }
+.cbi-graph-edge--selected .cbi-graph-edge-line { stroke-width:3.2; filter:drop-shadow(0 0 2px var(--cbi-brand)); }
+.cbi-graph-edge--dim { opacity:.16; }
+.cbi-graph-edge-label { fill:var(--cbi-ink2); font-size:10px; text-anchor:middle; paint-order:stroke; stroke:var(--cbi-bg); stroke-width:3px; pointer-events:none; }
+.cbi-graph-node { cursor:pointer; outline:none; }
+.cbi-graph-node-card { fill:var(--cbi-layer1); stroke:var(--cbi-border2); stroke-width:1.2; filter:drop-shadow(0 1px 1px rgba(0,0,0,.05)); }
+.cbi-graph-node-accent { fill:var(--cbi-ink2); }
+.cbi-graph-node--dir .cbi-graph-node-accent { fill:var(--cbi-brand); }
+.cbi-graph-node--file .cbi-graph-node-accent { fill:var(--cbi-ink2); }
+.cbi-graph-node--symbol .cbi-graph-node-accent { fill:var(--cbi-ok); }
+.cbi-graph-node--unresolved .cbi-graph-node-accent { fill:var(--cbi-ink3); }
+.cbi-graph-node-glyph { font-size:13px; font-weight:700; fill:var(--cbi-ink3); }
+.cbi-graph-node-label { font-size:12px; font-weight:600; fill:var(--cbi-ink); }
+.cbi-graph-node-meta { font-size:10px; fill:var(--cbi-ink3); }
+.cbi-graph-node--focus .cbi-graph-node-card { fill:var(--cbi-hover); stroke:var(--cbi-brand); stroke-width:2; }
+.cbi-graph-node--selected .cbi-graph-node-card { stroke:var(--cbi-brand); stroke-width:2.6; }
+.cbi-graph-node--related .cbi-graph-node-card { stroke:var(--cbi-brand); stroke-width:1.8; }
+.cbi-graph-node--dim { opacity:.2; }
+.cbi-graph-node:hover .cbi-graph-node-card, .cbi-graph-node:focus-visible .cbi-graph-node-card { stroke:var(--cbi-brand); stroke-width:2; }
+.cbi-graph-status { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:8px 0; color:var(--cbi-ink3); font-size:11px; }
+.cbi-graph-match { color:var(--cbi-brand); font-weight:600; }
+.cbi-graph-pager { display:inline-flex; gap:6px; align-items:center; margin-left:auto; }
+.cbi-graph-detail-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
+.cbi-graph-inspector-head { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px; }
+.cbi-graph-inspector-head strong { font-size:13px; word-break:break-all; }
+.cbi-graph-actions { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+.cbi-graph-relations { border-top:1px solid var(--cbi-border); margin-top:8px; padding-top:8px; }
+.cbi-graph-relations-head { font-size:11px; color:var(--cbi-ink3); margin-bottom:4px; }
+.cbi-graph-rel-row { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:8px; width:100%; text-align:left;
+  background:transparent; border:1px solid transparent; border-radius:7px; padding:5px 6px; cursor:pointer; font:inherit; font-size:11px; color:var(--cbi-ink2); }
+.cbi-graph-rel-row:hover { background:var(--cbi-hover); border-color:var(--cbi-border2); }
+.cbi-graph-rel-type { font-weight:600; color:var(--cbi-ink); }
+.cbi-graph-rel-target { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cbi-graph-rel-meta { color:var(--cbi-caption); white-space:nowrap; }
+.cbi-graph-hint { font-size:12px; margin:2px 0 8px; }
+.cbi-graph-edge-list { max-height:240px; overflow:auto; }
+.cbi-graph-edge-list button { white-space:normal; text-align:left; }
+.cbi-graph-evidence { margin-top:2px; }
+.cbi-graph-source-wrap { border:1px solid var(--cbi-border); border-radius:8px; overflow:hidden; }
+.cbi-graph-source-head { padding:5px 8px; border-bottom:1px solid var(--cbi-border); background:var(--cbi-layer2); font-size:11px; }
+.cbi-graph-source { overflow:auto; max-height:320px; white-space:pre; margin:0; font-family:var(--cbi-mono); font-size:11px; line-height:1.5; padding:8px; background:var(--cbi-layer1); }
+.cbi-graph-source span { display:block; }
+.cbi-graph-line-no { color:var(--cbi-caption); user-select:none; }
+.cbi-graph-highlight { background:var(--cbi-hover); font-weight:700; }
+@media (max-width: 620px) { .cbi-graph-search { width:130px; } .cbi-graph-toolbar { align-items:flex-start; } .cbi-graph-stage { max-height:52vh; } }
 `
 
 /**
@@ -2068,6 +2235,286 @@ window.__ModuleLoader__.load({
     }
 
     /* ------------------------------------------------------------------ */
+    /* Graph explorer                                                     */
+    /* ------------------------------------------------------------------ */
+
+    const GRAPH_NODE_WIDTH = 184
+    const GRAPH_NODE_HEIGHT = 54
+    const GRAPH_COLUMN_GAP = 54
+    const GRAPH_ROW_GAP = 26
+    const GRAPH_PADDING = 28
+    const GRAPH_KIND_ORDER = { dir: 0, file: 1, symbol: 2, unresolved: 3 }
+
+    function graphNodeRows(nodes) {
+      const rows = []
+      const seen = Object.create(null)
+      safeArray(nodes).forEach(function (node, index) {
+        if (!isObject(node)) return
+        const id = toText(node.id)
+        if (!id || seen[id]) return
+        seen[id] = true
+        const kind = GRAPH_KIND_ORDER[toText(node.kind)] === undefined ? "file" : toText(node.kind)
+        rows.push({
+          key: id,
+          id: id,
+          label: toText(node.label) || id,
+          kind: kind,
+          path: toText(node.path),
+          symbolKind: toText(node.symbolKind),
+          line: toNumber(node.line, 0),
+          side: ["focus", "in", "out", "both"].indexOf(toText(node.side)) >= 0 ? toText(node.side) : "",
+          index: index,
+        })
+      })
+      return rows
+    }
+
+    function graphEdgeRows(edges) {
+      return safeArray(edges).map(function (edge, index) {
+        const sites = []
+        const seenSites = Object.create(null)
+        safeArray(isObject(edge) ? edge.sites : []).some(function (span) {
+          const path = toText(span && span.path)
+          const startLine = toNumber(span && span.startLine, 1)
+          const key = path + ":" + startLine
+          if (!path || seenSites[key]) return false
+          seenSites[key] = true
+          sites.push({
+            path: path,
+            startLine: startLine,
+            startColumn: toNumber(span && span.startColumn, 0),
+            endLine: toNumber(span && span.endLine, null),
+            endColumn: toNumber(span && span.endColumn, null),
+          })
+          return sites.length >= 3
+        })
+        return {
+          key: toText(edge && edge.from) + "\u0000" + toText(edge && edge.to) + "\u0000" + index,
+          from: toText(edge && edge.from),
+          to: toText(edge && edge.to),
+          type: toText(edge && edge.type),
+          status: toText(edge && edge.status) || "unresolved",
+          evidence: toText(edge && edge.evidence) || "heuristic",
+          count: Math.max(1, toNumber(edge && edge.count, 1)),
+          sites: sites,
+        }
+      })
+    }
+
+    function graphNodeTone(node) {
+      const kind = toText(node && node.kind)
+      return GRAPH_KIND_ORDER[kind] === undefined ? "file" : kind
+    }
+
+    function graphEdgeTone(edge) {
+      const status = toText(edge && edge.status)
+      const evidence = toText(edge && edge.evidence)
+      if (status === "resolved" && evidence !== "heuristic") return "resolved"
+      if (evidence === "heuristic") return "heuristic"
+      return "unresolved"
+    }
+
+    function graphVisibleEdges(edges, options) {
+      const value = isObject(options) ? options : {}
+      const relation = toText(value.relation)
+      const showUnresolved = value.showUnresolved !== false
+      const query = toText(value.query).toLowerCase()
+      const matches = value.matches
+      return safeArray(edges).filter(function (edge) {
+        if (!isObject(edge) || !toText(edge.from) || !toText(edge.to)) return false
+        if (!showUnresolved && graphEdgeTone(edge) !== "resolved") return false
+        if (relation && toText(edge.type) !== relation) return false
+        if (query && matches && (!matches[toText(edge.from)] && !matches[toText(edge.to)])) return false
+        return true
+      })
+    }
+
+    function graphDegrees(nodes, edges) {
+      const degrees = Object.create(null)
+      safeArray(nodes).forEach(function (node) {
+        if (node && toText(node.id)) degrees[toText(node.id)] = { in: 0, out: 0, total: 0 }
+      })
+      safeArray(edges).forEach(function (edge) {
+        if (!isObject(edge)) return
+        const from = degrees[toText(edge.from)]
+        const to = degrees[toText(edge.to)]
+        if (from) { from.out += 1; from.total += 1 }
+        if (to) { to.in += 1; to.total += 1 }
+      })
+      return degrees
+    }
+
+    function graphNodeMatches(node, query) {
+      const value = toText(query).trim().toLowerCase()
+      if (!value) return true
+      const haystack = [
+        toText(node && node.label),
+        toText(node && node.path),
+        toText(node && node.kind),
+        toText(node && node.symbolKind),
+      ].join("\n").toLowerCase()
+      return haystack.indexOf(value) >= 0
+    }
+
+    function graphMatchMap(nodes, query) {
+      const matches = Object.create(null)
+      safeArray(nodes).forEach(function (node) {
+        if (node && toText(node.id) && graphNodeMatches(node, query)) matches[toText(node.id)] = true
+      })
+      return matches
+    }
+
+    /** Deterministic, bounded layout: focus gets in/out columns; otherwise DAG
+     * columns when the slice has a small number of layers, else a kind-ordered
+     * grid. Returns absolute positions for node cards plus the canvas size. */
+    function graphLayout(nodes, edges) {
+      const list = graphNodeRows(nodes)
+      const edgeList = graphEdgeRows(edges).filter(function (edge) {
+        return edge.from !== edge.to
+      })
+      const positions = Object.create(null)
+      const byId = Object.create(null)
+      list.forEach(function (node) { byId[node.id] = node })
+      const focus = list.filter(function (node) { return node.side === "focus" })[0]
+      let width = 0
+      let height = 0
+      let mode = "grid"
+      if (focus) {
+        mode = "focus"
+        const incoming = []
+        const outgoing = []
+        list.forEach(function (node) {
+          if (node.id === focus.id) return
+          if (node.side === "in") incoming.push(node)
+          else if (node.side === "out" || node.side === "both") outgoing.push(node)
+          else outgoing.push(node)
+        })
+        const columns = [incoming, [focus], outgoing]
+        const rows = Math.max(1, incoming.length, outgoing.length)
+        const columnWidth = GRAPH_NODE_WIDTH + GRAPH_COLUMN_GAP
+        width = GRAPH_PADDING * 2 + (columns.length - 1) * columnWidth + GRAPH_NODE_WIDTH
+        height = GRAPH_PADDING * 2 + rows * GRAPH_NODE_HEIGHT + Math.max(0, rows - 1) * GRAPH_ROW_GAP
+        columns.forEach(function (column, columnIndex) {
+          column.forEach(function (node, rowIndex) {
+            const centered = columnIndex === 1 && column.length === 1
+            positions[node.id] = {
+              x: GRAPH_PADDING + columnIndex * columnWidth,
+              y: centered ? Math.round((height - GRAPH_NODE_HEIGHT) / 2) : GRAPH_PADDING + rowIndex * (GRAPH_NODE_HEIGHT + GRAPH_ROW_GAP),
+            }
+          })
+        })
+      } else if (edgeList.length > 0) {
+        const indegree = Object.create(null)
+        const adjacency = Object.create(null)
+        list.forEach(function (node) { indegree[node.id] = 0; adjacency[node.id] = [] })
+        edgeList.forEach(function (edge) {
+          if (!byId[edge.from] || !byId[edge.to] || edge.from === edge.to) return
+          indegree[edge.to] += 1
+          adjacency[edge.from].push(edge.to)
+        })
+        const sortKey = function (id) {
+          const node = byId[id]
+          return (GRAPH_KIND_ORDER[node.kind] * 100000) + node.label.toLowerCase() + "\u0000" + id
+        }
+        const ready = list.filter(function (node) { return indegree[node.id] === 0 }).map(function (node) { return node.id }).sort(function (a, b) { return sortKey(a) < sortKey(b) ? -1 : sortKey(a) > sortKey(b) ? 1 : 0 })
+        const level = Object.create(null)
+        list.forEach(function (node) { level[node.id] = -1 })
+        ready.forEach(function (id) { level[id] = 0 })
+        const queue = ready.slice()
+        while (queue.length > 0) {
+          const id = queue.shift()
+          adjacency[id].forEach(function (target) {
+            level[target] = Math.max(level[target], level[id] + 1)
+            indegree[target] -= 1
+            if (indegree[target] === 0) queue.push(target)
+          })
+        }
+        let maxLevel = -1
+        list.forEach(function (node) { if (level[node.id] >= 0) maxLevel = Math.max(maxLevel, level[node.id]) })
+        list.forEach(function (node) { if (level[node.id] < 0) level[node.id] = maxLevel + 1 })
+        const layers = []
+        list.forEach(function (node) {
+          const index = level[node.id]
+          if (!layers[index]) layers[index] = []
+          layers[index].push(node)
+        })
+        const sorted = layers.filter(Boolean).map(function (layer) {
+          return layer.slice().sort(function (a, b) { return sortKey(a.id) < sortKey(b.id) ? -1 : sortKey(a.id) > sortKey(b.id) ? 1 : 0 })
+        })
+        const rowMax = sorted.reduce(function (best, layer) { return Math.max(best, layer.length) }, 0)
+        if (sorted.length > 0 && sorted.length <= 6 && rowMax <= 16) {
+          mode = "layered"
+          const columnWidth = GRAPH_NODE_WIDTH + GRAPH_COLUMN_GAP
+          width = GRAPH_PADDING * 2 + (sorted.length - 1) * columnWidth + GRAPH_NODE_WIDTH
+          height = GRAPH_PADDING * 2 + rowMax * GRAPH_NODE_HEIGHT + Math.max(0, rowMax - 1) * GRAPH_ROW_GAP
+          sorted.forEach(function (layer, columnIndex) {
+            const offset = Math.round((rowMax - layer.length) * (GRAPH_NODE_HEIGHT + GRAPH_ROW_GAP) / 2)
+            layer.forEach(function (node, rowIndex) {
+              positions[node.id] = {
+                x: GRAPH_PADDING + columnIndex * columnWidth,
+                y: GRAPH_PADDING + offset + rowIndex * (GRAPH_NODE_HEIGHT + GRAPH_ROW_GAP),
+              }
+            })
+          })
+        }
+      }
+      if (mode === "grid") {
+        const columns = list.length > 12 ? 3 : list.length > 4 ? 2 : 1
+        const sorted = list.slice().sort(function (a, b) {
+          const order = GRAPH_KIND_ORDER[a.kind] - GRAPH_KIND_ORDER[b.kind]
+          if (order !== 0) return order
+          if (a.label.toLowerCase() < b.label.toLowerCase()) return -1
+          if (a.label.toLowerCase() > b.label.toLowerCase()) return 1
+          return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+        })
+        const rows = Math.ceil(sorted.length / columns)
+        const columnWidth = GRAPH_NODE_WIDTH + GRAPH_COLUMN_GAP
+        width = GRAPH_PADDING * 2 + (columns - 1) * columnWidth + GRAPH_NODE_WIDTH
+        height = GRAPH_PADDING * 2 + Math.max(1, rows) * GRAPH_NODE_HEIGHT + Math.max(0, rows - 1) * GRAPH_ROW_GAP
+        sorted.forEach(function (node, index) {
+          positions[node.id] = {
+            x: GRAPH_PADDING + (index % columns) * columnWidth,
+            y: GRAPH_PADDING + Math.floor(index / columns) * (GRAPH_NODE_HEIGHT + GRAPH_ROW_GAP),
+          }
+        })
+      }
+      return {
+        mode: mode,
+        nodes: list,
+        positions: positions,
+        width: Math.max(width, GRAPH_NODE_WIDTH + GRAPH_PADDING * 2),
+        height: Math.max(height, GRAPH_NODE_HEIGHT + GRAPH_PADDING * 2),
+      }
+    }
+
+    /** Cubic edge route between two node cards; returns the path and its midpoint. */
+    function graphEdgeGeometry(from, to) {
+      const same = from && to && from.x === to.x && from.y === to.y
+      if (same) {
+        const x = from.x + GRAPH_NODE_WIDTH
+        const y = from.y + 18
+        return {
+          path: "M " + x + " " + y + " C " + (x + 54) + " " + (y - 34) + " " + (x + 54) + " " + (y + 34) + " " + x + " " + (y + 18),
+          labelX: x + 40,
+          labelY: y,
+        }
+      }
+      const forward = to.x >= from.x
+      const sx = forward ? from.x + GRAPH_NODE_WIDTH : from.x
+      const tx = forward ? to.x : to.x + GRAPH_NODE_WIDTH
+      const sy = from.y + GRAPH_NODE_HEIGHT / 2
+      const ty = to.y + GRAPH_NODE_HEIGHT / 2
+      const bend = Math.max(36, Math.abs(tx - sx) * 0.45)
+      const c1 = forward ? sx + bend : sx - bend
+      const c2 = forward ? tx - bend : tx + bend
+      return {
+        path: "M " + sx + " " + sy + " C " + c1 + " " + sy + " " + c2 + " " + ty + " " + tx + " " + ty,
+        labelX: (sx + tx) / 2,
+        labelY: (sy + ty) / 2,
+      }
+    }
+
+    /* ------------------------------------------------------------------ */
     /* Export plan                                                        */
     /* ------------------------------------------------------------------ */
 
@@ -2094,7 +2541,7 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * Map the preview/write `files` list onto the fixed seven-file checklist,
+     * Map the preview/write `files` list onto the fixed eight-file checklist,
      * matching by basename (paths may carry the outDir prefix).
      */
     function exportRowsFor(files) {
@@ -2181,7 +2628,7 @@ window.__ModuleLoader__.load({
  * dsh-codebase-intelligence — 04-panel
  *
  * The one Panel component shared by the right-sidebar pane and the full-page
- * fallback: header facts, six views (概览/地图/搜索/依赖/上下文/生成), bounded
+ * fallback: header facts, seven views (概览/地图/项目图谱/搜索/依赖/上下文/生成), bounded
  * tables with path:line citations, budget/truncation markers, and the explicit
  * two-step export flow. Every request goes through the host routes in
  * PANEL_CONTRACT.md §3; the panel never runs git.
@@ -3085,7 +3532,7 @@ window.__ModuleLoader__.load({
       const git = gitFactsOf(gitRemote.data || plan.git)
       const write = function () {
         if (writing) return
-        if (!confirmWrite(t("export.writeConfirm", { dir: outDir }))) return
+        if (!confirmWrite(t("export.writeConfirm", { dir: outDir, total: fmtInt(counts.total) }))) return
         setWriting(true)
         setWriteError(null)
         apiPost("/api/export", exportWriteBody(p.sessionId), withSession(p.sessionId)).then(
@@ -3138,13 +3585,15 @@ window.__ModuleLoader__.load({
                 ),
               )
             : null,
-          h(
-            "div",
-            { className: "cbi-command" },
-            h(Glyph, { name: "file", size: 13 }),
-            h("code", null, git.command),
-            h(CopyButton, { t: t, text: git.command, label: t("common.copyCommand") }),
-          ),
+          git.command
+            ? h(
+                "div",
+                { className: "cbi-command" },
+                h(Glyph, { name: "file", size: 13 }),
+                h("code", null, git.command),
+                h(CopyButton, { t: t, text: git.command, label: t("common.copyCommand") }),
+              )
+            : null,
           h("div", { className: "cbi-more" }, t("export.noRun")),
         ),
       )
@@ -3186,7 +3635,7 @@ window.__ModuleLoader__.load({
           h(Facts, {
             facts: [
               { key: "outDir", label: t("export.outDir"), value: outDir },
-              { key: "count", label: t("export.previewFacts"), value: t("export.fileCount", { n: fmtInt(counts.total - counts.missing) }) },
+              { key: "count", label: t("export.previewFacts"), value: t("export.fileCount", { n: fmtInt(counts.total - counts.missing), total: fmtInt(counts.total) }) },
               { key: "manifest", label: t("export.manifestFingerprint"), value: shortHash(manifestFingerprint) || "—", raw: manifestFingerprint },
             ],
           }),
@@ -3350,6 +3799,494 @@ window.__ModuleLoader__.load({
       )
     }
 
+    let graphInstance = 0
+
+    const GRAPH_RELATIONS = ["imports", "calls", "inherits", "implements", "references", "contains", "defines"]
+    const GRAPH_EDGE_TONES = ["resolved", "heuristic", "unresolved"]
+    const GRAPH_EDGE_KINDS = ["parser", "resolver", "heuristic"]
+
+    function graphKindLabel(t, kind) {
+      const key = "graph.kind." + kind
+      const label = t(key)
+      return label === key ? kind : label
+    }
+
+    function graphRelationLabel(t, kind) {
+      const value = toText(kind) || "other"
+      const key = "graph.relation." + value
+      const label = t(key)
+      return label === key ? value : label
+    }
+
+    function graphStatusLabel(t, status) {
+      const value = toText(status) || "unresolved"
+      const key = "graph.status." + value
+      const label = t(key)
+      return label === key ? value : label
+    }
+
+    function graphEvidenceLabel(t, evidence) {
+      const value = toText(evidence) || "heuristic"
+      const key = "graph.evidence." + value
+      const label = t(key)
+      return label === key ? value : label
+    }
+
+    function graphEdgeToneLabel(t, tone) {
+      const key = "graph.edge." + toText(tone)
+      const label = t(key)
+      return label === key ? toText(tone) : label
+    }
+
+    function graphSourceLabel(t, source) {
+      const value = toText(source)
+      const key = "graph.source." + value
+      const label = t(key)
+      return label === key ? value : label
+    }
+
+    function graphNodeGlyph(node) {
+      const kind = graphNodeTone(node)
+      return kind === "dir" ? "▸" : kind === "file" ? "▤" : kind === "symbol" ? "ƒ" : "?"
+    }
+
+    function graphNodeMeta(node, t) {
+      const kind = graphNodeTone(node)
+      if (kind === "symbol") {
+        return clampText((node.symbolKind || graphKindLabel(t, "symbol")) + (node.line ? " · " + node.line : ""), 28)
+      }
+      if (kind === "unresolved") return graphKindLabel(t, "unresolved")
+      return clampText(node.path || graphKindLabel(t, kind), 28)
+    }
+
+    function graphEdgeText(t, edge, labels) {
+      const from = labels[edge.from] || edge.from
+      const to = labels[edge.to] || edge.to
+      return from + " → " + to + " · " + graphRelationLabel(t, edge.type) + " · "
+        + graphStatusLabel(t, edge.status) + " · " + graphEvidenceLabel(t, edge.evidence) + " ×" + edge.count
+    }
+
+    function GraphSource(props) {
+      const t = props.t
+      const span = props.span
+      const request = useLoad(function () {
+        return apiGet("/api/graph", withSession(props.sessionId, {
+          source: span.path, line: span.startLine, fingerprint: props.fingerprint,
+        }))
+      }, [props.sessionId, span.path, span.startLine, props.fingerprint])
+      if (request.status === "loading") return h(Loading, { t: t })
+      if (request.status === "error") return h(ErrorBox, { t: t, error: request.error, onRetry: request.reload })
+      const result = request.data
+      return h("div", { className: "cbi-graph-source-wrap" },
+        h("div", { className: "cbi-graph-source-head" }, h(PathRef, { path: result.path, line: result.line })),
+        h("pre", { className: "cbi-graph-source", tabIndex: 0, "aria-label": result.path },
+          safeArray(result.lines).map(function (line, index) {
+            const number = result.startLine + index
+            return h("span", { key: number, className: number === result.line ? "cbi-graph-highlight" : "" },
+              h("span", { className: "cbi-graph-line-no" }, String(number).padStart(4, " ")),
+              "  " + line + "\n")
+          }),
+        ),
+      )
+    }
+
+    function GraphCanvas(props) {
+      const t = props.t
+      const markerId = useMemo(function () { graphInstance += 1; return "cbi-arrow-" + graphInstance }, [])
+      const viewport = useRef(null)
+      const layout = props.layout
+      const positions = layout.positions
+      const nodes = layout.nodes
+      const edges = props.edges
+      const selectedNodeId = props.selected && props.selected.type === "node" ? props.selected.node.id : ""
+      const selectedEdgeKey = props.selected && props.selected.type === "edge" ? props.selected.edge.key : ""
+      const hasQuery = toText(props.query).trim().length > 0
+      const matches = props.matches || Object.create(null)
+      const labels = Object.create(null)
+      nodes.forEach(function (node) { labels[node.id] = node.label })
+      const related = Object.create(null)
+      if (selectedNodeId) {
+        edges.forEach(function (edge) {
+          if (edge.from === selectedNodeId) related[edge.to] = true
+          if (edge.to === selectedNodeId) related[edge.from] = true
+        })
+      }
+      useEffect(function () {
+        if (viewport.current && props.scroll) {
+          viewport.current.scrollLeft = props.scroll.left
+          viewport.current.scrollTop = props.scroll.top
+        }
+      }, [])
+      useEffect(function () {
+        if (viewport.current) {
+          viewport.current.scrollLeft = 0
+          viewport.current.scrollTop = 0
+        }
+      }, [props.resetToken])
+      const clearOnBackground = function (event) {
+        if (event.target === event.currentTarget && typeof props.onClear === "function") props.onClear()
+      }
+      return h("div", {
+        className: "cbi-graph-stage", ref: viewport, tabIndex: 0,
+        role: "region", "aria-label": t("graph.canvasLabel"),
+        onScroll: function (event) {
+          if (typeof props.onScroll === "function") {
+            props.onScroll({ left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop })
+          }
+        },
+        onClick: clearOnBackground,
+      },
+        h("svg", {
+          className: "cbi-graph-canvas",
+          width: layout.width * props.zoom,
+          height: layout.height * props.zoom,
+          viewBox: "0 0 " + layout.width + " " + layout.height,
+          role: "group",
+          "aria-label": t("graph.canvasLabel"),
+          onClick: clearOnBackground,
+        },
+          h("defs", null, GRAPH_EDGE_TONES.map(function (tone) {
+            return h("marker", {
+              key: tone, id: markerId + tone, viewBox: "0 0 10 10",
+              refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: "auto",
+            }, h("path", { d: "M 0 0 L 10 5 L 0 10 z", className: "cbi-graph-arrow cbi-graph-arrow--" + tone }))
+          })),
+          h("g", { className: "cbi-graph-edges" }, edges.map(function (edge) {
+            const from = positions[edge.from]
+            const to = positions[edge.to]
+            if (!from || !to) return null
+            const geometry = graphEdgeGeometry(from, to)
+            const tone = graphEdgeTone(edge)
+            const selected = selectedEdgeKey === edge.key
+            const dim = (selectedNodeId && edge.from !== selectedNodeId && edge.to !== selectedNodeId)
+              || (selectedEdgeKey && !selected)
+              || (hasQuery && !matches[edge.from] && !matches[edge.to])
+            const classes = ["cbi-graph-edge", "cbi-graph-edge--" + tone]
+            if (selected) classes.push("cbi-graph-edge--selected")
+            if (dim) classes.push("cbi-graph-edge--dim")
+            const aria = graphEdgeText(t, edge, labels)
+            return h("g", {
+              key: edge.key, className: classes.join(" "), role: "button", tabIndex: 0, "aria-label": aria,
+              onClick: function (event) { event.stopPropagation(); props.onEdge(edge) },
+              onKeyDown: function (event) {
+                if (event.key === "Enter" || event.key === " ") { event.preventDefault(); props.onEdge(edge) }
+              },
+            },
+              h("title", null, aria),
+              h("path", { className: "cbi-graph-edge-hit", d: geometry.path }),
+              h("path", {
+                className: "cbi-graph-edge-line", d: geometry.path,
+                "marker-end": "url(#" + markerId + tone + ")",
+                "stroke-width": Math.min(3.4, 1.1 + Math.log2(edge.count)),
+              }),
+              selected ? h("text", { className: "cbi-graph-edge-label", x: geometry.labelX, y: geometry.labelY - 6 },
+                graphRelationLabel(t, edge.type) + " ×" + edge.count) : null,
+            )
+          })),
+          h("g", { className: "cbi-graph-nodes" }, nodes.map(function (node) {
+            const pos = positions[node.id]
+            if (!pos) return null
+            const kind = graphNodeTone(node)
+            const selected = selectedNodeId === node.id
+            const dim = (selectedEdgeKey && !selected)
+              || (selectedNodeId && !selected && !related[node.id])
+              || (hasQuery && !matches[node.id])
+              || (!props.showUnresolved && kind === "unresolved")
+            const classes = ["cbi-graph-node", "cbi-graph-node--" + kind]
+            if (node.side === "focus") classes.push("cbi-graph-node--focus")
+            if (selected) classes.push("cbi-graph-node--selected")
+            if (related[node.id]) classes.push("cbi-graph-node--related")
+            if (dim) classes.push("cbi-graph-node--dim")
+            const enter = function () {
+              if (node.kind !== "unresolved" && node.side !== "focus") props.onEnter(node)
+            }
+            return h("g", {
+              key: node.id, className: classes.join(" "), transform: "translate(" + pos.x + "," + pos.y + ")",
+              role: "button", tabIndex: 0, "aria-label": node.label, "aria-pressed": selected ? "true" : "false",
+              onClick: function (event) { event.stopPropagation(); props.onSelect(node) },
+              onDoubleClick: function (event) { event.stopPropagation(); enter() },
+              onKeyDown: function (event) {
+                if (event.key === "Enter" || event.key === " ") { event.preventDefault(); props.onSelect(node) }
+              },
+            },
+              h("title", null, node.path ? node.path + (node.line ? ":" + node.line : "") : node.label),
+              h("rect", { className: "cbi-graph-node-card", width: GRAPH_NODE_WIDTH, height: GRAPH_NODE_HEIGHT, rx: 10 }),
+              h("rect", { className: "cbi-graph-node-accent", width: 4, height: GRAPH_NODE_HEIGHT, rx: 2 }),
+              h("text", { className: "cbi-graph-node-glyph", x: 18, y: 32 }, graphNodeGlyph(node)),
+              h("text", { className: "cbi-graph-node-label", x: 38, y: 24 }, clampText(node.label, 23)),
+              h("text", { className: "cbi-graph-node-meta", x: 38, y: 42 }, graphNodeMeta(node, t)),
+            )
+          })),
+        ),
+      )
+    }
+
+    function GraphView(props) {
+      const t = props.t
+      const [trail, setTrail] = useState([{ id: "", offset: 0, relation: "" }])
+      const [zoom, setZoom] = useState(1)
+      const [selection, select] = useState(null)
+      const [query, setQuery] = useState("")
+      const [showUnresolved, setShowUnresolved] = useState(true)
+      const [refreshing, setRefreshing] = useState(false)
+      const [refreshError, setRefreshError] = useState(null)
+      const [resetToken, setResetToken] = useState(0)
+      const scrollPositions = useRef(new Map())
+      const position = trail[trail.length - 1]
+      const focus = position.id
+      const offset = position.offset
+      const relation = position.relation
+      const viewKey = JSON.stringify([focus, offset, relation])
+      const clearSelection = function () { select(null) }
+      const open = function (node, nextOffset) {
+        if (node.id === focus && (nextOffset || 0) === offset) return
+        select(null)
+        setQuery("")
+        setTrail(function (old) {
+          return old.slice(-63).concat({ id: node.id, offset: nextOffset || 0, relation: node.id === focus ? relation : "" })
+        })
+      }
+      const back = function () {
+        select(null)
+        setTrail(function (old) { return old.length > 1 ? old.slice(0, -1) : old })
+      }
+      const request = useLoad(function () {
+        return apiGet("/api/graph", withSession(props.sessionId, { focus: focus, offset: offset, relation: relation }))
+      }, [props.sessionId, props.refreshToken, focus, offset, relation])
+      const refresh = async function () {
+        setRefreshing(true)
+        setRefreshError(null)
+        try {
+          await apiPost("/api/graph", refreshBody(props.sessionId))
+          select(null)
+          setQuery("")
+          setResetToken(function (value) { return value + 1 })
+          scrollPositions.current.clear()
+          setTrail([{ id: "", offset: 0, relation: "" }])
+          request.reload()
+        } catch (error) {
+          setRefreshError({ message: messageOf(error), code: errorCodeOf(error) })
+        } finally {
+          setRefreshing(false)
+        }
+      }
+      const graph = request.data && request.data.focus === focus && request.data.offset === offset && request.data.relation === relation ? request.data : null
+      const nodes = useMemo(function () { return graphNodeRows(graph && graph.nodes) }, [graph])
+      const edges = useMemo(function () { return graphEdgeRows(graph && graph.edges) }, [graph])
+      const matches = useMemo(function () { return graphMatchMap(nodes, query) }, [nodes, query])
+      const visibleEdges = useMemo(function () {
+        return graphVisibleEdges(edges, { relation: relation, showUnresolved: showUnresolved, query: query, matches: matches })
+      }, [edges, relation, showUnresolved, query, matches])
+      const layout = useMemo(function () { return graphLayout(nodes, edges) }, [nodes, edges])
+      const degrees = useMemo(function () { return graphDegrees(nodes, edges) }, [nodes, edges])
+      const labels = useMemo(function () {
+        const value = Object.create(null)
+        nodes.forEach(function (node) { value[node.id] = node.label })
+        return value
+      }, [nodes])
+      const selectedNode = selection && selection.type === "node" ? selection.node : null
+      const selectedEdge = selection && selection.type === "edge" && selection.fingerprint === graph?.fingerprint ? selection.edge : null
+      const selectedSpan = selectedEdge ? selection.span : null
+      const currentSource = selection && selection.type === "source" && selection.fingerprint === graph?.fingerprint
+        ? { path: selection.path, startLine: selection.line, line: selection.line }
+        : selectedSpan
+          ? { path: selectedSpan.path, startLine: selectedSpan.startLine, line: selectedSpan.startLine }
+          : null
+      useEffect(function () {
+        if (!selection || selection.type !== "node") return
+        if (!nodes.some(function (node) { return node.id === selection.node.id })) select(null)
+      }, [nodes, selection])
+      const chooseNode = function (node) { select({ type: "node", node: node }) }
+      const chooseEdge = function (edge) {
+        select({ type: "edge", edge: edge, span: safeArray(edge.sites)[0] || null, fingerprint: graph.fingerprint })
+      }
+      const enterNode = function (node) {
+        if (node.kind === "unresolved" || node.side === "focus") return
+        open({ id: node.id })
+      }
+      const viewNodeSource = function (node) {
+        if (!node.path) return
+        select({ type: "source", path: node.path, line: node.line || 1, fingerprint: graph.fingerprint })
+      }
+      const matchCount = nodes.filter(function (node) { return matches[node.id] }).length
+      const rootButton = function (label, onClick, disabled) {
+        return h(Btn, { size: "sm", tone: "ghost", onClick: onClick, disabled: disabled }, label)
+      }
+      const crumbs = safeArray(graph && graph.breadcrumbs)
+      const relationSelect = focus && !focus.startsWith("dir:")
+        ? h("label", { className: "cbi-graph-select" }, h("span", null, t("graph.filter")),
+          h("select", { value: relation, onChange: function (event) {
+            const value = event.currentTarget.value
+            select(null)
+            setTrail(function (old) { return old.slice(0, -1).concat({ id: focus, offset: 0, relation: value }) })
+          } }, [""].concat(GRAPH_RELATIONS).map(function (kind) {
+            return h("option", { key: kind, value: kind }, kind ? graphRelationLabel(t, kind) : t("graph.all"))
+          })))
+        : null
+      const selectedFacts = selectedNode
+        ? [
+            { key: "kind", label: t("graph.nodeKind"), value: graphKindLabel(t, selectedNode.kind) },
+            { key: "path", label: t("graph.nodePath"), value: selectedNode.path || "—", raw: selectedNode.path || undefined },
+            { key: "line", label: t("graph.nodeLine"), value: selectedNode.line ? String(selectedNode.line) : "—" },
+            { key: "degree", label: t("graph.nodeDegree"), value: (degrees[selectedNode.id]?.in || 0) + " ← · → " + (degrees[selectedNode.id]?.out || 0) },
+          ]
+        : []
+      const touching = selectedNode
+        ? edges.filter(function (edge) { return edge.from === selectedNode.id || edge.to === selectedNode.id })
+        : []
+      const relationRow = function (edge) {
+        const otherId = edge.from === selectedNode.id ? edge.to : edge.from
+        const other = labels[otherId] || otherId
+        return h("button", {
+          type: "button", key: edge.key, className: "cbi-graph-rel-row",
+          onClick: function () { chooseEdge(edge) },
+        },
+          h("span", { className: "cbi-graph-rel-type" }, graphRelationLabel(t, edge.type)),
+          h("span", { className: "cbi-graph-rel-target" }, (edge.from === selectedNode.id ? "→ " : "← ") + other),
+          h("span", { className: "cbi-graph-rel-meta" }, graphStatusLabel(t, edge.status) + " ×" + edge.count),
+        )
+      }
+      return h("section", null,
+        h(ViewLead, { title: t("view.graph"), subtitle: t("graph.help") }),
+        h("div", { className: "cbi-graph-toolbar" },
+          h("div", { className: "cbi-graph-nav" },
+            rootButton(t("graph.back"), back, trail.length < 2),
+            rootButton(t("graph.root"), function () { open({ id: "" }) }, !focus && offset === 0),
+            crumbs.map(function (crumb) {
+              return h("button", {
+                type: "button", key: crumb.id, className: "cbi-graph-crumb",
+                disabled: crumb.id === focus && offset === 0,
+                onClick: function () { open(crumb) },
+              }, clampText(crumb.label, 20))
+            }),
+          ),
+          h("div", { className: "cbi-graph-tools" },
+            h(Btn, { size: "sm", glyph: "refresh", onClick: refresh, disabled: refreshing },
+              refreshing ? t("graph.refreshing") : t("graph.refresh")),
+            relationSelect,
+            h("input", {
+              type: "search", className: "cbi-graph-search", value: query,
+              placeholder: t("graph.searchPlaceholder"), "aria-label": t("graph.searchPlaceholder"),
+              onChange: function (event) { setQuery(event.currentTarget.value) },
+            }),
+            query ? h("button", { type: "button", className: "cbi-chip", onClick: function () { setQuery("") } }, t("graph.clearSearch")) : null,
+            h("button", {
+              type: "button", className: "cbi-chip", "aria-pressed": showUnresolved ? "true" : "false",
+              onClick: function () { setShowUnresolved(function (value) { return !value }) },
+            }, t(showUnresolved ? "graph.hideUnresolved" : "graph.showUnresolved")),
+            h("div", { className: "cbi-graph-zoom" },
+              h(Btn, { size: "sm", tone: "ghost", onClick: function () { setZoom(Math.max(0.5, zoom - 0.25)) }, disabled: zoom <= 0.5 }, "−"),
+              h(Btn, { size: "sm", tone: "ghost", onClick: function () { setZoom(1); setResetToken(function (value) { return value + 1 }) } }, t("graph.fit")),
+              h(Btn, { size: "sm", tone: "ghost", onClick: function () { setZoom(Math.min(2, zoom + 0.25)) }, disabled: zoom >= 2 }, "+"),
+            ),
+          ),
+        ),
+        h("div", { className: "cbi-graph-legend" },
+          ["dir", "file", "symbol", "unresolved"].map(function (kind) {
+            return h("span", { key: kind, className: "cbi-graph-legend-item" },
+              h("i", { className: "cbi-graph-dot cbi-graph-dot--" + kind }), graphKindLabel(t, kind))
+          }),
+          h("span", { className: "cbi-graph-legend-sep" }),
+          GRAPH_EDGE_TONES.map(function (tone) {
+            return h("span", { key: tone, className: "cbi-graph-legend-item" },
+              h("i", { className: "cbi-graph-line cbi-graph-line--" + tone }),
+              graphEdgeToneLabel(t, tone))
+          }),
+        ),
+        refreshError ? h(ErrorBox, { t: t, error: refreshError, onRetry: refresh }) : null,
+        request.status === "error" ? h(ErrorBox, { t: t, error: request.error, onRetry: request.reload })
+          : !graph ? h(Loading, { t: t })
+          : nodes.length === 0 ? h(EmptyState, { title: t("graph.empty"), hint: t("graph.emptyHint") })
+          : h(GraphCanvas, {
+              key: viewKey, t: t, layout: layout, edges: visibleEdges, zoom: zoom, selected: selection,
+              query: query, matches: matches, resetToken: resetToken,
+              scroll: scrollPositions.current.get(viewKey), onScroll: function (scroll) {
+                if (scrollPositions.current.size >= 64 && !scrollPositions.current.has(viewKey)) {
+                  scrollPositions.current.delete(scrollPositions.current.keys().next().value)
+                }
+                scrollPositions.current.set(viewKey, scroll)
+              },
+              onSelect: chooseNode, onEnter: enterNode, onEdge: chooseEdge, onClear: clearSelection,
+              showUnresolved: showUnresolved,
+            }),
+        graph ? h("div", { className: "cbi-graph-status" },
+          h("span", null, t("graph.stats", {
+            shown: fmtInt(nodes.length), total: fmtInt(graph.totalNodes),
+            edges: fmtInt(visibleEdges.length), hidden: fmtInt(graph.omittedEdges),
+          })),
+          h("span", null, graphSourceLabel(t, graph.snapshotSource)),
+          query ? h("span", { className: "cbi-graph-match" }, t("graph.searchCount", { n: fmtInt(matchCount), total: fmtInt(nodes.length) })) : null,
+          h("span", { className: "cbi-graph-pager" },
+            offset > 0 ? rootButton(t("graph.previous"), function () { open({ id: focus }, Math.max(0, offset - (focus.startsWith("sym:") ? 79 : 80))) }) : null,
+            graph.nextOffset !== null ? rootButton(t("graph.next"), function () { open({ id: focus }, graph.nextOffset) }) : null,
+          ),
+        ) : null,
+        graph ? h("div", { className: "cbi-graph-detail-grid" },
+          selectedNode ? h(Section, {
+            title: t("graph.inspector"),
+            actions: h(Btn, { size: "sm", tone: "ghost", onClick: clearSelection }, t("graph.clearSelection")),
+          },
+            h("div", { className: "cbi-graph-inspector" },
+              h("div", { className: "cbi-graph-inspector-head" },
+                h("strong", null, selectedNode.label),
+                h(Badge, { tone: "muted" }, graphKindLabel(t, selectedNode.kind)),
+                selectedNode.side === "focus" ? h(Badge, { tone: "brand" }, t("graph.focusBadge")) : null,
+              ),
+              h(Facts, { facts: selectedFacts }),
+              h("div", { className: "cbi-graph-actions" },
+                selectedNode.kind !== "unresolved" && selectedNode.side !== "focus"
+                  ? h(Btn, { size: "sm", tone: "primary", onClick: function () { enterNode(selectedNode) } }, t("graph.enter"))
+                  : null,
+                selectedNode.path && selectedNode.kind !== "dir" && selectedNode.kind !== "unresolved"
+                  ? h(Btn, { size: "sm", glyph: "file", onClick: function () { viewNodeSource(selectedNode) } }, t("graph.viewSource"))
+                  : null,
+              ),
+              touching.length ? h("div", { className: "cbi-graph-relations" },
+                h("div", { className: "cbi-graph-relations-head" }, t("graph.relations"), " ", h("span", { className: "cbi-muted" }, fmtInt(touching.length))),
+                touching.map(relationRow),
+              ) : h("p", { className: "cbi-muted" }, t("graph.noRelations")),
+            ),
+          ) : null,
+          selectedEdge ? h(Section, {
+            title: t("graph.evidence"),
+            actions: h(Btn, { size: "sm", tone: "ghost", onClick: clearSelection }, t("graph.clearSelection")),
+          },
+            h("div", { className: "cbi-graph-evidence" },
+              h("strong", null, graphEdgeText(t, selectedEdge, labels)),
+              h("div", { className: "cbi-graph-actions" },
+                safeArray(selectedEdge.sites).map(function (span) {
+                  return h(Btn, {
+                    key: span.path + ":" + span.startLine, size: "sm", glyph: "file",
+                    onClick: function () { select({ type: "edge", edge: selectedEdge, span: span, fingerprint: graph.fingerprint }) },
+                    disabled: selectedSpan && selectedSpan.path === span.path && selectedSpan.startLine === span.startLine,
+                  }, span.path + ":" + span.startLine)
+                }),
+              ),
+              currentSource ? h(GraphSource, {
+                key: currentSource.path + ":" + currentSource.startLine + ":" + graph.fingerprint,
+                t: t, sessionId: props.sessionId,
+                span: { path: currentSource.path, startLine: currentSource.startLine },
+                fingerprint: graph.fingerprint,
+              }) : h("p", { className: "cbi-muted" }, t("graph.noSource")),
+            ),
+          ) : null,
+          selection && selection.type === "source" ? h(Section, {
+            title: t("graph.sourceExcerpt"),
+            actions: h(Btn, { size: "sm", tone: "ghost", onClick: clearSelection }, t("graph.clearSelection")),
+          },
+            h(GraphSource, {
+              key: selection.path + ":" + selection.line + ":" + selection.fingerprint,
+              t: t, sessionId: props.sessionId,
+              span: { path: selection.path, startLine: selection.line },
+              fingerprint: selection.fingerprint,
+            }),
+          ) : null,
+          !selection ? h("p", { className: "cbi-muted cbi-graph-hint" }, t("graph.selectHint")) : null,
+        ) : null,
+      )
+    }
+
+
     function ViewRouter(props) {
       const p = props || {}
       const shared = {
@@ -3362,6 +4299,8 @@ window.__ModuleLoader__.load({
       switch (p.view) {
         case "map":
           return h(MapView, shared)
+        case "graph":
+          return h(GraphView, Object.assign({ key: p.sessionId }, shared))
         case "search":
           return h(SearchView, shared)
         case "dependencies":
@@ -3510,7 +4449,27 @@ window.__ModuleLoader__.load({
       return h(Panel, { sessionId: sessionId, variant: "main" })
     }
 
-    /** Guide/Start card that opens the tab; `open` is injected by the host plugin. */
+    /** Mount the namespaced stylesheet once in document.head so the Start-guide
+     * card (rendered outside the panel root) is styled before the panel opens. */
+    function ensureGlobalStyles() {
+      if (typeof document === "undefined" || !document.head) return
+      try {
+        let node = document.getElementById("dsh-codebase-intelligence-styles")
+        if (!node) {
+          node = document.createElement("style")
+          node.id = "dsh-codebase-intelligence-styles"
+          node.setAttribute("data-dsh-codebase-intelligence", "styles")
+          document.head.appendChild(node)
+        }
+        if (node.textContent !== STYLES) node.textContent = STYLES
+      } catch (error) {
+        /* style injection is best effort; the panel still has its inline sheet */
+      }
+    }
+
+    /** Guide/Start card that opens the tab; `open` is injected by the host plugin.
+     * Rendered by DSH as a row in the right-sidebar Start list, so it mirrors the
+     * host row geometry instead of looking like a separate embedded card. */
     function GuideEntryCard(props) {
       const p = props || {}
       const t = typeof p.t === "function" ? p.t : makeT("zh")
@@ -3518,6 +4477,7 @@ window.__ModuleLoader__.load({
       const description =
         typeof p.description === "string" && p.description.length > 0 ? p.description : t("guide.description")
       const open = typeof p.open === "function" ? p.open : null
+      ensureGlobalStyles()
       return h(
         "button",
         {
@@ -3528,8 +4488,13 @@ window.__ModuleLoader__.load({
             if (open) open()
           },
         },
-        h("span", { className: "cbi-guide-title" }, h(PanelMark, { size: 16 }), h("span", null, title)),
-        h("span", { className: "cbi-guide-desc" }, description),
+        h("span", { className: "cbi-guide-icon" }, h(PanelMark, { size: 26 })),
+        h(
+          "span",
+          { className: "cbi-guide-text" },
+          h("span", { className: "cbi-guide-title" }, title),
+          h("span", { className: "cbi-guide-desc" }, description),
+        ),
       )
     }
 
@@ -3731,6 +4696,7 @@ window.__ModuleLoader__.load({
      */
     function apply(ctx) {
       if (!ctx || typeof ctx !== "object") return
+      try { ensureGlobalStyles() } catch (error) { /* styles are best effort */ }
       try {
         contributeLocale(ctx)
       } catch (error) {
@@ -3840,6 +4806,17 @@ window.__ModuleLoader__.load({
       gitFactsOf: gitFactsOf,
       selectRecentSession: selectRecentSession,
       viewById: viewById,
+      /* graph explorer models */
+      graphNodeRows: graphNodeRows,
+      graphEdgeRows: graphEdgeRows,
+      graphNodeTone: graphNodeTone,
+      graphEdgeTone: graphEdgeTone,
+      graphVisibleEdges: graphVisibleEdges,
+      graphDegrees: graphDegrees,
+      graphNodeMatches: graphNodeMatches,
+      graphMatchMap: graphMatchMap,
+      graphLayout: graphLayout,
+      graphEdgeGeometry: graphEdgeGeometry,
       /* components (identity assertions in the headless suite) */
       components: {
         Panel: Panel,

@@ -25,7 +25,7 @@ Quick checks:
 
 ```powershell
 cd integrations/deepseek-harness/plugin
-npm test          # 95 headless unit tests (host + panel routes + client)
+npm test          # 106 headless unit tests (host + panel routes + graph models + client)
 npm run check     # syntax + client build freshness
 npm run footprint # measured always-on token cost
 node verify/harness.mjs up   # isolated DSH instance on port 3098

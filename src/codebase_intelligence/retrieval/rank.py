@@ -26,7 +26,9 @@ only; a missing method or a ``None`` graph simply means "no graph signal".
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
+from functools import cache
 from typing import Any
 
 from codebase_intelligence.model import (
@@ -312,12 +314,15 @@ def _path_score(
     return best, tuple(matched)
 
 
+_PathScorer = Callable[[str], tuple[float, tuple[str, ...]]]
+
+
 def _symbol_lexical(
-    symbol: SymbolRecord, terms: tuple[str, ...], weights: dict[str, float]
+    symbol: SymbolRecord, terms: tuple[str, ...], weights: dict[str, float], score_path: _PathScorer
 ) -> tuple[float, tuple[str, ...], tuple[str, ...]]:
     """Lexical score, matched field kinds and bounded reason strings for a symbol."""
 
-    path_score, path_matched = _path_score(symbol.path, terms, weights)
+    path_score, path_matched = score_path(symbol.path)
     name_score, name_matched = _field_score(
         symbol.name, terms, weights, exact=_NAME_EXACT, part=_NAME_PART, substring=_NAME_SUBSTRING
     )
@@ -372,9 +377,9 @@ def _symbol_lexical(
 
 
 def _file_lexical(
-    file_path: str, terms: tuple[str, ...], weights: dict[str, float]
+    file_path: str, score_path: _PathScorer
 ) -> tuple[float, tuple[str, ...], tuple[str, ...]]:
-    path_score, matched = _path_score(file_path, terms, weights)
+    path_score, matched = score_path(file_path)
     if path_score <= 0:
         return 0.0, (), ()
     return path_score, ("path",), (f"lexical path: {_clip(matched[0])}",)
@@ -620,12 +625,16 @@ def rank(
     if not context.terms:
         return RankResult()
 
+    @cache
+    def score_path(path: str) -> tuple[float, tuple[str, ...]]:
+        return _path_score(path, context.terms, context.weights)
+
     symbols: list[RankedSymbol] = []
     for symbol in sorted(
         snapshot.symbols,
         key=lambda item: (item.path, item.span.start_line, item.kind.value, item.qualified_name),
     ):
-        lexical, matched, lexical_reasons = _symbol_lexical(symbol, context.terms, context.weights)
+        lexical, matched, lexical_reasons = _symbol_lexical(symbol, context.terms, context.weights, score_path)
         structural, structural_reasons = _symbol_structural(symbol, context)
         proximity = context.proximity.get(symbol.path, 0)
         if lexical <= 0 and proximity == 0:
@@ -651,7 +660,7 @@ def rank(
 
     files: list[RankedFile] = []
     for file in sorted(snapshot.files, key=lambda item: item.path):
-        lexical, matched, lexical_reasons = _file_lexical(file.path, context.terms, context.weights)
+        lexical, matched, lexical_reasons = _file_lexical(file.path, score_path)
         structural, structural_reasons = _file_structural(file.path, context)
         proximity = context.proximity.get(file.path, 0)
         if lexical <= 0 and proximity == 0:

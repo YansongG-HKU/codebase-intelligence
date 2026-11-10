@@ -18,19 +18,19 @@ DSH prompt section alone: 184 tokens (735 bytes, static hash `0b51a141f3f1c4ecf7
 |---|---|---|---|---|---|---|
 | overview | 900 | 678 | 2709 | yes | yes | yes |
 | map | 1600 | 1545 | 6180 | yes | yes | yes |
-| search | 1200 | 1148 | 4589 | yes | yes | yes |
+| search | 1200 | 1147 | 4587 | yes | yes | yes |
 | dependencies | 1200 | 1092 | 4365 | yes | yes | no |
-| context | 2200 | 2125 | 8497 | yes | yes | yes |
+| context | 2200 | 2104 | 8416 | yes | yes | yes |
 | impact | 1200 | 130 | 519 | yes | yes | no |
 | symbol-neighborhood | 1200 | 1167 | 4668 | yes | yes | yes |
 
 ## Incremental index cache
 
-- Cold build reused files: 0, reparsed: 164
-- Warm build reused files: 164, reparsed: 0
+- Cold build reused files: 0, reparsed: 167
+- Warm build reused files: 167, reparsed: 0
 - Warm cache hit: yes
 - Identical public index payload on repeated runs: yes
-- Index fingerprint: `fd1608e4f8403e6ef66f6e6aa4bac31f220da10bec6c31ca27ce0f8ccae68d5e`
+- Index fingerprint: `a52752e2a919b7ad888ec98beb1d52196e8bef629b802b2caf7ef2936a67a805`
 
 ## Cache-friendliness invariants
 

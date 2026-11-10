@@ -20,8 +20,8 @@ const sourceDir = join(root, 'src', 'client')
 const clientPath = join(root, 'client.js')
 const localeDir = join(root, 'locale')
 
-/** The shipped bundle stays well under 150 KiB (PANEL_CONTRACT §4). */
-const MAX_BUNDLE_BYTES = 150 * 1024
+/** The shipped bundle stays well under 224 KiB (PANEL_CONTRACT §4). */
+const MAX_BUNDLE_BYTES = 224 * 1024
 /** Marker comments that delimit the dictionary source of truth. */
 const TEXT_BEGIN = '/* cbi-text-entries:begin */'
 const TEXT_END = '/* cbi-text-entries:end */'

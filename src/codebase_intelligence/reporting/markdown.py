@@ -13,7 +13,9 @@ from typing import Any
 
 from codebase_intelligence.model import (
     EvidenceKind,
+    FileRecord,
     IndexSnapshot,
+    SymbolRecord,
     RelationType,
     ResolutionStatus,
     SourceSpan,
@@ -44,11 +46,11 @@ LIMITATIONS = (
 )
 
 
-def _sorted_files(snapshot: IndexSnapshot):
+def _sorted_files(snapshot: IndexSnapshot) -> list[FileRecord]:
     return sorted(snapshot.files, key=lambda item: item.path)
 
 
-def _sorted_symbols(snapshot: IndexSnapshot):
+def _sorted_symbols(snapshot: IndexSnapshot) -> list[SymbolRecord]:
     return sorted(
         snapshot.symbols,
         key=lambda item: (item.path, item.span.start_line, item.kind.value, item.qualified_name),

@@ -21,7 +21,9 @@ from typing import Any
 
 from codebase_intelligence.errors import UsageError
 from codebase_intelligence.model import (
+    FileRecord,
     IndexSnapshot,
+    SymbolRecord,
     RelationType,
     SymbolKind,
     file_id,
@@ -92,11 +94,11 @@ def _envelope(command: str, snapshot: IndexSnapshot) -> dict[str, Any]:
     }
 
 
-def _sorted_files(snapshot: IndexSnapshot):
+def _sorted_files(snapshot: IndexSnapshot) -> list[FileRecord]:
     return sorted(snapshot.files, key=lambda item: item.path)
 
 
-def _sorted_symbols(snapshot: IndexSnapshot):
+def _sorted_symbols(snapshot: IndexSnapshot) -> list[SymbolRecord]:
     return sorted(
         snapshot.symbols,
         key=lambda item: (item.path, item.span.start_line, item.kind.value, item.qualified_name),
@@ -135,9 +137,10 @@ def _top_directory_rows(snapshot: IndexSnapshot) -> list[dict[str, Any]]:
         entry["symbols"] += 1
     rows = [
         {"path": path, "files": value["files"], "symbols": value["symbols"]}
-        for path, value in stats.items()
+        for path, value in sorted(
+            stats.items(), key=lambda item: (-item[1]["files"], -item[1]["symbols"], item[0])
+        )
     ]
-    rows.sort(key=lambda row: (-row["files"], -row["symbols"], row["path"]))
     return rows
 
 

@@ -41,3 +41,19 @@ MCP is a standard interface for exposing tools and resources to AI clients. It i
 
 ## Evaluation requirement
 Benchmark against at least: raw directory listing, keyword search, repository packing, and a basic symbol map. Measure answer quality, retrieval relevance, latency, index size, and token consumption under fixed tasks and budgets.
+
+
+## Production follow-up
+
+Sourcegraph uses SCIP for precise navigation and search when a precise index
+is unavailable. Evaluate an optional reader for **prebuilt local SCIP indexes**
+against the existing resolver and lexical baseline. Compare definition and
+reference precision on fixed tasks, preserve evidence provenance, and keep the
+local engine usable when an index is absent or stale.
+[Sourcegraph precise navigation](https://sourcegraph.com/docs/code-navigation/precise-code-navigation)
+
+The current lexical implementation reuses Python's standard-library
+`functools.cache` only within a query. On Windows with Python 3.13 and a synthetic
+80-file, 6,480-symbol snapshot, path-score calls fell from 6,560 to 80 and median
+ranking time from 289.57 to 221.43 ms (nine measured runs). The cache keeps no
+repository state between queries. [Issue #11](https://github.com/YansongG-HKU/codebase-intelligence/issues/11)

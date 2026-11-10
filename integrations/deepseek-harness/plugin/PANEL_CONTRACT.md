@@ -25,8 +25,9 @@ Default `<root>/docs/codebase-intelligence/` (configurable). Fixed file set:
 |---|---|
 | `overview.json` | `cbi overview --json` payload with `budgets.maxTokens` set to the fixed export budget (2000) |
 | `repo-map.json` | `cbi map --json` payload (budget 4000) |
+| `graph.snapshot.json` | Portable graph snapshot for layered browsing |
 | `ARCHITECTURE.generated.md` | `cbi report` Markdown |
-| `REPO_MAP.md` | `reporting.markdown_map` output |
+| `REPO_MAP.md` | `reporting.markdown_map` output and top-level Mermaid graph |
 | `dependencies.mmd` | Mermaid `graph LR` of resolved IMPORTS edges among indexed files (bounded: ≤400 edges, deterministic order; unresolved/external edges omitted with a comment) |
 | `CONTEXT_BRIEF.md` | Agent-facing orientation brief: entry points, top modules by centrality, language mix, key files, how to query the tools, limitations |
 | `manifest.json` | `{schemaVersion, engineVersion, policyFingerprint, fingerprint, files:[{path, bytes, sha256}], outDir}` — no time, no root path |
@@ -73,13 +74,21 @@ path:'/dsh-codebase-intelligence', handler})`. Every request must carry
 `x-dsh-codebase-intelligence: 1`, a loopback `Host`, and a matching `Origin`
 when present; every response is JSON with `no-store`. Bodies ≤ 1 MiB.
 
+Git status is read-only with optional index writes and FSMonitor disabled.
+When Git status is unavailable, `available` is false. `command` is null when
+status is unavailable or the export path is unsafe to paste into a shell.
+
 Workspace root resolution: `sessionId` query/body → live agent session cwd
-(`agent.session.header.cwd`); without it, the most recently decorated agent's
-cwd; otherwise `null` → route returns `{ok:false, code:'workspace_unavailable'}`.
+(`agent.session.header.cwd`). An omitted ID uses the latest live registration.
+An explicit unknown or disposed ID, or no live session, returns
+`{ok:false, code:'workspace_unavailable'}`.
 
 | Route | Method | Result `data` |
 |---|---|---|
 | `/api/state?session=` | GET | `{root, repo, languages, entryPoints, index, exports:{outDir, files, stale}, git:{branch, dirty, exportChanges, command}, engine:{available, pythonVersion}}` |
+| `/api/graph?session=&focus=&offset=&relation=` | GET | bounded slice of the saved graph and graph fingerprint |
+| `/api/graph?session=&source=&line=&fingerprint=` | GET | indexed, bounded source excerpt, or 409 if the graph or source changed |
+| `/api/graph` | POST | refresh the session workspace graph in the local cache |
 | `/api/overview?session=&maxTokens=` | GET | engine overview payload |
 | `/api/map?session=&maxTokens=&focus=` | GET | engine map payload |
 | `/api/search?session=&query=&maxTokens=` | GET | engine search payload |
@@ -123,10 +132,14 @@ Required surfaces:
    `sidebar.panellist` (id `codebase-intelligence`, order 26, label from locale)
    + `main` slot so the plugin works on DSH builds without the right sidebar
    services (and as a full-page view).
-3. **Views (Chinese default, en fallback):** 概览 / 地图 / 搜索 / 依赖 / 上下文 / 生成.
+3. **Views (Chinese default, en fallback):** 概览 / 地图 / 项目图谱 / 搜索 / 依赖 / 上下文 / 生成.
    - Every data view renders bounded JSON-derived tables, `path:line` citations,
      budget/truncated markers, loading/error/empty states, refresh button.
-   - 生成: export file checklist (all seven), preview (`--check`) with
+   - 项目图谱: deterministic focus/layered/grid layout, node/edge inspector,
+     in-graph search and highlighting, relation/status filters, zoom/fit,
+     legend, keyboard activation, read-only source excerpts, and explicit
+     node/edge/page bounds (80 nodes / 160 edges per page).
+   - 生成: export file checklist (all eight), preview (`--check`) with
      created/updated/unchanged badges, explicit 写入 button (confirm),
      then git branch/status, changed files under the generation dir, and a
      copyable commit command. Never run git.
@@ -139,9 +152,10 @@ Required surfaces:
 5. **No prompt surface:** the client adds no system prompt text and no model
    tools; `scripts/footprint.mjs` numbers must not change.
 6. **Headless tests** (`test/unit/client.test.mjs`): evaluate `client.js` in a
-   vm with `__ModuleLoader__`/react stubs; assert `__test__` helpers, the seven
-   export file names, zh/en dictionary completeness, view order, API URL
-   builders (header/prefix/session), and build `--check` freshness.
+   vm with `__ModuleLoader__`/react stubs; assert `__test__` helpers, graph
+   model/layout helpers, the eight export file names, zh/en dictionary
+   completeness, view order, API URL builders (header/prefix/session), and
+   build `--check` freshness. The client bundle cap is 224 KiB.
 
 ## 5. Interoperability (organic, optional, both directions)
 
@@ -173,7 +187,7 @@ Required surfaces:
    resolution via session, export preview/write, git status + commit command.
 4. Client: right-sidebar tab opens in the isolated DSH instance with a real
    screenshot; the 开始 guide entry opens it; fallback main panel is registered;
-   panel renders overview/search/context/export and writes the seven files;
+   panel renders overview/search/context/export and writes the eight files;
    git status + command shown; no console errors.
 5. Independence: with the right-sidebar services stubbed away the client still
    registers the fallback panel; plugin unit tests pass without the engine.

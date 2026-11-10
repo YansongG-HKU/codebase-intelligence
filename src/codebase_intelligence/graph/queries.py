@@ -129,7 +129,7 @@ class Graph:
         return tuple(sorted(distances.items(), key=lambda item: (item[1], item[0])))
 
     # -- symbol-level queries -----------------------------------------------
-    def symbol_neighborhood(self, symbol_id: str, *, depth: int = 1) -> tuple[dict, ...]:
+    def symbol_neighborhood(self, symbol_id: str, *, depth: int = 1) -> tuple[dict[str, Any], ...]:
         """Relation-backed neighborhood of one symbol, up to ``depth`` hops.
 
         Each entry is a deterministic dict with ``id``, ``path``, ``symbol``,
@@ -145,7 +145,7 @@ class Graph:
         except (TypeError, ValueError):
             depth_limit = 1
         depth_limit = max(1, min(depth_limit, MAX_TRAVERSAL_DEPTH))
-        entries: dict[tuple[Any, ...], dict] = {}
+        entries: dict[tuple[Any, ...], dict[str, Any]] = {}
         visited: set[str] = {symbol_id}
         frontier: list[str] = [symbol_id]
         for distance in range(1, depth_limit + 1):

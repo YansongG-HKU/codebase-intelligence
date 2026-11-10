@@ -2,7 +2,7 @@
 
 Coverage map:
 
-* the fixed seven-file bundle, its payload shape and per-file statuses,
+* the fixed eight-file bundle, its payload shape and per-file statuses,
 * byte determinism across repeated runs, fresh caches and checkout locations,
   and "unchanged files are not touched",
 * ``--check``: writes nothing, exit 0/1, per-file plan, no index required,
@@ -299,6 +299,8 @@ def test_generated_files_have_no_volatile_values_and_are_canonical(tmp_path: Pat
             assert canonical_json(parsed) + "\n" == text, f"{name} is not canonical JSON"
             if name == MANIFEST_FILE_NAME:
                 assert parsed["fingerprint"] == result.index["fingerprint"]
+            elif name == "graph.snapshot.json":
+                assert parsed["graph"]["policyFingerprint"] == result.index["policyFingerprint"]
             else:
                 assert parsed["index"]["fingerprint"] == result.index["fingerprint"]
 
@@ -360,7 +362,7 @@ def test_check_passes_on_a_fresh_export(tmp_path: Path, capsys: Any) -> None:
     payload = export_json(["export", str(repo), "--check", "--cache-dir", cache], capsys)
     assert payload["check"] is True
     assert payload["stale"] is False
-    assert [item["status"] for item in payload["files"]] == ["unchanged"] * 7
+    assert [item["status"] for item in payload["files"]] == ["unchanged"] * len(EXPORT_FILE_NAMES)
     after = {name: (path.read_bytes(), snapshot_mtime_ns(path)) for name, path in paths.items()}
     assert after == before, "--check must not write"
 
@@ -399,7 +401,7 @@ def test_check_without_generation_directory_neither_writes_nor_needs_an_index(
         ["export", str(repo), "--check", "--cache-dir", cache], capsys, expected_code=1
     )
     assert payload["stale"] is True
-    assert [item["status"] for item in payload["files"]] == ["created"] * 7
+    assert [item["status"] for item in payload["files"]] == ["created"] * len(EXPORT_FILE_NAMES)
     assert not (repo / GENERATED_DIR).exists()
     assert (tmp_path / "cache" / "index.v1.json").is_file()
 
@@ -628,7 +630,7 @@ def test_custom_out_directory_stays_deterministic(tmp_path: Path) -> None:
     assert first.out_dir == "generated/panel"
     assert first.stale is False
     second = build_export(repo, out="generated/panel", cache_dir=cache)
-    assert [item.status for item in second.files] == ["unchanged"] * 7
+    assert [item.status for item in second.files] == ["unchanged"] * len(EXPORT_FILE_NAMES)
     assert second.manifest_fingerprint == first.manifest_fingerprint
     manifest = json.loads(
         (repo / "generated" / "panel" / MANIFEST_FILE_NAME).read_text(encoding="utf-8")
