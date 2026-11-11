@@ -44,3 +44,8 @@ DSH prompt section alone: 184 tokens (735 bytes, static hash `0b51a141f3f1c4ecf7
 ## Retrieval quality evaluation
 
 The deterministic file- and symbol-level retrieval evaluation runner is available via `python scripts/eval_retrieval.py`. It uses a small fixture smoke corpus and production search pipeline. It measures Precision@K, Recall@K, nDCG@K and MRR separately for files and qualified symbols when symbol gold evidence is present. This does not yet establish broad retrieval quality, symbol recall, native-tokenizer savings or downstream answer correctness. See [RETRIEVAL_EVALUATION.md](RETRIEVAL_EVALUATION.md).
+
+
+## Controlled retrieval baselines
+
+The evaluation CLI supports `--compare-baselines` to run tree-only path matching, keyword source-text matching, deterministic unranked pack order, basic symbol-name matching, and the graph-aware production ranker against the same reviewed task corpus. File-only baselines do not claim symbol metrics; the basic symbol-map baseline does. See `docs/RETRIEVAL_EVALUATION.md`.

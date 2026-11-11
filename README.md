@@ -198,7 +198,7 @@ a pull request. The normative implementation contract is
 
 ## Retrieval evaluation
 
-Run `python scripts/eval_retrieval.py` for the deterministic file-retrieval smoke benchmark. Its file- and symbol-level metric definitions, gold-evidence schema, limitations, and expansion plan are documented in [docs/RETRIEVAL_EVALUATION.md](docs/RETRIEVAL_EVALUATION.md). This small fixture corpus validates the evaluation harness; it is not evidence of general retrieval quality.
+Run `python scripts/eval_retrieval.py --compare-baselines` for deterministic file/symbol retrieval metrics and controlled tree-only, keyword, pack-order, and basic symbol-map comparisons. Its file- and symbol-level metric definitions, gold-evidence schema, limitations, and expansion plan are documented in [docs/RETRIEVAL_EVALUATION.md](docs/RETRIEVAL_EVALUATION.md). This small fixture corpus validates the evaluation harness; it is not evidence of general retrieval quality.
 
 ## Research references
 

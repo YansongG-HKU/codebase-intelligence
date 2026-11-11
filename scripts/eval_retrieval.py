@@ -23,12 +23,23 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--tasks", default=str(DEFAULT_TASKS))
     parser.add_argument("--cache-dir", default=None)
     parser.add_argument("--k", type=int, nargs="+", default=[1, 3, 5])
+    parser.add_argument(
+        "--compare-baselines",
+        action="store_true",
+        help="compare tree-only, keyword, pack-order and basic symbol-map baselines",
+    )
     parser.add_argument("--json-out", default=None)
     args = parser.parse_args(argv)
 
     try:
         tasks = load_task_set(args.tasks)
-        report = evaluate_repository(args.root, tasks, cache_dir=args.cache_dir, ks=args.k)
+        report = evaluate_repository(
+            args.root,
+            tasks,
+            cache_dir=args.cache_dir,
+            ks=args.k,
+            compare_baselines=args.compare_baselines,
+        )
     except (OSError, ValueError, RuntimeError) as exc:
         parser.error(str(exc))
     rendered = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"

@@ -197,9 +197,23 @@ def test_repository_runner_uses_production_file_and_symbol_rankers() -> None:
     from codebase_intelligence.evaluation import load_task_set
 
     tasks = load_task_set(TASKS)
-    report = evaluate_repository(ROOT / "tests" / "fixtures" / "retrieval" / "repo", tasks, ks=(1, 3))
+    report = evaluate_repository(
+        ROOT / "tests" / "fixtures" / "retrieval" / "repo",
+        tasks,
+        ks=(1, 3),
+        compare_baselines=True,
+    )
     assert report["evaluation"] == "retrieval-only"
     assert report["taskCount"] == 4
     assert report["symbolTaskCount"] == 4
     assert set(report["symbolAggregate"]) == {"1", "3"}
     assert all("retrievedSymbols" in task for task in report["tasks"])
+    assert set(report["baselineComparisons"]) == {
+        "tree_only",
+        "keyword",
+        "pack_order",
+        "basic_symbol_map",
+    }
+    assert report["comparisonContract"]["sameTaskSet"] is True
+    assert report["baselineComparisons"]["tree_only"]["symbolMetrics"] == "not_applicable"
+    assert report["baselineComparisons"]["basic_symbol_map"]["report"]["symbolTaskCount"] == 4
