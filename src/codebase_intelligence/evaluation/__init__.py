@@ -2,6 +2,7 @@
 
 from codebase_intelligence.evaluation.retrieval import (
     EvaluationTask,
+    SymbolEvidence,
     evaluate_repository,
     evaluate_tasks,
     load_task_set,
@@ -13,6 +14,7 @@ from codebase_intelligence.evaluation.retrieval import (
 
 __all__ = [
     "EvaluationTask",
+    "SymbolEvidence",
     "evaluate_repository",
     "evaluate_tasks",
     "load_task_set",
