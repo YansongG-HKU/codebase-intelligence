@@ -1,6 +1,6 @@
 # Repository map
 
-- files: 169
+- files: 170
 - symbols: 3831
 - relations: 5431
 - parser issues: 1
@@ -10,7 +10,7 @@
 - tests: 74 files, 567 symbols
 - src: 38 files, 1021 symbols
 - integrations: 37 files, 2232 symbols
-- docs: 14 files, 0 symbols
+- docs: 15 files, 0 symbols
 - .: 4 files, 0 symbols
 - scripts: 1 files, 11 symbols
 - bench: 1 files, 0 symbols
@@ -55,7 +55,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/DELIVERY.md (markdown, 211 lines)
+### docs/DELIVERY.md (markdown, 214 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -63,7 +63,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/DSH_PLUGIN.md (markdown, 527 lines)
+### docs/DSH_PLUGIN.md (markdown, 529 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -92,6 +92,10 @@
 - no declarations extracted (unsupported language or file-only index entry)
 
 ### docs/VISION.md (markdown, 29 lines)
+
+- no declarations extracted (unsupported language or file-only index entry)
+
+### docs/acceptance/CI_CLEAN_CHECKOUT.md (markdown, 69 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -183,7 +187,6 @@
 - integrations/deepseek-harness/plugin/lib/panel.js:31 constant integrations.deepseek-harness.plugin.lib.panel.MAX_BODY_BYTES `export const MAX_BODY_BYTES =` [heuristic]
 - integrations/deepseek-harness/plugin/lib/panel.js:33 constant integrations.deepseek-harness.plugin.lib.panel.GET `const GET =` [heuristic]
 - integrations/deepseek-harness/plugin/lib/panel.js:34 constant integrations.deepseek-harness.plugin.lib.panel.POST `const POST =` [heuristic]
-- integrations/deepseek-harness/plugin/lib/panel.js:35 constant integrations.deepseek-harness.plugin.lib.panel.MAX_QUERY_CHARS `const MAX_QUERY_CHARS =` [heuristic]
 - ... truncated: document size bound reached.
 
 ## Project graph

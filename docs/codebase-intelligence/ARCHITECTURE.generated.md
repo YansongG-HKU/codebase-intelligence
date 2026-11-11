@@ -2,7 +2,7 @@
 
 ## Summary
 
-- files: 169
+- files: 170
 - symbols: 3831
 - relations: 5431
 - parser issues: 1
@@ -11,7 +11,7 @@
 
 - python: 86 files, 1569 symbols
 - javascript: 34 files, 2244 symbols
-- markdown: 28 files, 0 symbols
+- markdown: 29 files, 0 symbols
 - other: 8 files, 0 symbols
 - json: 5 files, 0 symbols
 - typescript: 4 files, 13 symbols

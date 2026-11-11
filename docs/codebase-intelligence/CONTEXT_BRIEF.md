@@ -6,10 +6,10 @@ context: read it, do not edit it by hand.
 
 ## Snapshot
 
-- index fingerprint: `651c1ddc554b9ce94c2c172f62be3ecf9b2be26b9eb94571a6f0b7f971ee56fb`
+- index fingerprint: `68566f53453e8bccbb31efcf92e7d51a504ce2c1e80706fe08ade33508561bbd`
 - index schema: `1` (engine `0.1.0`)
 - policy fingerprint: `a8bce9a5ccfe9fd1075f9379011ac94db2551e270ea420e55c54988988f4cac7`
-- files: 169
+- files: 170
 - symbols: 3831
 - relations: 5431
 - parser issues: 1
@@ -19,7 +19,7 @@ context: read it, do not edit it by hand.
 
 - python: 86 files, 1569 symbols
 - javascript: 34 files, 2244 symbols
-- markdown: 28 files, 0 symbols
+- markdown: 29 files, 0 symbols
 - other: 8 files, 0 symbols
 - json: 5 files, 0 symbols
 - typescript: 4 files, 13 symbols

@@ -411,7 +411,9 @@ JSON report lists per-tool byte size, estimated tokens and truncation state.
   scopes the commit to the export directory.
   [Git configuration reference](https://git-scm.com/docs/git-config#Documentation/git-config.txt-corefsmonitor)
 - CI gates the engine with strict mypy and tests the Node 22 plugin and real
-  Python bridge on Ubuntu and Windows.
+  Python bridge on Ubuntu and Windows. A dedicated clean-checkout job also
+  reinstalls the engine, runs `cbi export . --check`, and packs/installs the
+  plugin tarball before repeating the plugin gates.
 
 ### Code graph explorer
 

@@ -93,7 +93,10 @@ Screenshots (kept in [docs/acceptance/](acceptance/)):
 - [Full conversation](acceptance/cbi-acceptance-conversation.png)
 
 Detailed visual acceptance record: [Start-guide style acceptance](acceptance/GUIDE_STYLE.md)
-(native row target measurements, before/after and the live-page computed styles).
+(native row target measurements, light/dark screenshots and the live-page computed styles).
+
+Clean-checkout CI acceptance: [CI clean-checkout acceptance](acceptance/CI_CLEAN_CHECKOUT.md)
+(fresh checkout, fixtures, deterministic snapshot and packaged plugin install).
 
 ### Export and interop acceptance
 
