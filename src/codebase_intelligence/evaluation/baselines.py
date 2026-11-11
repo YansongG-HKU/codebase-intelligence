@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections import Counter
 from collections.abc import Callable, Sequence
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -52,7 +53,8 @@ def keyword_rank(root: str | Path, paths: Sequence[str], query: str) -> tuple[st
             text = raw.decode("utf-8", errors="ignore").casefold()
         except OSError:
             continue
-        score = sum(min(text.count(term), 3) for term in terms)
+        token_counts = Counter(query_terms(text))
+        score = sum(min(token_counts[term], 3) for term in terms)
         if score:
             scored.append((score, relative))
     scored.sort(key=lambda item: (-item[0], item[1]))
