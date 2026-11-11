@@ -57,7 +57,7 @@ production-scale performance gap.
 - [x] Multi-language adapter expansion (heuristic/regex adapters for JS/TS/Go/Rust/Java/C/C++/C#/Ruby/PHP/Shell; Python is parser-backed).
 - [x] Right-sidebar client panel + deterministic `cbi export` snapshot (L2: browse without model tokens, explicit write, read-only git status; full-page fallback when the right sidebar services are absent).
 - [x] Interactive graph explorer. (saved `graph.snapshot.json` + bounded panel explorer: directory → file → symbol, relation filter, pagination, read-only source evidence; max 80 nodes / 160 edges per page)
-- [x] Large monorepo performance and memory benchmarks. (`scripts/bench_monorepo.py`; deterministic 5,000-file synthetic run and real `quantAlpha` 5,670-file run in [MONOREPO_BENCHMARK.md](MONOREPO_BENCHMARK.md); default operation budgets fail — persistence/serving optimization remains open)
+- [x] Large monorepo performance and memory benchmarks. (`scripts/bench_monorepo.py`; deterministic 5,000-file synthetic run and real `quantAlpha` 5,670-file run in [MONOREPO_BENCHMARK.md](MONOREPO_BENCHMARK.md); unchanged budgets pass after stat-stamp serving, lazy graph construction and process-local snapshot/graph reuse)
 
 ## Release gates
 A phase is complete only when tests, documented limitations, reproducible

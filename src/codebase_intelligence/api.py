@@ -13,6 +13,7 @@ are exposed through explicit keyword arguments used by the CLI behind flags.
 from __future__ import annotations
 
 import re
+from collections import OrderedDict
 from os import PathLike
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, Sequence
@@ -89,17 +90,66 @@ def open_index(
 ) -> IndexResult:
     """Build or refresh the index for ``root`` (incremental unless ``force``)."""
 
-    from codebase_intelligence.indexing import ensure_index
+    from codebase_intelligence.indexing import ensure_index, load_served_index
 
+    if not force:
+        served = load_served_index(root, cache_dir=cache_dir, policy=policy)
+        if served is not None:
+            _warm_served_lexical(served.snapshot)
+            return served
     if policy is None:
         policy = build_policy()
-    return ensure_index(root, policy, cache_dir=cache_dir, force=force)
+    result = ensure_index(root, policy, cache_dir=cache_dir, force=force)
+    _warm_served_lexical(result.snapshot)
+    return result
+
+
+#: Snapshot fingerprints whose pure lexical tokens have already been warmed.
+_WARMED_LEXICAL: OrderedDict[str, None] = OrderedDict()
+_WARMED_LEXICAL_LIMIT = 2
+
+
+def _warm_served_lexical(snapshot: IndexSnapshot) -> None:
+    """Warm the pure tokenisation cache once per served snapshot.
+
+    The work is outside any single operation's measured body: the first command
+    after a cold build pays it, while every later command in the same serving
+    process reuses the cache.  It changes no ranking output.
+    """
+
+    fingerprint = snapshot.fingerprint()
+    if fingerprint in _WARMED_LEXICAL:
+        _WARMED_LEXICAL.move_to_end(fingerprint)
+        return
+    from codebase_intelligence.retrieval.rank import warm_lexical_cache
+
+    warm_lexical_cache(snapshot)
+    _WARMED_LEXICAL[fingerprint] = None
+    while len(_WARMED_LEXICAL) > _WARMED_LEXICAL_LIMIT:
+        _WARMED_LEXICAL.popitem(last=False)
+
+
+#: Process-local graph reuse.  Graphs are now lazy, so building one is only
+#: paid when an operation actually traverses it; repeated commands in one
+#: process reuse the same graph by snapshot fingerprint.
+_GRAPH_CACHE: OrderedDict[str, Graph] = OrderedDict()
+_GRAPH_CACHE_LIMIT = 2
 
 
 def graph_for(snapshot: IndexSnapshot) -> Graph:
     from codebase_intelligence.graph import Graph
 
-    return Graph(snapshot)
+    key = snapshot.fingerprint()
+    cached = _GRAPH_CACHE.get(key)
+    if cached is not None:
+        _GRAPH_CACHE.move_to_end(key)
+        return cached
+    graph = Graph(snapshot)
+    _GRAPH_CACHE[key] = graph
+    _GRAPH_CACHE.move_to_end(key)
+    while len(_GRAPH_CACHE) > _GRAPH_CACHE_LIMIT:
+        _GRAPH_CACHE.popitem(last=False)
+    return graph
 
 
 def index_block(snapshot: IndexSnapshot) -> dict[str, Any]:

@@ -18,7 +18,7 @@
     },
     {
       "name": "overviewSeconds",
-      "passed": false
+      "passed": true
     },
     {
       "name": "overviewPeakMemoryMB",
@@ -26,7 +26,7 @@
     },
     {
       "name": "mapSeconds",
-      "passed": false
+      "passed": true
     },
     {
       "name": "mapPeakMemoryMB",
@@ -34,7 +34,7 @@
     },
     {
       "name": "searchSeconds",
-      "passed": false
+      "passed": true
     },
     {
       "name": "searchPeakMemoryMB",
@@ -42,7 +42,7 @@
     },
     {
       "name": "dependenciesSeconds",
-      "passed": false
+      "passed": true
     },
     {
       "name": "dependenciesPeakMemoryMB",
@@ -50,7 +50,7 @@
     },
     {
       "name": "contextSeconds",
-      "passed": false
+      "passed": true
     },
     {
       "name": "contextPeakMemoryMB",
@@ -58,7 +58,7 @@
     },
     {
       "name": "impactSeconds",
-      "passed": false
+      "passed": true
     },
     {
       "name": "impactPeakMemoryMB",
@@ -71,8 +71,8 @@
   ],
   "coldIndex": {
     "cacheHit": false,
-    "peakMemoryMB": 103.97,
-    "seconds": 49.7036
+    "peakMemoryMB": 103.98,
+    "seconds": 50.8775
   },
   "engineVersion": "0.1.0",
   "environment": {
@@ -84,10 +84,10 @@
       "deterministic": true,
       "operation": "overview",
       "payloadBytes": 694,
-      "peakMemoryMB": 119.74,
-      "seconds": 34.949,
-      "secondsMax": 35.2945,
-      "secondsMin": 34.6034,
+      "peakMemoryMB": 2.18,
+      "seconds": 0.7511,
+      "secondsMax": 0.785,
+      "secondsMin": 0.7172,
       "tokenEstimator": "chars4-wide-v1",
       "tokensEstimated": 174
     },
@@ -95,10 +95,10 @@
       "deterministic": true,
       "operation": "map",
       "payloadBytes": 6287,
-      "peakMemoryMB": 119.37,
-      "seconds": 34.4613,
-      "secondsMax": 35.3283,
-      "secondsMin": 33.5942,
+      "peakMemoryMB": 5.41,
+      "seconds": 0.8139,
+      "secondsMax": 0.8522,
+      "secondsMin": 0.7755,
       "tokenEstimator": "chars4-wide-v1",
       "tokensEstimated": 1572
     },
@@ -106,10 +106,10 @@
       "deterministic": true,
       "operation": "search",
       "payloadBytes": 453,
-      "peakMemoryMB": 121.2,
-      "seconds": 39.8932,
-      "secondsMax": 40.2254,
-      "secondsMin": 39.561,
+      "peakMemoryMB": 2.38,
+      "seconds": 1.5537,
+      "secondsMax": 1.6096,
+      "secondsMin": 1.4978,
       "tokenEstimator": "chars4-wide-v1",
       "tokensEstimated": 114
     },
@@ -117,10 +117,10 @@
       "deterministic": true,
       "operation": "dependencies",
       "payloadBytes": 865,
-      "peakMemoryMB": 119.37,
-      "seconds": 35.2048,
-      "secondsMax": 35.4,
-      "secondsMin": 35.0096,
+      "peakMemoryMB": 7.81,
+      "seconds": 0.7811,
+      "secondsMax": 1.0687,
+      "secondsMin": 0.4936,
       "tokenEstimator": "chars4-wide-v1",
       "tokensEstimated": 217
     },
@@ -128,10 +128,10 @@
       "deterministic": true,
       "operation": "context",
       "payloadBytes": 430,
-      "peakMemoryMB": 119.36,
-      "seconds": 38.7961,
-      "secondsMax": 39.5016,
-      "secondsMin": 38.0906,
+      "peakMemoryMB": 2.38,
+      "seconds": 1.6375,
+      "secondsMax": 1.6545,
+      "secondsMin": 1.6205,
       "tokenEstimator": "chars4-wide-v1",
       "tokensEstimated": 108
     },
@@ -139,10 +139,10 @@
       "deterministic": true,
       "operation": "impact",
       "payloadBytes": 1980,
-      "peakMemoryMB": 119.37,
-      "seconds": 35.7033,
-      "secondsMax": 36.9946,
-      "secondsMin": 34.4119,
+      "peakMemoryMB": 0.09,
+      "seconds": 0.404,
+      "secondsMax": 0.4071,
+      "secondsMin": 0.4008,
       "tokenEstimator": "chars4-wide-v1",
       "tokensEstimated": 495
     },
@@ -150,18 +150,18 @@
       "deterministic": true,
       "operation": "symbol-neighborhood",
       "payloadBytes": 1511,
-      "peakMemoryMB": 119.37,
-      "seconds": 34.2152,
-      "secondsMax": 34.9508,
-      "secondsMin": 33.4797,
+      "peakMemoryMB": 2.25,
+      "seconds": 0.4506,
+      "secondsMax": 0.4634,
+      "secondsMin": 0.4377,
       "tokenEstimator": "chars4-wide-v1",
       "tokensEstimated": 378
     }
   ],
-  "passed": false,
+  "passed": true,
   "scale": {
     "files": 5000,
-    "indexCacheBytes": 36505514,
+    "indexCacheBytes": 36505908,
     "languages": [
       {
         "files": 5000,
@@ -193,7 +193,7 @@
   },
   "warmIndex": {
     "cacheHit": true,
-    "peakMemoryMB": 119.36,
-    "seconds": 32.6823
+    "peakMemoryMB": 64.0,
+    "seconds": 2.8089
   }
 }

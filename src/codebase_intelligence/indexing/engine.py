@@ -21,6 +21,7 @@ or not.
 from __future__ import annotations
 
 import os
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
@@ -36,10 +37,17 @@ from codebase_intelligence.indexing.cache import (
     load_cache,
     write_cache,
 )
+from codebase_intelligence.indexing.serving import (
+    read_serving_metadata,
+    repository_stamp,
+    write_serving_metadata,
+)
 from codebase_intelligence.indexing.store import (
     INDEX_FILE_NAME,
     atomic_write_json,
+    read_json,
 )
+from codebase_intelligence.model import SCHEMA_VERSION
 from codebase_intelligence.model import (
     CacheStats,
     FileRecord,
@@ -68,6 +76,12 @@ class IndexResult:
     snapshot: IndexSnapshot
     cache: CacheStats
     index_path: Path
+
+
+#: Process-local serving cache.  The key includes the metadata stamp, so a
+#: changed working tree can never reuse an old snapshot in the same process.
+_SERVED_CACHE: OrderedDict[tuple[str, str, str], IndexResult] = OrderedDict()
+_SERVED_CACHE_LIMIT = 2
 
 
 # ---------------------------------------------------------------------------
@@ -190,7 +204,8 @@ def ensure_index(
 
     root_path = resolve_root(root)
     active_policy = resolve_policy(policy)
-    _, scan_repository = _scanner_api()
+    default_policy, scan_repository = _scanner_api()
+    policy_is_default = active_policy == default_policy()
     try:
         scan = scan_repository(root_path, active_policy)
     except CbiIndexError:
@@ -255,6 +270,19 @@ def ensure_index(
     try:
         atomic_write_json(index_path, snapshot.public_dict())
         write_cache(directory, header, entry_payloads)
+        # The sidecar is optional for correctness (a missing sidecar simply
+        # forces the normal build next time), but it is what enables fast
+        # serving.  Do not fail an otherwise valid index if the sidecar cannot
+        # be written on a read-only cache filesystem.
+        try:
+            write_serving_metadata(
+                directory,
+                root=root_path,
+                snapshot=snapshot,
+                default_policy=policy_is_default,
+            )
+        except OSError:
+            pass
     except OSError as exc:
         raise CbiIndexError(f"failed to write index under {directory}: {exc}") from exc
 
@@ -267,11 +295,88 @@ def ensure_index(
     return IndexResult(snapshot=snapshot, cache=cache_stats, index_path=index_path)
 
 
+def load_served_index(
+    root: str | os.PathLike[str],
+    *,
+    cache_dir: str | os.PathLike[str] | None = None,
+    policy: Any = None,
+) -> IndexResult | None:
+    """Return a previously built snapshot when the repository stamp matches.
+
+    This is the serving path: it performs a stat-only stamp walk and a JSON
+    decode, but never scans/hashes/parses source files and never rebuilds the
+    graph.  A missing sidecar, any metadata change or a malformed index returns
+    ``None`` so the caller falls back to :func:`ensure_index`.
+    """
+
+    # A caller-supplied scan policy can change the indexed file set; the fast
+    # path deliberately only serves the default policy.
+    if policy is not None:
+        return None
+    try:
+        root_path = resolve_root(root)
+        directory = index_dir(root_path, None, cache_dir=cache_dir)
+        metadata = read_serving_metadata(directory)
+        if metadata is None:
+            return None
+        if (
+            str(metadata.get("engineVersion", "")) != ENGINE_VERSION
+            or str(metadata.get("schemaVersion", "")) != SCHEMA_VERSION
+            or metadata.get("defaultPolicy") is not True
+        ):
+            return None
+        stamp = repository_stamp(root_path, directory)
+        if stamp != metadata.get("stamp"):
+            return None
+        key = (str(root_path), str(directory), stamp)
+        cached = _SERVED_CACHE.get(key)
+        if cached is not None:
+            _SERVED_CACHE.move_to_end(key)
+            return cached
+        document = read_json(directory / INDEX_FILE_NAME)
+        if not isinstance(document, dict):
+            return None
+        expected_fingerprint = str(metadata.get("snapshotFingerprint", ""))
+        if not expected_fingerprint or document.get("fingerprint") != expected_fingerprint:
+            return None
+        if document.get("policyFingerprint") != metadata.get("policyFingerprint"):
+            return None
+        if (
+            int(metadata.get("fileCount", -1)) != len(document.get("files", ()))
+            or int(metadata.get("symbolCount", -1)) != len(document.get("symbols", ()))
+            or int(metadata.get("relationCount", -1)) != len(document.get("relations", ()))
+        ):
+            return None
+        snapshot = IndexSnapshot.from_public_dict(
+            document,
+            root=str(root_path),
+            fingerprint=expected_fingerprint,
+        )
+        result = IndexResult(
+            snapshot=snapshot,
+            cache=CacheStats(
+                files_reused=len(snapshot.files),
+                files_reparsed=0,
+                files_removed=0,
+                cache_hit=True,
+            ),
+            index_path=directory / INDEX_FILE_NAME,
+        )
+        _SERVED_CACHE[key] = result
+        _SERVED_CACHE.move_to_end(key)
+        while len(_SERVED_CACHE) > _SERVED_CACHE_LIMIT:
+            _SERVED_CACHE.popitem(last=False)
+        return result
+    except (OSError, ValueError, TypeError, KeyError):
+        return None
+
+
 __all__ = [
     "ENGINE_VERSION",
     "IndexResult",
     "ensure_index",
     "index_dir",
+    "load_served_index",
     "resolve_policy",
     "resolve_root",
 ]

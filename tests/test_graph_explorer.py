@@ -169,3 +169,23 @@ def test_repository_graph_bootstrap_and_corrupt_fallback(
         saved.write_text("{", encoding="utf-8")
     assert run(args) == 0
     assert json.loads(capsys.readouterr().out)["snapshotSource"] == "built"
+
+
+def test_graph_index_is_built_lazily(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from codebase_intelligence.graph import queries
+
+    snapshot = api.open_index(FIXTURE, cache_dir=tmp_path).snapshot
+    calls: list[object] = []
+    original = queries.build_graph_index
+
+    def counting(snapshot_arg: object) -> object:
+        calls.append(snapshot_arg)
+        return original(snapshot_arg)  # type: ignore[arg-type]
+
+    graph = queries.Graph(snapshot)
+    monkeypatch.setattr(queries, "build_graph_index", counting)
+    assert calls == []
+    assert "app/main.py" in graph.files_by_path
+    assert len(calls) == 1
+    assert "app/main.py" in graph.files_by_path
+    assert len(calls) == 1

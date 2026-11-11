@@ -1,0 +1,199 @@
+{
+  "checks": [
+    {
+      "name": "coldIndexSeconds",
+      "passed": true
+    },
+    {
+      "name": "warmIndexSeconds",
+      "passed": true
+    },
+    {
+      "name": "coldPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "warmPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "overviewSeconds",
+      "passed": false
+    },
+    {
+      "name": "overviewPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "mapSeconds",
+      "passed": false
+    },
+    {
+      "name": "mapPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "searchSeconds",
+      "passed": false
+    },
+    {
+      "name": "searchPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "dependenciesSeconds",
+      "passed": false
+    },
+    {
+      "name": "dependenciesPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "contextSeconds",
+      "passed": false
+    },
+    {
+      "name": "contextPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "impactSeconds",
+      "passed": false
+    },
+    {
+      "name": "impactPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "symbol-neighborhoodPeakMemoryMB",
+      "passed": true
+    }
+  ],
+  "coldIndex": {
+    "cacheHit": false,
+    "peakMemoryMB": 103.97,
+    "seconds": 49.7036
+  },
+  "engineVersion": "0.1.0",
+  "environment": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.13.13"
+  },
+  "operations": [
+    {
+      "deterministic": true,
+      "operation": "overview",
+      "payloadBytes": 694,
+      "peakMemoryMB": 119.74,
+      "seconds": 34.949,
+      "secondsMax": 35.2945,
+      "secondsMin": 34.6034,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 174
+    },
+    {
+      "deterministic": true,
+      "operation": "map",
+      "payloadBytes": 6287,
+      "peakMemoryMB": 119.37,
+      "seconds": 34.4613,
+      "secondsMax": 35.3283,
+      "secondsMin": 33.5942,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 1572
+    },
+    {
+      "deterministic": true,
+      "operation": "search",
+      "payloadBytes": 453,
+      "peakMemoryMB": 121.2,
+      "seconds": 39.8932,
+      "secondsMax": 40.2254,
+      "secondsMin": 39.561,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 114
+    },
+    {
+      "deterministic": true,
+      "operation": "dependencies",
+      "payloadBytes": 865,
+      "peakMemoryMB": 119.37,
+      "seconds": 35.2048,
+      "secondsMax": 35.4,
+      "secondsMin": 35.0096,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 217
+    },
+    {
+      "deterministic": true,
+      "operation": "context",
+      "payloadBytes": 430,
+      "peakMemoryMB": 119.36,
+      "seconds": 38.7961,
+      "secondsMax": 39.5016,
+      "secondsMin": 38.0906,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 108
+    },
+    {
+      "deterministic": true,
+      "operation": "impact",
+      "payloadBytes": 1980,
+      "peakMemoryMB": 119.37,
+      "seconds": 35.7033,
+      "secondsMax": 36.9946,
+      "secondsMin": 34.4119,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 495
+    },
+    {
+      "deterministic": true,
+      "operation": "symbol-neighborhood",
+      "payloadBytes": 1511,
+      "peakMemoryMB": 119.37,
+      "seconds": 34.2152,
+      "secondsMax": 34.9508,
+      "secondsMin": 33.4797,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 378
+    }
+  ],
+  "passed": false,
+  "scale": {
+    "files": 5000,
+    "indexCacheBytes": 36505514,
+    "languages": [
+      {
+        "files": 5000,
+        "language": "python",
+        "symbols": 20000
+      }
+    ],
+    "relations": 19999,
+    "sourceBytes": 1237177,
+    "symbols": 20000
+  },
+  "schemaVersion": "1",
+  "source": {
+    "filesRequested": 5000,
+    "generator": "scripts/bench_monorepo.py --synthetic-files 5000",
+    "label": "synthetic-5000-files",
+    "mode": "synthetic"
+  },
+  "thresholds": {
+    "coldIndexSeconds": 300.0,
+    "contextSeconds": 10.0,
+    "dependenciesSeconds": 5.0,
+    "impactSeconds": 5.0,
+    "mapSeconds": 10.0,
+    "overviewSeconds": 5.0,
+    "peakMemoryMB": 1024.0,
+    "searchSeconds": 5.0,
+    "warmIndexSeconds": 60.0
+  },
+  "warmIndex": {
+    "cacheHit": true,
+    "peakMemoryMB": 119.36,
+    "seconds": 32.6823
+  }
+}

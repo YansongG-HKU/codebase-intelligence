@@ -25,9 +25,11 @@ from codebase_intelligence.indexing.engine import (
     IndexResult,
     ensure_index,
     index_dir,
+    load_served_index,
     resolve_policy,
     resolve_root,
 )
+from codebase_intelligence.indexing.serving import SERVE_FILE_NAME
 from codebase_intelligence.indexing.store import (
     CACHE_FILE_NAME,
     INDEX_FILE_NAME,
@@ -42,6 +44,7 @@ __all__ = [
     "CACHE_VERSION",
     "ENGINE_VERSION",
     "INDEX_FILE_NAME",
+    "SERVE_FILE_NAME",
     "CacheHeader",
     "CacheLoad",
     "CachedEntry",
@@ -50,6 +53,7 @@ __all__ = [
     "atomic_write_text",
     "ensure_index",
     "index_dir",
+    "load_served_index",
     "read_canonical_json",
     "read_json",
     "resolve_policy",

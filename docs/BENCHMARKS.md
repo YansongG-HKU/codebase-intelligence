@@ -38,5 +38,6 @@ DSH prompt section alone: 184 tokens (735 bytes, static hash `0b51a141f3f1c4ecf7
 - Repeated identical calls return identical canonical JSON (verified above per operation).
 - The DSH prompt section is a static string (no interpolation); tool schemas are static.
 - The index cache is content-addressed: warm runs reuse unchanged files without changing output bytes.
+- A stat-only `serve.v1.json` sidecar records the repository metadata stamp so a warm command can load the persisted index without rescanning/hashing; a mismatch falls back to the incremental build. See [MONOREPO_BENCHMARK.md](MONOREPO_BENCHMARK.md).
 
 Large-repository time/memory evidence: [MONOREPO_BENCHMARK.md](MONOREPO_BENCHMARK.md).

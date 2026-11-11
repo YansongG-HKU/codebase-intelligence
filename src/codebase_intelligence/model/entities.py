@@ -437,12 +437,18 @@ class IndexSnapshot:
         return sha256_text(canonical_json(payload))
 
     @classmethod
-    def from_public_dict(cls, data: Mapping[str, Any], *, root: str = "") -> "IndexSnapshot":
+    def from_public_dict(
+        cls,
+        data: Mapping[str, Any],
+        *,
+        root: str = "",
+        fingerprint: str | None = None,
+    ) -> "IndexSnapshot":
         files = tuple(FileRecord.from_dict(item) for item in data.get("files", ()))
         symbols = tuple(SymbolRecord.from_dict(item) for item in data.get("symbols", ()))
         relations = tuple(RelationRecord.from_dict(item) for item in data.get("relations", ()))
         issues = tuple(ParseIssue.from_dict(item) for item in data.get("parseIssues", ()))
-        return cls(
+        snapshot = cls(
             schema_version=str(data.get("schemaVersion", SCHEMA_VERSION)),
             engine_version=str(data.get("engineVersion", "0.0.0")),
             policy_fingerprint=str(data.get("policyFingerprint", "")),
@@ -452,6 +458,11 @@ class IndexSnapshot:
             parse_issues=issues,
             root=root,
         )
+        if fingerprint is not None:
+            # The index document already carries the fingerprint; seating it here
+            # avoids re-serializing the whole model on the serving path.
+            object.__setattr__(snapshot, "_fingerprint_cache", str(fingerprint))
+        return snapshot
 
     # -- convenience -------------------------------------------------------
     def with_root(self, root: str) -> "IndexSnapshot":

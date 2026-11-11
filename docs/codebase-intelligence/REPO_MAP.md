@@ -1,18 +1,18 @@
 # Repository map
 
-- files: 189
-- symbols: 3943
-- relations: 5641
+- files: 192
+- symbols: 3969
+- relations: 5706
 - parser issues: 1
 
 ## Top directories
 
-- tests: 86 files, 618 symbols
-- src: 40 files, 1070 symbols
+- tests: 86 files, 623 symbols
+- src: 41 files, 1091 symbols
 - integrations: 37 files, 2232 symbols
 - docs: 17 files, 0 symbols
+- bench: 5 files, 0 symbols
 - .: 4 files, 0 symbols
-- bench: 3 files, 0 symbols
 - scripts: 2 files, 23 symbols
 
 ## Entry points
@@ -39,11 +39,19 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### README.md (markdown, 219 lines)
+### README.md (markdown, 221 lines)
+
+- no declarations extracted (unsupported language or file-only index entry)
+
+### bench/monorepo-quantAlpha-baseline.json (json, 255 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
 ### bench/monorepo-quantAlpha.json (json, 255 lines)
+
+- no declarations extracted (unsupported language or file-only index entry)
+
+### bench/monorepo-synthetic-baseline.json (json, 199 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -55,15 +63,15 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/ARCHITECTURE.md (markdown, 91 lines)
+### docs/ARCHITECTURE.md (markdown, 94 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/BENCHMARKS.md (markdown, 42 lines)
+### docs/BENCHMARKS.md (markdown, 43 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/DELIVERY.md (markdown, 223 lines)
+### docs/DELIVERY.md (markdown, 227 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -79,7 +87,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/MONOREPO_BENCHMARK.md (markdown, 122 lines)
+### docs/MONOREPO_BENCHMARK.md (markdown, 149 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -99,7 +107,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/SPEC.md (markdown, 402 lines)
+### docs/SPEC.md (markdown, 409 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -198,8 +206,6 @@
 ### integrations/deepseek-harness/plugin/lib/panel.js (javascript, 538 lines)
 
 - integrations/deepseek-harness/plugin/lib/panel.js:1 module integrations.deepseek-harness.plugin.lib.panel [heuristic]
-- integrations/deepseek-harness/plugin/lib/panel.js:27 constant integrations.deepseek-harness.plugin.lib.panel.REQUEST_HEADER `export const REQUEST_HEADER =` [heuristic]
-- integrations/deepseek-harness/plugin/lib/panel.js:29 constant integrations.deepseek-harness.plugin.lib.panel.ROUTE_PREFIX `export const ROUTE_PREFIX =` [heuristic]
 - ... truncated: document size bound reached.
 
 ## Project graph

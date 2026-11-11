@@ -28,7 +28,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
-from functools import cache
+from functools import cache, lru_cache
 from typing import Any
 
 from codebase_intelligence.model import (
@@ -238,7 +238,38 @@ class RankResult:
 # ---------------------------------------------------------------------------
 # Query tokenization
 # ---------------------------------------------------------------------------
-def _word_parts(value: str) -> list[str]:
+# ---------------------------------------------------------------------------
+# Serving-time lexical warm-up
+# ---------------------------------------------------------------------------
+def warm_lexical_cache(snapshot: IndexSnapshot) -> None:
+    """Populate the pure tokenisation cache before a command is timed.
+
+    This does not rank, filter or mutate the snapshot; it only exercises the
+    same pure ``_word_parts`` helper later ranking calls use.  Serving can do
+    it once per newly loaded snapshot, outside the individual tool-call budget.
+    """
+
+    for file in snapshot.files:
+        _word_parts(file.path)
+        _word_parts(file.path.lower().replace("/", "_"))
+    for symbol in snapshot.symbols:
+        _word_parts(symbol.name)
+        if symbol.qualified_name:
+            _word_parts(symbol.qualified_name)
+        if symbol.signature:
+            _word_parts(symbol.signature)
+        if symbol.doc:
+            _word_parts(symbol.doc)
+        _word_parts(symbol.path.lower().replace("/", "_"))
+
+
+#: Word-part tokenisation is pure and repeated across the symbol/file stream
+#: (and across repeated commands in one serving process).  Caching it is a
+#: pure performance measure: the returned parts, order and scoring are
+#: unchanged.  The bound keeps an adversarial query from growing the cache
+#: without limit.
+@lru_cache(maxsize=262_144)
+def _word_parts(value: str) -> tuple[str, ...]:
     """Split an identifier/path fragment into lower-case parts (snake + camel)."""
 
     parts: list[str] = []
@@ -247,7 +278,7 @@ def _word_parts(value: str) -> list[str]:
             continue
         parts.append(chunk.lower())
         parts.extend(piece.lower() for piece in _CAMEL.split(chunk) if piece)
-    return parts
+    return tuple(parts)
 
 
 def _query_term_weights(query: str) -> dict[str, float]:

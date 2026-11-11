@@ -72,8 +72,11 @@ choices, all covered by tests:
   Tree-sitter implementation can replace them without touching the canonical model.
 - **Canonical JSON index instead of a database.** `indexing/` persists
   `index.v1.json` + `cache.v1.json` (atomic writes, canonical bytes,
-  content-addressed reuse). Storage stays behind `ensure_index`/`IndexResult`, so
-  SQLite or a graph database can be evaluated later without changing callers.
+  content-addressed reuse) plus an optional stat-only `serve.v1.json` sidecar.
+  Serving validates the repository metadata stamp and decodes the persisted index
+  without rescanning; any mismatch falls back to the incremental build. Storage
+  stays behind `ensure_index`/`IndexResult`, so SQLite or a graph database can be
+  evaluated later without changing callers.
 - **Import-level graph.** Relations carry evidence (`parser`/`resolver`/
   `heuristic`), resolution status (`resolved`/`unresolved`/`ambiguous`/`external`)
   and confidence; unresolved edges are preserved. Python CALLS edges are emitted
@@ -87,5 +90,5 @@ choices, all covered by tests:
 - **Integration transports**: CLI (`cbi`), stdio MCP server, and a DSH plugin that
   drives the CLI over a versioned JSON stdio bridge. All three share `api.py` and
   return the same payloads.
-- Not implemented yet: large-monorepo benchmarks. Retrieval relevance is covered
+- Large-monorepo benchmarks pass their unchanged budgets; retrieval relevance is covered
   by the deterministic fixture gate in [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md).

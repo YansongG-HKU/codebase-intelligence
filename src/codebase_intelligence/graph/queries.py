@@ -1,9 +1,10 @@
 """Graph queries: imports, dependents, symbol neighborhoods and impact.
 
 The :class:`Graph` object wraps an immutable :class:`IndexSnapshot`.  Imports are
-resolved once in :meth:`Graph.__init__` (via :func:`resolve_imports`), so a graph
-built from a raw parser snapshot and a graph built from an already-resolved one
-behave identically.
+resolved lazily on first structural access (via :func:`resolve_imports`), so a
+graph built from a raw parser snapshot and a graph built from an already-resolved
+one behave identically while commands that never touch the graph do not pay for
+its construction.
 
 Queries are conservative by contract (``docs/SPEC.md`` §7):
 
@@ -20,6 +21,7 @@ All returned sequences are sorted deterministically.
 
 from __future__ import annotations
 
+from functools import cached_property
 from typing import Any, Iterable
 
 from codebase_intelligence.graph.builder import GraphIndex, build_graph_index
@@ -62,7 +64,12 @@ class Graph:
 
     def __init__(self, snapshot: IndexSnapshot) -> None:
         self.snapshot = snapshot
-        self._index: GraphIndex = build_graph_index(snapshot)
+
+    @cached_property
+    def _index(self) -> GraphIndex:
+        """Build the resolved graph on first structural query."""
+
+        return build_graph_index(self.snapshot)
 
     # -- resolved relations exposed for reporting -------------------------
     @property

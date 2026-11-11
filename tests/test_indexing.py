@@ -15,7 +15,15 @@ from pathlib import Path
 import pytest
 
 from codebase_intelligence.errors import RepositoryError
-from codebase_intelligence.indexing import CACHE_FILE_NAME, INDEX_FILE_NAME, ensure_index, index_dir
+from codebase_intelligence.indexing import (
+    CACHE_FILE_NAME,
+    INDEX_FILE_NAME,
+    SERVE_FILE_NAME,
+    ensure_index,
+    index_dir,
+    load_served_index,
+)
+from codebase_intelligence.indexing.serving import read_serving_metadata, repository_stamp
 from codebase_intelligence.indexing import engine as engine_module
 from codebase_intelligence.model import Language
 from codebase_intelligence.scanner import default_policy
@@ -107,7 +115,11 @@ def test_ensure_index_writes_canonical_deterministic_documents(tmp_path: Path) -
     assert second.snapshot.fingerprint() == first.snapshot.fingerprint()
     assert second.cache.cache_hit is True
     assert second.cache.files_reparsed == 0
-    assert sorted(path.name for path in cache.iterdir()) == [CACHE_FILE_NAME, INDEX_FILE_NAME]
+    assert sorted(path.name for path in cache.iterdir()) == [
+        CACHE_FILE_NAME,
+        INDEX_FILE_NAME,
+        SERVE_FILE_NAME,
+    ]
 
 
 def test_second_run_reuses_cache_without_calling_parser(
@@ -277,6 +289,7 @@ def test_default_cache_dir_lives_under_root_and_is_not_scanned(tmp_path: Path) -
     assert sorted(path.name for path in expected_directory.iterdir()) == [
         CACHE_FILE_NAME,
         INDEX_FILE_NAME,
+        SERVE_FILE_NAME,
     ]
 
 
@@ -456,3 +469,46 @@ def test_identical_bytes_across_cache_directories(tmp_path: Path) -> None:
     assert second.cache.files_reparsed == 1
     assert first.index_path.read_bytes() == second.index_path.read_bytes()
     assert first.snapshot.fingerprint() == second.snapshot.fingerprint()
+
+
+def test_served_index_skips_rebuild_and_invalidates_on_edit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = write_repo(tmp_path / "repo", {"sample.py": "def original():\n    return 1\n"})
+    cache = tmp_path / "cache"
+    first = ensure_index(root, cache_dir=cache)
+    metadata = read_serving_metadata(cache)
+    assert metadata is not None
+    assert metadata["defaultPolicy"] is True
+    assert metadata["stamp"] == repository_stamp(root, cache)
+    assert metadata["snapshotFingerprint"] == first.snapshot.fingerprint()
+
+    from codebase_intelligence import api
+    from codebase_intelligence.indexing import engine
+
+    def unexpected_scan(*args: object, **kwargs: object) -> None:
+        pytest.fail("served index unexpectedly rebuilt the index")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(engine, "ensure_index", unexpected_scan)
+        served = api.open_index(root, cache_dir=cache)
+        assert served.cache.cache_hit is True
+        assert served.snapshot.fingerprint() == first.snapshot.fingerprint()
+        assert served.snapshot.files[0].path == "sample.py"
+
+    assert load_served_index(root, cache_dir=cache) is not None
+    (root / "sample.py").write_text("def updated():\n    return 2\n", encoding="utf-8")
+    assert load_served_index(root, cache_dir=cache) is None
+    refreshed = api.open_index(root, cache_dir=cache)
+    assert refreshed.snapshot.fingerprint() != first.snapshot.fingerprint()
+    assert any(symbol.name == "updated" for symbol in refreshed.snapshot.symbols)
+
+
+def test_non_default_policy_is_not_served_from_default_sidecar(tmp_path: Path) -> None:
+    root = write_repo(tmp_path / "repo", {"sample.py": "def original(): pass\n"})
+    cache = tmp_path / "cache"
+    ensure_index(root, cache_dir=cache)
+    from codebase_intelligence import api
+
+    ensure_index(root, api.build_policy(include_hidden=True), cache_dir=cache)
+    assert load_served_index(root, cache_dir=cache) is None

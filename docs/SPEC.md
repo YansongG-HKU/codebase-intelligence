@@ -229,15 +229,22 @@ def ensure_index(root: Path, policy=None, *, cache_dir: Path | None = None,
   so the user's repository is never written to.
 - Files: `index.v1.json` (canonical `IndexSnapshot.public_dict()`),
   `cache.v1.json` (path → `{sizeBytes, mtimeNs, sha256, parserVersion}` plus the
-  per-file `ParseResult` payload reused on cache hits).
+  per-file `ParseResult` payload reused on cache hits), and an optional
+  `serve.v1.json` sidecar containing a stat-only repository metadata stamp and
+  the index identity. The sidecar enables fast serving; a missing or mismatched
+  sidecar falls back to the normal incremental build, so it can never serve stale
+  bytes on its own.
 - Atomic writes only (temp file + `os.replace`).
 - Invalidate everything when `schemaVersion`, `engineVersion`,
   `policyFingerprint` or `parser_versions_digest()` differ; otherwise reuse
   unchanged files (same size + mtime + sha256) and reparse only changed/new
-  files; remove deleted files. Rebuild relations/graph on every run (cheap).
+  files; remove deleted files. Resolve imports during indexing; graph adjacency
+  maps are built lazily on first structural query.
 - `ensure_index` is deterministic: two runs on identical content produce
   identical `index.v1.json` bytes (fingerprint unchanged), even if the first run
-  built and the second hit the cache.
+  built and the second hit the cache. `load_served_index` may return the persisted
+  snapshot without a scan when the stamp matches; it is private to `open_index`
+  and always falls back to `ensure_index` on any uncertainty.
 - Never execute code; treat file contents as untrusted.
 
 ## 9. Retrieval (`retrieval/`)

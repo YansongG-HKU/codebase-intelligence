@@ -141,7 +141,9 @@ Isolated session usage (from the DSH UI, model turns only):
   984 output, **70% cumulative cache hit**. Derived second-turn hit rate ≈ 90%:
   the static tool/prompt prefix and previous turns are reused.
 - Index cache: cold build reparses every file; warm build reuses all of them,
-  `cacheHit=true`, identical public payload/fingerprint.
+  `cacheHit=true`, identical public payload/fingerprint. A `serve.v1.json`
+  stat-stamp sidecar lets repeated commands load the persisted index without a
+  rescan; a metadata mismatch falls back to the incremental build.
 
 Budget-fitting renderers previously re-hashed the whole snapshot for every row
 dropped: `IndexSnapshot.fingerprint()` ran 68 times per map payload on the real
@@ -197,10 +199,12 @@ node verify/harness.mjs stop
   0.85 thresholds with Recall/MRR 1.0 and nDCG 0.9893. Requested partials are
   rank 1/2; two tasks still have second-relevant items at rank 3 (documented in
   [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md)).
-- Large-monorepo budgets are **not yet met**: a 5,000-file synthetic tree takes
-  34–40 s per operation, and a real 5,670-file `quantAlpha` tree takes 62–113 s
-  per operation with 753 MB Python peak; index persistence/serving is the next
-  optimization target (see [MONOREPO_BENCHMARK.md](MONOREPO_BENCHMARK.md)).
+- Large-monorepo budgets now **pass**: a 5,000-file synthetic tree takes
+  0.40–1.64 s per operation, and a real 5,670-file `quantAlpha` tree takes
+  0.58–4.19 s per operation with 638 MB cold-index Python peak; a stat-only
+  serving sidecar avoids rescanning/hashing and the graph is built lazily (see
+  [MONOREPO_BENCHMARK.md](MONOREPO_BENCHMARK.md)). A brand-new OS process still
+  decodes the persisted index once.
 - The DSH panel targets the web profile; headless profiles get the tools only.
   Writes require an explicit panel confirmation; the plugin never stages,
   commits or pushes. Custom generation directories are excluded only for the
