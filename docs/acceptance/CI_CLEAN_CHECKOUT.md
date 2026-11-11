@@ -8,8 +8,8 @@ installation path, rather than relying only on the local working tree.
 
 ## Run
 
-- Verified commit: `83515fe482dabab5a146752058a11acd7b2a57bd`
-- Workflow run: [CI #42968054107](https://github.com/YansongG-HKU/codebase-intelligence/actions/runs/42968054107)
+- Verified commit: `ba3fc803880854fae27791d38c7117271bf17f11`
+- Workflow run: [CI #43004226280](https://github.com/YansongG-HKU/codebase-intelligence/actions/runs/43004226280)
 - Jobs: **clean-checkout acceptance**, **python**, **dsh-plugin (ubuntu-latest)**,
   **dsh-plugin (windows-latest)** — all `success`.
 
