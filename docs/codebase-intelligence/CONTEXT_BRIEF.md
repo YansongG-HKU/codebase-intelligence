@@ -6,18 +6,18 @@ context: read it, do not edit it by hand.
 
 ## Snapshot
 
-- index fingerprint: `a2059dc26991ddd47016d6c68b97bda07fff01be26ad59f9662dcc771e08710a`
+- index fingerprint: `3a9d56d4389b2d504a6764ee5d98a727e059d2159684e8a4a34f9ccb487d5a53`
 - index schema: `1` (engine `0.1.0`)
 - policy fingerprint: `a8bce9a5ccfe9fd1075f9379011ac94db2551e270ea420e55c54988988f4cac7`
 - files: 176
-- symbols: 3867
-- relations: 5498
+- symbols: 3881
+- relations: 5522
 - parser issues: 1
 - generated directory: `docs/codebase-intelligence` (excluded from the next scan)
 
 ## Languages
 
-- python: 90 files, 1605 symbols
+- python: 90 files, 1619 symbols
 - javascript: 34 files, 2244 symbols
 - markdown: 30 files, 0 symbols
 - other: 8 files, 0 symbols
