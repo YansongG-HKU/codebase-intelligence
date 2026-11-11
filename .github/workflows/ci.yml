@@ -28,6 +28,8 @@ jobs:
         run: pytest
       - name: Export check
         run: cbi export . --check
+      - name: Retrieval evaluation smoke
+        run: python scripts/eval_retrieval.py --root tests/fixtures/retrieval/repo --k 1 3 5 --json-out /tmp/retrieval-evaluation.json
       - name: CLI smoke
         run: |
           cbi version
