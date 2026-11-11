@@ -103,7 +103,9 @@ def test_evaluate_tasks_aggregates_deterministically() -> None:
         EvaluationTask("two", "second", ("c.py",)),
     )
     results = {"first": ["a.py", "b.py"], "second": ["b.py", "c.py"]}
-    retrieve = lambda query: results[query]
+    def retrieve(query: str) -> list[str]:
+        return results[query]
+
     first = evaluate_tasks(tasks, retrieve, ks=(1, 2))
     second = evaluate_tasks(tasks, retrieve, ks=(2, 1, 1))
     assert first == second
