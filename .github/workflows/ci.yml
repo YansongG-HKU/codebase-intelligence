@@ -98,7 +98,7 @@ jobs:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add docs/codebase-intelligence
             git commit -m "chore: refresh generated codebase snapshot"
-            git push
+            git push origin HEAD:${GITHUB_HEAD_REF}
           fi
       - name: No generated drift
         run: |
