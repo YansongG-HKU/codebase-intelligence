@@ -107,7 +107,7 @@ _DOC_STEMS = frozenset(
 _DOC_DIRS = frozenset({"docs", "doc", "documentation", "readme", "guides", "runbooks"})
 #: Multi-term path coverage is a file-level signal; it lets a filename that
 #: names several query terms compete with a long symbol stream.
-_PATH_COVERAGE_BONUS = 0.4
+_PATH_COVERAGE_BONUS = 0.9
 #: Search returns path-level candidates before the symbol stream. The cap keeps
 #: the file window bounded, while per-file symbol caps prevent one large generated
 #: file from occupying the whole page.
@@ -324,6 +324,36 @@ def _field_score(
     return best, tuple(matched)
 
 
+def _related_path_part(term: str, part: str) -> bool:
+    """Conservative prefix relation for plural/stem-like path tokens.
+
+    ``theme`` should match ``themes`` and ``specification`` should match
+    ``spec``. Both sides must be at least four characters and share a prefix;
+    this is deterministic and intentionally narrower than fuzzy matching.
+    """
+
+    if len(term) < 4 or len(part) < 4:
+        return False
+    return part.startswith(term) or term.startswith(part)
+
+
+def _is_test_path(path: str) -> bool:
+    return any(segment in {"test", "tests", "__tests__", "testing"} for segment in path.lower().split("/")[:-1])
+
+
+def _query_mentions_test(query: str) -> bool:
+    return any(term in {"test", "tests", "testing", "spec", "specs"} for term in query.lower().split())
+
+
+def _query_names_top_symbol(query: str, symbol: RankedSymbol | None) -> bool:
+    if symbol is None:
+        return False
+    normalized = query.strip().lower()
+    if not normalized:
+        return False
+    return normalized in {symbol.name.lower(), symbol.qualified_name.lower()}
+
+
 def _path_score(
     path: str, terms: tuple[str, ...], weights: dict[str, float]
 ) -> tuple[float, tuple[str, ...]]:
@@ -344,6 +374,8 @@ def _path_score(
             score = _PATH_EXACT * weight
         elif term in parts:
             score = _PATH_PART * weight
+        elif any(_related_path_part(term, part) for part in parts):
+            score = _PATH_PART * 0.8 * weight
         elif (len(term) >= 3 or not term.isascii()) and term in lower:
             score = _PATH_SUBSTRING * weight
         if score > 0:
@@ -802,8 +834,9 @@ def search(
         )
         covered_paths.add(ranked_symbol.path)
 
-    top_symbol_score = result.symbols[0].score if result.symbols else 0.0
-    priority_cutoff = round(top_symbol_score * MIN_PRIORITY_FILE_RATIO, 4)
+    top_symbol = result.symbols[0] if result.symbols else None
+    exact_symbol_query = _query_names_top_symbol(query, top_symbol)
+    mentions_test = _query_mentions_test(query)
     priority_files: list[SearchHit] = []
     regular_files: list[SearchHit] = []
     for ranked_file in result.files:
@@ -818,8 +851,10 @@ def search(
             score=ranked_file.score,
             match=",".join(ranked_file.matched),
         )
-        is_priority = _file_path_prior(ranked_file.path) > 0 or len(ranked_file.path_terms) >= 2
-        if is_priority and (top_symbol_score == 0 or hit.score >= priority_cutoff):
+        is_priority = not exact_symbol_query and not (
+            _is_test_path(ranked_file.path) and not mentions_test
+        )
+        if is_priority:
             priority_files.append(hit)
         elif ranked_file.path not in covered_paths:
             regular_files.append(hit)

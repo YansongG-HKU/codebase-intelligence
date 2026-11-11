@@ -6,22 +6,22 @@ context: read it, do not edit it by hand.
 
 ## Snapshot
 
-- index fingerprint: `4d977da5d7a118da7f78355deb9fb7eb95a428b8d56c2c8d0e56e17b2a55ba1b`
+- index fingerprint: `c03091d45141c168ac90252285c74971a805b4563ac014ca00ff3197d95966fe`
 - index schema: `1` (engine `0.1.0`)
 - policy fingerprint: `a8bce9a5ccfe9fd1075f9379011ac94db2551e270ea420e55c54988988f4cac7`
-- files: 185
-- symbols: 3926
-- relations: 5585
+- files: 189
+- symbols: 3943
+- relations: 5641
 - parser issues: 1
 - generated directory: `docs/codebase-intelligence` (excluded from the next scan)
 
 ## Languages
 
-- python: 90 files, 1629 symbols
+- python: 91 files, 1646 symbols
 - javascript: 35 files, 2251 symbols
-- markdown: 31 files, 0 symbols
+- markdown: 32 files, 0 symbols
+- json: 8 files, 0 symbols
 - other: 8 files, 0 symbols
-- json: 6 files, 0 symbols
 - typescript: 5 files, 21 symbols
 - go: 3 files, 9 symbols
 - yaml: 2 files, 0 symbols
@@ -36,21 +36,21 @@ context: read it, do not edit it by hand.
 - `integrations/deepseek-harness/plugin/verify/bridge-smoke.mjs:73` function integrations.deepseek-harness.plugin.verify.bridge-smoke.main
 - `integrations/deepseek-harness/plugin/verify/harness.mjs:1071` function integrations.deepseek-harness.plugin.verify.harness.main
 - `scripts/bench.py:234` function scripts.bench.main
+- `scripts/bench_monorepo.py:381` function scripts.bench_monorepo.main
 - `src/codebase_intelligence/cli.py:568` function src.codebase_intelligence.cli.main
 - `src/codebase_intelligence/mcp/__main__.py:13` function src.codebase_intelligence.mcp.__main__.main
 - `src/codebase_intelligence/mcp/server.py:1` file entry point
 - `tests/fixtures/cli/demo_repo/src/demo/core.py:29` function tests.fixtures.cli.demo_repo.src.demo.core.main
 - `tests/fixtures/cli/demo_repo/web/index.ts:3` function tests.fixtures.cli.demo_repo.web.index.main
 - `tests/fixtures/parser/go/service/main.go:9` function tests.fixtures.parser.go.service.main.main
-- `tests/fixtures/parser/python_pkg/app.py:18` function tests.fixtures.parser.python_pkg.app.main
-- ... 7 more entry point(s) (name heuristic)
+- ... 8 more entry point(s) (name heuristic)
 
 ## Top modules by resolved in-degree
 
-- `src/codebase_intelligence/util.py` - imported by 36 file(s), imports 0
-- `src/codebase_intelligence/model/__init__.py` - imported by 30 file(s), imports 1
+- `src/codebase_intelligence/util.py` - imported by 37 file(s), imports 0
+- `src/codebase_intelligence/model/__init__.py` - imported by 31 file(s), imports 1
 - `src/codebase_intelligence/errors.py` - imported by 18 file(s), imports 0
-- `src/codebase_intelligence/__init__.py` - imported by 13 file(s), imports 1
+- `src/codebase_intelligence/__init__.py` - imported by 14 file(s), imports 1
 - `integrations/deepseek-harness/plugin/lib/config.js` - imported by 10 file(s), imports 0
 - `integrations/deepseek-harness/plugin/lib/util.js` - imported by 8 file(s), imports 0
 - `src/codebase_intelligence/scanner/__init__.py` - imported by 6 file(s), imports 2
@@ -66,12 +66,12 @@ context: read it, do not edit it by hand.
 - `integrations/deepseek-harness/plugin/verify/harness.mjs` - 205 declaration(s), 1125 line(s)
 - `integrations/deepseek-harness/plugin/src/client/03-models.js` - 172 declaration(s), 729 line(s)
 - `src/codebase_intelligence/model/entities.py` - 135 declaration(s), 478 line(s)
-- `src/codebase_intelligence/retrieval/rank.py` - 119 declaration(s), 856 line(s)
+- `src/codebase_intelligence/retrieval/rank.py` - 123 declaration(s), 891 line(s)
 - `integrations/deepseek-harness/plugin/src/client/00-head.js` - 115 declaration(s), 759 line(s)
 - `src/codebase_intelligence/parsers/heuristic.py` - 108 declaration(s), 1071 line(s)
 - `integrations/deepseek-harness/plugin/lib/service.js` - 105 declaration(s), 560 line(s)
 - `integrations/deepseek-harness/plugin/lib/bridge.js` - 97 declaration(s), 651 line(s)
-- ... 126 more file(s)
+- ... 127 more file(s)
 
 ## How to query this codebase
 

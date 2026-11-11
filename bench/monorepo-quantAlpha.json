@@ -1,0 +1,255 @@
+{
+  "checks": [
+    {
+      "name": "coldIndexSeconds",
+      "passed": true
+    },
+    {
+      "name": "warmIndexSeconds",
+      "passed": false
+    },
+    {
+      "name": "coldPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "warmPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "overviewSeconds",
+      "passed": false
+    },
+    {
+      "name": "overviewPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "mapSeconds",
+      "passed": false
+    },
+    {
+      "name": "mapPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "searchSeconds",
+      "passed": false
+    },
+    {
+      "name": "searchPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "dependenciesSeconds",
+      "passed": false
+    },
+    {
+      "name": "dependenciesPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "contextSeconds",
+      "passed": false
+    },
+    {
+      "name": "contextPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "impactSeconds",
+      "passed": false
+    },
+    {
+      "name": "impactPeakMemoryMB",
+      "passed": true
+    },
+    {
+      "name": "symbol-neighborhoodPeakMemoryMB",
+      "passed": true
+    }
+  ],
+  "coldIndex": {
+    "cacheHit": false,
+    "peakMemoryMB": 637.97,
+    "seconds": 221.7151
+  },
+  "engineVersion": "0.1.0",
+  "environment": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.13.13"
+  },
+  "operations": [
+    {
+      "deterministic": true,
+      "operation": "overview",
+      "payloadBytes": 3350,
+      "peakMemoryMB": 753.43,
+      "seconds": 113.3035,
+      "secondsMax": 113.3035,
+      "secondsMin": 113.3035,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 838
+    },
+    {
+      "deterministic": true,
+      "operation": "map",
+      "payloadBytes": 5817,
+      "peakMemoryMB": 753.09,
+      "seconds": 93.1622,
+      "secondsMax": 93.1622,
+      "secondsMin": 93.1622,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 1455
+    },
+    {
+      "deterministic": true,
+      "operation": "search",
+      "payloadBytes": 3838,
+      "peakMemoryMB": 753.09,
+      "seconds": 97.8838,
+      "secondsMax": 97.8838,
+      "secondsMin": 97.8838,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 960
+    },
+    {
+      "deterministic": true,
+      "operation": "dependencies",
+      "payloadBytes": 1200,
+      "peakMemoryMB": 753.09,
+      "seconds": 63.0423,
+      "secondsMax": 63.0423,
+      "secondsMin": 63.0423,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 300
+    },
+    {
+      "deterministic": true,
+      "operation": "context",
+      "payloadBytes": 8219,
+      "peakMemoryMB": 753.1,
+      "seconds": 75.011,
+      "secondsMax": 75.011,
+      "secondsMin": 75.011,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 2055
+    },
+    {
+      "deterministic": true,
+      "operation": "impact",
+      "payloadBytes": 531,
+      "peakMemoryMB": 753.09,
+      "seconds": 62.5134,
+      "secondsMax": 62.5134,
+      "secondsMin": 62.5134,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 133
+    },
+    {
+      "deterministic": true,
+      "operation": "symbol-neighborhood",
+      "payloadBytes": 4542,
+      "peakMemoryMB": 753.1,
+      "seconds": 62.1304,
+      "secondsMax": 62.1304,
+      "secondsMin": 62.1304,
+      "tokenEstimator": "chars4-wide-v1",
+      "tokensEstimated": 1136
+    }
+  ],
+  "passed": false,
+  "scale": {
+    "files": 5670,
+    "indexCacheBytes": 168416863,
+    "languages": [
+      {
+        "files": 82,
+        "language": "css",
+        "symbols": 0
+      },
+      {
+        "files": 19,
+        "language": "html",
+        "symbols": 0
+      },
+      {
+        "files": 191,
+        "language": "javascript",
+        "symbols": 1174
+      },
+      {
+        "files": 1636,
+        "language": "json",
+        "symbols": 0
+      },
+      {
+        "files": 515,
+        "language": "markdown",
+        "symbols": 0
+      },
+      {
+        "files": 281,
+        "language": "other",
+        "symbols": 0
+      },
+      {
+        "files": 2001,
+        "language": "python",
+        "symbols": 37136
+      },
+      {
+        "files": 15,
+        "language": "shell",
+        "symbols": 217
+      },
+      {
+        "files": 1,
+        "language": "sql",
+        "symbols": 0
+      },
+      {
+        "files": 1,
+        "language": "toml",
+        "symbols": 0
+      },
+      {
+        "files": 923,
+        "language": "typescript",
+        "symbols": 14402
+      },
+      {
+        "files": 5,
+        "language": "yaml",
+        "symbols": 0
+      }
+    ],
+    "relations": 104857,
+    "sourceBytes": 65229285,
+    "symbols": 52929
+  },
+  "schemaVersion": "1",
+  "source": {
+    "filesRequested": null,
+    "gitCommit": "9af63b21d8a7230215eb6c5900e3a26eaaea50f1",
+    "gitDirty": false,
+    "label": "quantAlpha",
+    "mode": "real"
+  },
+  "thresholds": {
+    "coldIndexSeconds": 300.0,
+    "contextSeconds": 10.0,
+    "dependenciesSeconds": 5.0,
+    "impactSeconds": 5.0,
+    "mapSeconds": 10.0,
+    "overviewSeconds": 5.0,
+    "peakMemoryMB": 1024.0,
+    "searchSeconds": 5.0,
+    "warmIndexSeconds": 60.0
+  },
+  "warmIndex": {
+    "cacheHit": true,
+    "peakMemoryMB": 753.09,
+    "seconds": 110.7341
+  }
+}

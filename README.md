@@ -33,6 +33,7 @@ plugin with six read-only, deterministic, token-budgeted tools.
 | Deterministic export | Write `docs/codebase-intelligence/` snapshot files (JSON/Markdown/Mermaid) + read-only git status | Implemented |
 | Incremental indexing | Content-addressed index cache that survives edits | Implemented |
 | Explorer UI | Browse saved repository, directory, file and symbol graphs with source evidence | Implemented in the Harness panel |
+| Monorepo benchmark | Measure scan/index and query time/memory on synthetic or real large repositories | Implemented; budgets fail on 5,000+ files — see [MONOREPO_BENCHMARK.md](docs/MONOREPO_BENCHMARK.md) |
 
 Everything above is covered by the test suite and, for the DSH plugin, by a real
 isolated Harness run; the engine, bridge and panel were also exercised against a
@@ -87,6 +88,8 @@ cbi impact . --files src/codebase_intelligence/api.py
 cbi report . --out architecture.md      # Markdown architecture report
 cbi export .                            # deterministic docs/codebase-intelligence/ snapshot
 cbi export . --check                    # CI gate: exit 1 when the snapshot is stale
+python scripts/bench_monorepo.py --synthetic-files 5000 --repeat 2 `
+  --json-out bench/monorepo-synthetic.json --check
 ```
 
 Add `--json` to any structural command for the canonical machine payload; add
@@ -188,6 +191,9 @@ scripts/bench.py                 token-cache benchmark generator
 - Retrieval relevance is measured by the deterministic fixture gate
   ([docs/RETRIEVAL_EVAL.md](docs/RETRIEVAL_EVAL.md)); it is not a model-judged
   benchmark over arbitrary external repositories.
+- Large-repository performance is benchmarked but not yet at the target budgets:
+  a 5,670-file real monorepo takes 62–113 s per operation and 111 s for a warm
+  index; see [MONOREPO_BENCHMARK.md](docs/MONOREPO_BENCHMARK.md).
 - The DSH panel writes files only on explicit confirmation and never runs git;
   commit/push stay manual. Custom generation directories must be passed to
   `--exclude` for commands other than the export itself.

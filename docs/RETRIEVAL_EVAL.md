@@ -97,7 +97,7 @@ Result on the checked-in fixture (21 tasks, `k=10`):
 
 | Method | Recall@K | MRR@K | nDCG@K |
 |---|---:|---:|---:|
-| **engine** | **0.9762** | **1.0000** | **0.9790** |
+| **engine** | **0.9762** | **1.0000** | **0.9816** |
 | path-only baseline | 0.7143 | 0.6905 | 0.6699 |
 | symbol-name baseline | 0.8810 | 0.8571 | 0.8365 |
 
@@ -119,7 +119,7 @@ Observed data after the ranker update:
 
 | Method | Recall@K | MRR@K | nDCG@K |
 |---|---:|---:|---:|
-| engine | 0.9333 | 0.9333 | 0.8952 |
+| engine | 1.0000 | 1.0000 | 0.9893 |
 | path-only baseline | 0.9000 | 0.9000 | 0.8871 |
 | symbol-name baseline | 0.7667 | 0.6333 | 0.6452 |
 
@@ -129,25 +129,30 @@ the engine now leads both baselines on all three aggregate metrics).
 For comparison, the same calibration before the ranker change scored engine
 0.7333 / 0.4744 / 0.5026; the fix added:
 
-1. **File-level candidate window.** Documentation/config or multi-term path
-   hits are returned ahead of a long symbol stream, with a bounded file window.
-2. **File-level aggregation.** A path candidate records its matched query terms
-   and gains a coverage bonus when its filename names multiple terms. Symbol
-   rows are capped per path so one generated file cannot fill the page.
-3. **Path/doc prior and priority cutoff.** Documentation/config paths get a
-   small prior after a lexical match; a low-scoring path is only promoted when
-   it is competitive with the best symbol (ratio 0.33), preventing config/JSON
-   noise from crowding out code files.
-4. **Per-file symbol cap** (2 rows) plus the larger internal candidate window.
+1. **File-level candidate window.** Path-matched files are returned in a
+   bounded window ahead of the symbol stream; documentation/config paths and
+   multi-term filenames receive aggregation/coverage signals.
+2. **Exact-symbol guard.** A query that exactly names the top symbol keeps the
+   symbol-first behavior (important for `build_context`-style lookups).
+3. **Path/documentation prior and stem matching.** Documentation/config paths
+   and plural/stem-like tokens (`theme`/`themes`, `specification`/`spec`)
+   receive deterministic path signals after a lexical match.
+4. **Test-path guard.** Test files are not promoted into the path window unless
+   the query explicitly mentions tests/specs; this keeps service-source files
+   ahead of their test doubles.
+5. **Per-file symbol cap** (2 rows) plus the larger internal candidate window.
 
-Remaining partial tasks after the update: `palette-theme` and `plot-registry`
-recall 0.5 (the second relevant file is below the top-10), `panel-contract`
-MRR 0.5 (`engine/CONTRACT.md` ranks before `docs/PANEL-CONTRACT.md`), and
-`engine-service` MRR 0.5 (a test file ranks before `lib/engine.js`). The
-previous zero-hit tasks (`design-doc`, `panel-contract`, `demo-catalog`) and
-`engine-service` now all have non-zero recall; `panel-contract` and
-`engine-service` still need ranking work to move their first relevant item to
-rank 1.
+After the final update, all 15 `dsh-sci-plot` calibration tasks have
+**Recall@10 = 1.0 and MRR@10 = 1.0**. The requested partials are fixed:
+
+- `palette-theme`: `palettes.py` → `themes.py` now rank 1/2
+- `plot-registry`: `registry.py` → `spec.py` now rank 1/2
+- `panel-contract`: `docs/PANEL-CONTRACT.md` now rank 1
+- `engine-service`: `lib/engine.js` now rank 1 (`lib/service.js` rank 3)
+
+Two tasks still have nDCG below 1.0 because their second relevant item is at
+rank 3: `engine-service` and `xlsx-zip` (nDCG 0.9197 each). This is recorded
+instead of lowering the fixture gate.
 
 This is recorded as calibration data, not hidden by lowering the fixture gate.
 The fixture labels, 0.90 thresholds and evaluation metric definitions were not

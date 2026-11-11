@@ -18,7 +18,7 @@ DSH prompt section alone: 184 tokens (735 bytes, static hash `0b51a141f3f1c4ecf7
 |---|---|---|---|---|---|---|
 | overview | 900 | 719 | 2875 | yes | yes | yes |
 | map | 1600 | 1314 | 5253 | yes | yes | yes |
-| search | 1200 | 1197 | 4787 | yes | yes | yes |
+| search | 1200 | 1148 | 4592 | yes | yes | yes |
 | dependencies | 1200 | 1092 | 4365 | yes | yes | no |
 | context | 2200 | 2094 | 8374 | yes | yes | yes |
 | impact | 1200 | 130 | 519 | yes | yes | no |
@@ -30,7 +30,7 @@ DSH prompt section alone: 184 tokens (735 bytes, static hash `0b51a141f3f1c4ecf7
 - Warm build reused files: 185, reparsed: 0
 - Warm cache hit: yes
 - Identical public index payload on repeated runs: yes
-- Index fingerprint: `cdeda764365bd4fdcd407d235b335c55627911a240c275d6530bed556f8d4fa6`
+- Index fingerprint: `baed2ac9f04a1ec2241c0e939d72c26d9b8badb89ede84bce79ad7ae5fe1a411`
 
 ## Cache-friendliness invariants
 
@@ -39,3 +39,4 @@ DSH prompt section alone: 184 tokens (735 bytes, static hash `0b51a141f3f1c4ecf7
 - The DSH prompt section is a static string (no interpolation); tool schemas are static.
 - The index cache is content-addressed: warm runs reuse unchanged files without changing output bytes.
 
+Large-repository time/memory evidence: [MONOREPO_BENCHMARK.md](MONOREPO_BENCHMARK.md).

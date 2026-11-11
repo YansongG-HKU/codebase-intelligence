@@ -15,10 +15,10 @@ right-sidebar panel) + deterministic export.
 | DSH plugin (client) | Right-sidebar tab `codebase-intelligence` + full-page fallback panel (Chinese default / EN toggle), seven views (概览/地图/项目图谱/搜索/依赖/上下文/生成), interactive bounded graph explorer with read-only source evidence, explicit-confirm export writer, read-only git status + copyable commit command; built from `src/client/*.js` into a single dependency-free `client.js` |
 | Retrieval quality | `cbi eval-retrieval` scores the shipped ranker on a deterministic fixture with Recall@K / MRR@K / nDCG@K against path-only and symbol-name baselines; threshold failures exit 1 and are a clean-checkout CI gate |
 | Export | `cbi export` deterministic eight-file snapshot under `docs/codebase-intelligence/` (including `graph.snapshot.json`); `--check` CI gate; generated dir excluded from scanning |
-| Tests | 416 Python tests + 106 Node tests (plugin host + panel + client + graph explorer), fixtures for scanner/parser/retrieval/evaluation/CLI/plugin/export/graph |
-| Docs | `docs/SPEC.md`, `docs/SCANNER_POLICY.md`, `docs/EXPORT.md`, `docs/DSH_PLUGIN.md`, `docs/TOKENS.md`, `docs/BENCHMARKS.md`, `docs/RETRIEVAL_EVAL.md`, plugin `PANEL_CONTRACT.md`, updated README/ROADMAP/ARCHITECTURE/integration README |
-| Bench | `scripts/bench.py` regenerates token/cache evidence; `bench/results.json` holds raw numbers |
-| CI | `.github/workflows/ci.yml` — Python lint, strict `mypy src`, tests, deterministic `cbi export --check` and CLI smoke + Node 22 plugin checks on Ubuntu and Windows (syntax, client build `--check`, 106 unit tests, Python bridge smoke, footprint) + a dedicated clean-checkout acceptance job that reinstalls the project, verifies fixtures/snapshot, runs the `eval-retrieval` quality gate, packs and installs the plugin tarball, and runs the plugin gates |
+| Tests | 417 Python tests + 106 Node tests (plugin host + panel + client + graph explorer), fixtures for scanner/parser/retrieval/evaluation/CLI/plugin/export/graph |
+| Docs | `docs/SPEC.md`, `docs/SCANNER_POLICY.md`, `docs/EXPORT.md`, `docs/DSH_PLUGIN.md`, `docs/TOKENS.md`, `docs/BENCHMARKS.md`, `docs/RETRIEVAL_EVAL.md`, `docs/MONOREPO_BENCHMARK.md`, plugin `PANEL_CONTRACT.md`, updated README/ROADMAP/ARCHITECTURE/integration README |
+| Bench | `scripts/bench.py` regenerates token/cache evidence; `scripts/bench_monorepo.py` records large-repository time/memory scale; `bench/results.json` + `bench/monorepo-*.json` hold raw numbers |
+| CI | `.github/workflows/ci.yml` — Python lint, strict `mypy src`, tests, deterministic `cbi export --check` and CLI smoke + Node 22 plugin checks on Ubuntu and Windows (syntax, client build `--check`, 106 unit tests, Python bridge smoke, footprint) + a dedicated clean-checkout acceptance job that reinstalls the project, verifies fixtures/snapshot, runs the `eval-retrieval` quality gate and a 200-file monorepo benchmark smoke, packs and installs the plugin tarball, and runs the plugin gates |
 
 Generated snapshot files, benchmark evidence and acceptance screenshots are part
 of the delivered commit; the final `cbi export . --check` gate passes. The plugin
@@ -30,7 +30,7 @@ itself never stages, commits or pushes; repository commit and push remain manual
 
 | Check | Command | Result |
 |---|---|---|
-| Python tests | `python -m pytest -q` | **416 passed, 7 skipped** (symlink creation is not permitted on this Windows host; POSIX CI executes those paths, containment is additionally covered by active guard tests) |
+| Python tests | `python -m pytest -q` | **417 passed, 7 skipped** (symlink creation is not permitted on this Windows host; POSIX CI executes those paths, containment is additionally covered by active guard tests) |
 | Python lint | `python -m ruff check .` | clean |
 | Python types | `python -m mypy src` | strict, clean (40 source files) |
 | Plugin unit tests | `cd integrations/deepseek-harness/plugin && node --test "test/unit/*.test.mjs"` | **106 passed, 0 failed** (host bridge/panel/graph routes + client models/views/graph explorer) |
@@ -41,7 +41,7 @@ itself never stages, commits or pushes; repository commit and push remain manual
 | Export determinism | `cbi export . --json` twice + `--check` | byte-identical, second run all `unchanged`, `--check` exit 0 |
 | Scan exclusion | `cbi scan . --json --list-files` | no `docs/codebase-intelligence/*` entries; `generated-dir` skip counted |
 | Token/cache bench | `python scripts/bench.py --root . --plugin-dir integrations/deepseek-harness/plugin` | all six operations within budget, deterministic, warm cache hit (see `docs/BENCHMARKS.md`) |
-| Retrieval quality | `cbi eval-retrieval tests/fixtures/retrieval/repo --tasks tests/fixtures/retrieval/eval_tasks.json --json` | 21 multilingual tasks, k=10: engine Recall 0.9762 / MRR 1.0000 / nDCG 0.9790; baselines 0.7143/0.6905/0.6699 and 0.8810/0.8571/0.8365; thresholds 0.90 pass |
+| Retrieval quality | `cbi eval-retrieval tests/fixtures/retrieval/repo --tasks tests/fixtures/retrieval/eval_tasks.json --json` | 21 multilingual tasks, k=10: engine Recall 0.9762 / MRR 1.0000 / nDCG 0.9816; baselines 0.7143/0.6905/0.6699 and 0.8810/0.8571/0.8365; thresholds 0.90 pass |
 
 ### Real-project validation (external repository)
 
@@ -193,9 +193,14 @@ node verify/harness.mjs stop
 - `.gitignore` is a documented subset; there is no git-index/tracked-file view.
   `mypy strict` now runs in CI (`mypy src`) and is clean locally (40 source files).
 - Retrieval relevance is measured by a deterministic 21-task multilingual
-  fixture gate; the external 169-file `dsh-sci-plot` calibration now passes its
-  0.85 thresholds after file-level ranker improvements, with residual partial
-  tasks recorded in [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md).
+  fixture gate; the external 169-file `dsh-sci-plot` calibration now passes all
+  0.85 thresholds with Recall/MRR 1.0 and nDCG 0.9893. Requested partials are
+  rank 1/2; two tasks still have second-relevant items at rank 3 (documented in
+  [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md)).
+- Large-monorepo budgets are **not yet met**: a 5,000-file synthetic tree takes
+  34–40 s per operation, and a real 5,670-file `quantAlpha` tree takes 62–113 s
+  per operation with 753 MB Python peak; index persistence/serving is the next
+  optimization target (see [MONOREPO_BENCHMARK.md](MONOREPO_BENCHMARK.md)).
 - The DSH panel targets the web profile; headless profiles get the tools only.
   Writes require an explicit panel confirmation; the plugin never stages,
   commits or pushes. Custom generation directories are excluded only for the

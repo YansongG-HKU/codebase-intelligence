@@ -11,8 +11,9 @@ Phase 1 (local MVP), Phase 2 (relationship intelligence), Phase 3's first three
 items (task-aware context), Phase 4's core integration deliverables
 (MCP server + first-party DSH plugin), the interactive graph explorer and the
 eight-file deterministic export are implemented and verified. Phase 0 typing and
-the deterministic retrieval-quality gate are enforced in CI; large-monorepo
-performance/memory benchmarks remain open.
+the deterministic retrieval-quality gate are enforced in CI; the large-monorepo
+benchmark harness is delivered and its first run exposes an unresolved
+production-scale performance gap.
 
 ## Phase 0 — Foundation
 - [x] Define product requirements and non-goals. (README, VISION.md)
@@ -56,14 +57,14 @@ performance/memory benchmarks remain open.
 - [x] Multi-language adapter expansion (heuristic/regex adapters for JS/TS/Go/Rust/Java/C/C++/C#/Ruby/PHP/Shell; Python is parser-backed).
 - [x] Right-sidebar client panel + deterministic `cbi export` snapshot (L2: browse without model tokens, explicit write, read-only git status; full-page fallback when the right sidebar services are absent).
 - [x] Interactive graph explorer. (saved `graph.snapshot.json` + bounded panel explorer: directory → file → symbol, relation filter, pagination, read-only source evidence; max 80 nodes / 160 edges per page)
-- [ ] Large monorepo performance and memory benchmarks.
+- [x] Large monorepo performance and memory benchmarks. (`scripts/bench_monorepo.py`; deterministic 5,000-file synthetic run and real `quantAlpha` 5,670-file run in [MONOREPO_BENCHMARK.md](MONOREPO_BENCHMARK.md); default operation budgets fail — persistence/serving optimization remains open)
 
 ## Release gates
 A phase is complete only when tests, documented limitations, reproducible
 examples, and acceptance criteria are satisfied. Do not mark roadmap items
 complete merely because a design document exists.
 
-Current release gate status: `pytest` 416 passed / 7 skipped (symlink tests
+Current release gate status: `pytest` 417 passed / 7 skipped (symlink tests
 unavailable on the Windows host), `ruff` clean, strict `mypy src` clean,
 plugin `node --test` 106 passed, the fixture retrieval-quality gate passes,
 isolated DSH 0.2.2-rc.1 install + real model

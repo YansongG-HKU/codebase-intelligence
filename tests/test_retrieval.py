@@ -327,6 +327,25 @@ def test_rank_centrality_boosts_referenced_symbol() -> None:
     assert any("centrality" in reason for reason in by_id[handler_a.id].reasons)
 
 
+def test_path_stem_matching_and_test_path_guard() -> None:
+    snapshot = make_snapshot(
+        record("engine/themes.py"),
+        record("engine/spec.py"),
+        record("tests/test_engine.py"),
+        record("lib/engine.py"),
+        symbols=(symbol("lib/engine.py", "engine"), symbol("tests/test_engine.py", "engine_test")),
+    )
+    ranked = rank(snapshot, None, "theme specification")
+    files = {item.path: item for item in ranked.files}
+    assert files["engine/themes.py"].path_terms == ("theme",)
+    assert files["engine/spec.py"].path_terms == ("specification",)
+
+    hits = search(snapshot, None, "engine theme", limit=10)
+    assert hits
+    assert hits[0].path != "tests/test_engine.py"
+    assert any(hit.path == "tests/test_engine.py" for hit in search(snapshot, None, "engine test", limit=10))
+
+
 def test_file_level_path_prior_and_coverage_are_ranked() -> None:
     snapshot = make_snapshot(
         record("docs/DESIGN.md", language=Language.MARKDOWN),

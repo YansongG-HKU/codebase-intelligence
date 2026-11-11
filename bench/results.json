@@ -5,7 +5,7 @@
       "command": "index",
       "index": {
         "engineVersion": "0.1.0",
-        "fingerprint": "cdeda764365bd4fdcd407d235b335c55627911a240c275d6530bed556f8d4fa6",
+        "fingerprint": "baed2ac9f04a1ec2241c0e939d72c26d9b8badb89ede84bce79ad7ae5fe1a411",
         "policyFingerprint": "a8bce9a5ccfe9fd1075f9379011ac94db2551e270ea420e55c54988988f4cac7",
         "schemaVersion": "1"
       },
@@ -60,7 +60,7 @@
           {
             "files": 90,
             "language": "python",
-            "symbols": 1629
+            "symbols": 1634
           },
           {
             "files": 1,
@@ -88,8 +88,8 @@
             "symbols": 0
           }
         ],
-        "relations": 5585,
-        "symbols": 3926
+        "relations": 5599,
+        "symbols": 3931
       },
       "schemaVersion": "1"
     },
@@ -107,7 +107,7 @@
       "command": "index",
       "index": {
         "engineVersion": "0.1.0",
-        "fingerprint": "cdeda764365bd4fdcd407d235b335c55627911a240c275d6530bed556f8d4fa6",
+        "fingerprint": "baed2ac9f04a1ec2241c0e939d72c26d9b8badb89ede84bce79ad7ae5fe1a411",
         "policyFingerprint": "a8bce9a5ccfe9fd1075f9379011ac94db2551e270ea420e55c54988988f4cac7",
         "schemaVersion": "1"
       },
@@ -162,7 +162,7 @@
           {
             "files": 90,
             "language": "python",
-            "symbols": 1629
+            "symbols": 1634
           },
           {
             "files": 1,
@@ -190,8 +190,8 @@
             "symbols": 0
           }
         ],
-        "relations": 5585,
-        "symbols": 3926
+        "relations": 5599,
+        "symbols": 3931
       },
       "schemaVersion": "1"
     },
@@ -212,9 +212,9 @@
         "bytes": 2875,
         "description": "repository overview",
         "deterministic": true,
-        "firstMs": 1050.4,
+        "firstMs": 1092.9,
         "operation": "overview",
-        "secondMs": 1047.9,
+        "secondMs": 1123.1,
         "tokensEstimated": 719,
         "truncated": true,
         "withinBudget": true
@@ -224,22 +224,22 @@
         "bytes": 5253,
         "description": "ranked repository map",
         "deterministic": true,
-        "firstMs": 1090.3,
+        "firstMs": 1100.4,
         "operation": "map",
-        "secondMs": 1052.5,
+        "secondMs": 1308.3,
         "tokensEstimated": 1314,
         "truncated": true,
         "withinBudget": true
       },
       {
         "budgetTokens": 1200,
-        "bytes": 4787,
+        "bytes": 4592,
         "description": "search 'token budget'",
         "deterministic": true,
-        "firstMs": 1446.0,
+        "firstMs": 1445.9,
         "operation": "search",
-        "secondMs": 1507.4,
-        "tokensEstimated": 1197,
+        "secondMs": 1277.7,
+        "tokensEstimated": 1148,
         "truncated": true,
         "withinBudget": true
       },
@@ -248,9 +248,9 @@
         "bytes": 4365,
         "description": "dependencies of scripts/bench.py",
         "deterministic": true,
-        "firstMs": 1091.5,
+        "firstMs": 1112.9,
         "operation": "dependencies",
-        "secondMs": 1082.8,
+        "secondMs": 1112.7,
         "tokensEstimated": 1092,
         "truncated": false,
         "withinBudget": true
@@ -260,9 +260,9 @@
         "bytes": 8374,
         "description": "add a token budget to the DSH plugin",
         "deterministic": true,
-        "firstMs": 1381.1,
+        "firstMs": 1375.9,
         "operation": "context",
-        "secondMs": 1387.2,
+        "secondMs": 1627.8,
         "tokensEstimated": 2094,
         "truncated": true,
         "withinBudget": true
@@ -272,9 +272,9 @@
         "bytes": 519,
         "description": "impact of changing scripts/bench.py",
         "deterministic": true,
-        "firstMs": 1184.3,
+        "firstMs": 1334.2,
         "operation": "impact",
-        "secondMs": 1120.0,
+        "secondMs": 1191.7,
         "tokensEstimated": 130,
         "truncated": false,
         "withinBudget": true
@@ -284,9 +284,9 @@
         "bytes": 4668,
         "description": "neighborhood of sym:scripts/bench.py#module:scripts.bench@1",
         "deterministic": true,
-        "firstMs": 1088.4,
+        "firstMs": 1217.2,
         "operation": "symbol-neighborhood",
-        "secondMs": 1171.7,
+        "secondMs": 1137.7,
         "tokensEstimated": 1167,
         "truncated": true,
         "withinBudget": true

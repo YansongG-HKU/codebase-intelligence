@@ -74,6 +74,10 @@ jobs:
           cbi eval-retrieval tests/fixtures/retrieval/repo \
             --tasks tests/fixtures/retrieval/eval_tasks.json \
             --cache-dir "$RUNNER_TEMP/cbi-eval-cache" --json
+      - name: Monorepo benchmark smoke
+        run: |
+          python scripts/bench_monorepo.py --synthetic-files 200 --repeat 1 \
+            --json-out "$RUNNER_TEMP/monorepo-smoke.json" --check
       - name: Plugin package installation chain
         working-directory: integrations/deepseek-harness/plugin
         run: |

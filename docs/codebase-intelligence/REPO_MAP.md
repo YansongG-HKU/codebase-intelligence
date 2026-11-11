@@ -1,33 +1,33 @@
 # Repository map
 
-- files: 185
-- symbols: 3926
-- relations: 5585
+- files: 189
+- symbols: 3943
+- relations: 5641
 - parser issues: 1
 
 ## Top directories
 
-- tests: 86 files, 617 symbols
-- src: 40 files, 1066 symbols
+- tests: 86 files, 618 symbols
+- src: 40 files, 1070 symbols
 - integrations: 37 files, 2232 symbols
-- docs: 16 files, 0 symbols
+- docs: 17 files, 0 symbols
 - .: 4 files, 0 symbols
-- scripts: 1 files, 11 symbols
-- bench: 1 files, 0 symbols
+- bench: 3 files, 0 symbols
+- scripts: 2 files, 23 symbols
 
 ## Entry points
 
 - integrations/deepseek-harness/plugin/verify/bridge-smoke.mjs:73 function integrations.deepseek-harness.plugin.verify.bridge-smoke.main
 - integrations/deepseek-harness/plugin/verify/harness.mjs:1071 function integrations.deepseek-harness.plugin.verify.harness.main
 - scripts/bench.py:234 function scripts.bench.main
+- scripts/bench_monorepo.py:381 function scripts.bench_monorepo.main
 - src/codebase_intelligence/cli.py:568 function src.codebase_intelligence.cli.main
 - src/codebase_intelligence/mcp/__main__.py:13 function src.codebase_intelligence.mcp.__main__.main
 - src/codebase_intelligence/mcp/server.py:1 file entry point
 - tests/fixtures/cli/demo_repo/src/demo/core.py:29 function tests.fixtures.cli.demo_repo.src.demo.core.main
 - tests/fixtures/cli/demo_repo/web/index.ts:3 function tests.fixtures.cli.demo_repo.web.index.main
 - tests/fixtures/parser/go/service/main.go:9 function tests.fixtures.parser.go.service.main.main
-- tests/fixtures/parser/python_pkg/app.py:18 function tests.fixtures.parser.python_pkg.app.main
-- ... 7 more entry points
+- ... 8 more entry points
 
 ## Files
 
@@ -39,7 +39,15 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### README.md (markdown, 213 lines)
+### README.md (markdown, 219 lines)
+
+- no declarations extracted (unsupported language or file-only index entry)
+
+### bench/monorepo-quantAlpha.json (json, 255 lines)
+
+- no declarations extracted (unsupported language or file-only index entry)
+
+### bench/monorepo-synthetic.json (json, 199 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -51,11 +59,11 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/BENCHMARKS.md (markdown, 41 lines)
+### docs/BENCHMARKS.md (markdown, 42 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/DELIVERY.md (markdown, 218 lines)
+### docs/DELIVERY.md (markdown, 223 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -71,15 +79,19 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
+### docs/MONOREPO_BENCHMARK.md (markdown, 122 lines)
+
+- no declarations extracted (unsupported language or file-only index entry)
+
 ### docs/RESEARCH.md (markdown, 59 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/RETRIEVAL_EVAL.md (markdown, 182 lines)
+### docs/RETRIEVAL_EVAL.md (markdown, 187 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/ROADMAP.md (markdown, 73 lines)
+### docs/ROADMAP.md (markdown, 74 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -99,7 +111,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/acceptance/CI_CLEAN_CHECKOUT.md (markdown, 74 lines)
+### docs/acceptance/CI_CLEAN_CHECKOUT.md (markdown, 78 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -188,9 +200,6 @@
 - integrations/deepseek-harness/plugin/lib/panel.js:1 module integrations.deepseek-harness.plugin.lib.panel [heuristic]
 - integrations/deepseek-harness/plugin/lib/panel.js:27 constant integrations.deepseek-harness.plugin.lib.panel.REQUEST_HEADER `export const REQUEST_HEADER =` [heuristic]
 - integrations/deepseek-harness/plugin/lib/panel.js:29 constant integrations.deepseek-harness.plugin.lib.panel.ROUTE_PREFIX `export const ROUTE_PREFIX =` [heuristic]
-- integrations/deepseek-harness/plugin/lib/panel.js:31 constant integrations.deepseek-harness.plugin.lib.panel.MAX_BODY_BYTES `export const MAX_BODY_BYTES =` [heuristic]
-- integrations/deepseek-harness/plugin/lib/panel.js:33 constant integrations.deepseek-harness.plugin.lib.panel.GET `const GET =` [heuristic]
-- integrations/deepseek-harness/plugin/lib/panel.js:34 constant integrations.deepseek-harness.plugin.lib.panel.POST `const POST =` [heuristic]
 - ... truncated: document size bound reached.
 
 ## Project graph
