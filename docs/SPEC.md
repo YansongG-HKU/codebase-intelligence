@@ -245,9 +245,15 @@ def ensure_index(root: Path, policy=None, *, cache_dir: Path | None = None,
 - `rank.py`: file/symbol scoring from (a) lexical match of the task/query over
   paths, symbol names, qualified names, signatures and docstrings; (b) symbol
   centrality (in-degree of resolved relations, normalized); (c) dependency
-  proximity to explicitly named paths; (d) small bonus for entry points/modules.
-  Scores deterministic (round 4). Expose reason strings for ranking (bounded).
-- `search(snapshot, graph, query, *, limit=20) -> tuple[SearchHit, ...]`.
+  proximity to explicitly named paths; (d) small bonus for entry points/modules;
+  (e) file-level path coverage and documentation/config priors for paths that
+  already match the query. Scores deterministic (round 4). Expose reason strings
+  for ranking (bounded).
+- `search(snapshot, graph, query, *, limit=20) -> tuple[SearchHit, ...]`: file
+  candidates with documentation/config priority or multi-term path coverage are
+  emitted in a bounded file window before the symbol stream; symbol rows are
+  capped per path. This preserves symbol-first behavior for symbol-only queries
+  while preventing one generated file from hiding named files.
 - `budget.py`: `fit_rows(rows, measure, max_tokens) -> (kept, omitted_count)` and
   `estimate_tokens` re-export; never split a row.
 - `context.py`:

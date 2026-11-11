@@ -327,6 +327,49 @@ def test_rank_centrality_boosts_referenced_symbol() -> None:
     assert any("centrality" in reason for reason in by_id[handler_a.id].reasons)
 
 
+def test_file_level_path_prior_and_coverage_are_ranked() -> None:
+    snapshot = make_snapshot(
+        record("docs/DESIGN.md", language=Language.MARKDOWN),
+        record("src/designer.py"),
+        symbols=(symbol("src/designer.py", "designer"),),
+    )
+    result = rank(snapshot, None, "design documentation")
+    files = {item.path: item for item in result.files}
+    doc = files["docs/DESIGN.md"]
+    assert doc.path_terms == ("design",)
+    assert doc.score > files["src/designer.py"].score
+    assert any("path prior" in reason for reason in doc.reasons)
+
+    coverage = rank(
+        make_snapshot(record("pkg/alpha_beta_gamma.py")),
+        None,
+        "alpha beta gamma",
+    )
+    covered = coverage.files[0]
+    assert covered.path == "pkg/alpha_beta_gamma.py"
+    assert covered.path_terms == ("alpha", "beta", "gamma")
+    assert any("path coverage" in reason for reason in covered.reasons)
+
+
+def test_search_surfaces_file_priority_and_caps_per_path_symbols() -> None:
+    snapshot = make_snapshot(
+        record("docs/PANEL-CONTRACT.md", language=Language.MARKDOWN),
+        record("pkg/large.py"),
+        record("pkg/other.py"),
+        symbols=tuple(
+            symbol("pkg/large.py", f"panel_handler_{index}", start=index + 1)
+            for index in range(5)
+        )
+        + (symbol("pkg/other.py", "panel_handler_other"),),
+    )
+    hits = search(snapshot, None, "panel contract", limit=20)
+    assert hits
+    assert hits[0].path == "docs/PANEL-CONTRACT.md"
+    assert hits[0].kind == "file"
+    large_hits = [hit for hit in hits if hit.path == "pkg/large.py"]
+    assert 0 < len(large_hits) <= 2
+
+
 def test_rank_proximity_follows_named_paths() -> None:
     snapshot = load_snapshot()
     result = rank(snapshot, FakeGraph(snapshot), "src/app/cli.py")

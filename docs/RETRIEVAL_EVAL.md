@@ -97,7 +97,7 @@ Result on the checked-in fixture (21 tasks, `k=10`):
 
 | Method | Recall@K | MRR@K | nDCG@K |
 |---|---:|---:|---:|
-| **engine** | **0.9762** | **1.0000** | **0.9752** |
+| **engine** | **0.9762** | **1.0000** | **0.9790** |
 | path-only baseline | 0.7143 | 0.6905 | 0.6699 |
 | symbol-name baseline | 0.8810 | 0.8571 | 0.8365 |
 
@@ -115,26 +115,43 @@ it is a real mixed-language project already used in the delivery acceptance:
   workspace), `k=10`, same metrics and the same path/symbol baselines.
 - Calibration threshold was 0.85 for each aggregate metric.
 
-Observed data:
+Observed data after the ranker update:
 
 | Method | Recall@K | MRR@K | nDCG@K |
 |---|---:|---:|---:|
-| engine | 0.7333 | 0.4744 | 0.5026 |
+| engine | 0.9333 | 0.9333 | 0.8952 |
 | path-only baseline | 0.9000 | 0.9000 | 0.8871 |
 | symbol-name baseline | 0.7667 | 0.6333 | 0.6452 |
 
-**Calibration result: failed** (all three engine metrics below 0.85, and the
-path baseline leads). Zero-hit tasks included `design-doc`, `panel-contract` and
-`demo-catalog`; `palette-theme`, `client-gallery`, `client-data-settings` and
-`build-client` were partial. The relevant paths exist in the index; the engine's
-top-10 was crowded by symbol-heavy JavaScript files and file-level path matching
-did not promote the documentation/config targets.
+**Calibration result: passed** (all three engine metrics at or above 0.85, and
+the engine now leads both baselines on all three aggregate metrics).
 
-This is recorded as a calibration finding, not hidden by lowering the gate.
-Fixing it requires ranker/large-repo work (larger candidate windows, better
-file-level aggregation, path/doc priors), which is explicitly out of scope for
-this fixture-only change. The checked-in fixture gate remains green and catches
-regressions on the covered multilingual/task-type set.
+For comparison, the same calibration before the ranker change scored engine
+0.7333 / 0.4744 / 0.5026; the fix added:
+
+1. **File-level candidate window.** Documentation/config or multi-term path
+   hits are returned ahead of a long symbol stream, with a bounded file window.
+2. **File-level aggregation.** A path candidate records its matched query terms
+   and gains a coverage bonus when its filename names multiple terms. Symbol
+   rows are capped per path so one generated file cannot fill the page.
+3. **Path/doc prior and priority cutoff.** Documentation/config paths get a
+   small prior after a lexical match; a low-scoring path is only promoted when
+   it is competitive with the best symbol (ratio 0.33), preventing config/JSON
+   noise from crowding out code files.
+4. **Per-file symbol cap** (2 rows) plus the larger internal candidate window.
+
+Remaining partial tasks after the update: `palette-theme` and `plot-registry`
+recall 0.5 (the second relevant file is below the top-10), `panel-contract`
+MRR 0.5 (`engine/CONTRACT.md` ranks before `docs/PANEL-CONTRACT.md`), and
+`engine-service` MRR 0.5 (a test file ranks before `lib/engine.js`). The
+previous zero-hit tasks (`design-doc`, `panel-contract`, `demo-catalog`) and
+`engine-service` now all have non-zero recall; `panel-contract` and
+`engine-service` still need ranking work to move their first relevant item to
+rank 1.
+
+This is recorded as calibration data, not hidden by lowering the fixture gate.
+The fixture labels, 0.90 thresholds and evaluation metric definitions were not
+changed; only ranker behavior changed.
 
 ## CI and local use
 

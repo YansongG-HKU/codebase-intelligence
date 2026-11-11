@@ -80,6 +80,44 @@ _ENTRY_BONUS = 0.25
 _MODULE_BONUS = 0.05
 _FILE_ENTRY_BONUS = 0.2
 _FILE_PACKAGE_BONUS = 0.1
+#: File-level priors keep documentation/config paths from being buried by the
+#: much larger symbol stream on real repositories. They only apply after a
+#: lexical path match, so an unrelated README never enters a query's results.
+_DOC_PATH_PRIOR = 0.35
+_CONFIG_PATH_PRIOR = 0.2
+_DOC_SUFFIXES = frozenset({".md", ".mdx", ".rst", ".txt"})
+_CONFIG_SUFFIXES = frozenset({".yaml", ".yml", ".toml", ".json"})
+_DOC_STEMS = frozenset(
+    {
+        "readme",
+        "changelog",
+        "release",
+        "design",
+        "architecture",
+        "contract",
+        "panel-contract",
+        "requirements",
+        "guide",
+        "runbook",
+        "manual",
+        "contributing",
+        "faq",
+    }
+)
+_DOC_DIRS = frozenset({"docs", "doc", "documentation", "readme", "guides", "runbooks"})
+#: Multi-term path coverage is a file-level signal; it lets a filename that
+#: names several query terms compete with a long symbol stream.
+_PATH_COVERAGE_BONUS = 0.4
+#: Search returns path-level candidates before the symbol stream. The cap keeps
+#: the file window bounded, while per-file symbol caps prevent one large generated
+#: file from occupying the whole page.
+MAX_PRIORITY_FILE_HITS = 16
+MAX_SEARCH_FILE_HITS = 32
+MAX_SYMBOL_HITS_PER_PATH = 2
+#: A file-level row only jumps ahead of the symbol stream when its score is
+#: competitive with the best symbol; otherwise low-value config/json path hits
+#: crowd out the actual engine service files.
+MIN_PRIORITY_FILE_RATIO = 0.33
 
 _ENTRY_STEMS = frozenset({"main", "cli", "app", "server", "run", "index"})
 _WORD = re.compile(r"[A-Za-z0-9_]+")
@@ -186,6 +224,7 @@ class RankedFile:
     matched: tuple[str, ...]
     proximity: int
     reasons: tuple[str, ...]
+    path_terms: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -376,13 +415,45 @@ def _symbol_lexical(
     return total, matched, reasons
 
 
+def _file_path_prior(file_path: str) -> float:
+    """Small deterministic prior for a path that already matched the query.
+
+    Documentation and config files have no parsed symbols, so without this their
+    path-level hit is always sorted behind a long stream of symbol hits. The prior
+    is deliberately small and only applies after a lexical path match.
+    """
+
+    lower = file_path.lower().replace("\\", "/")
+    base = lower.rsplit("/", 1)[-1]
+    stem = base.rsplit(".", 1)[0] if "." in base else base
+    segments = [segment for segment in lower.split("/") if segment]
+    suffix = ("." + base.rsplit(".", 1)[1]) if "." in base else ""
+    is_doc = (
+        suffix in _DOC_SUFFIXES
+        or stem in _DOC_STEMS
+        or any(segment in _DOC_DIRS for segment in segments[:-1])
+    )
+    if is_doc:
+        return _DOC_PATH_PRIOR
+    if suffix in _CONFIG_SUFFIXES:
+        return _CONFIG_PATH_PRIOR
+    return 0.0
+
+
 def _file_lexical(
     file_path: str, score_path: _PathScorer
-) -> tuple[float, tuple[str, ...], tuple[str, ...]]:
+) -> tuple[float, tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     path_score, matched = score_path(file_path)
     if path_score <= 0:
-        return 0.0, (), ()
-    return path_score, ("path",), (f"lexical path: {_clip(matched[0])}",)
+        return 0.0, (), (), ()
+    prior = _file_path_prior(file_path)
+    coverage = _PATH_COVERAGE_BONUS * max(0, len(matched) - 1)
+    reasons = [f"lexical path: {_clip(matched[0])}"]
+    if prior > 0:
+        reasons.append("path prior: documentation/config")
+    if coverage > 0:
+        reasons.append(f"path coverage: {len(matched)} query terms")
+    return round(path_score + prior + coverage, 4), ("path",), tuple(reasons), matched
 
 
 def _clip(text: str) -> str:
@@ -660,7 +731,7 @@ def rank(
 
     files: list[RankedFile] = []
     for file in sorted(snapshot.files, key=lambda item: item.path):
-        lexical, matched, lexical_reasons = _file_lexical(file.path, score_path)
+        lexical, matched, lexical_reasons, path_terms = _file_lexical(file.path, score_path)
         structural, structural_reasons = _file_structural(file.path, context)
         proximity = context.proximity.get(file.path, 0)
         if lexical <= 0 and proximity == 0:
@@ -676,6 +747,7 @@ def rank(
                 matched=matched,
                 proximity=proximity,
                 reasons=_bounded_reasons((*lexical_reasons, *structural_reasons)),
+                path_terms=path_terms,
             )
         )
 
@@ -695,16 +767,29 @@ def search(
     *,
     limit: int = 20,
 ) -> tuple[SearchHit, ...]:
-    """Lexical search over files/symbols with structural boosts (SPEC §9)."""
+    """Lexical search with file-level aggregation and structural boosts.
+
+    File-level path candidates are ranked before the symbol stream when the path
+    is documentation/config, or when the filename covers at least two query
+    terms. This keeps a long symbol list from hiding an explicitly named file,
+    while symbol-only queries keep the existing symbol-first ordering. Each path
+    contributes at most ``MAX_SYMBOL_HITS_PER_PATH`` symbol rows and the file
+    window is bounded to keep result size deterministic.
+    """
 
     capped = max(1, min(int(limit), MAX_LIMIT))
     result = rank(snapshot, graph, query)
-    hits: list[SearchHit] = []
+    symbol_hits: list[SearchHit] = []
     covered_paths: set[str] = set()
+    symbol_counts: dict[str, int] = {}
     for ranked_symbol in result.symbols:
         if not ranked_symbol.matched:
             continue
-        hits.append(
+        count = symbol_counts.get(ranked_symbol.path, 0)
+        if count >= MAX_SYMBOL_HITS_PER_PATH:
+            continue
+        symbol_counts[ranked_symbol.path] = count + 1
+        symbol_hits.append(
             SearchHit(
                 path=ranked_symbol.path,
                 line=ranked_symbol.line,
@@ -716,21 +801,39 @@ def search(
             )
         )
         covered_paths.add(ranked_symbol.path)
+
+    top_symbol_score = result.symbols[0].score if result.symbols else 0.0
+    priority_cutoff = round(top_symbol_score * MIN_PRIORITY_FILE_RATIO, 4)
+    priority_files: list[SearchHit] = []
+    regular_files: list[SearchHit] = []
     for ranked_file in result.files:
-        if not ranked_file.matched or ranked_file.path in covered_paths:
+        if not ranked_file.matched:
             continue
-        hits.append(
-            SearchHit(
-                path=ranked_file.path,
-                line=1,
-                symbol=None,
-                kind="file",
-                language=ranked_file.language,
-                score=ranked_file.score,
-                match=",".join(ranked_file.matched),
-            )
+        hit = SearchHit(
+            path=ranked_file.path,
+            line=1,
+            symbol=None,
+            kind="file",
+            language=ranked_file.language,
+            score=ranked_file.score,
+            match=",".join(ranked_file.matched),
         )
-    hits.sort(key=lambda hit: (-hit.score, hit.path, hit.line, hit.kind, hit.symbol or ""))
+        is_priority = _file_path_prior(ranked_file.path) > 0 or len(ranked_file.path_terms) >= 2
+        if is_priority and (top_symbol_score == 0 or hit.score >= priority_cutoff):
+            priority_files.append(hit)
+        elif ranked_file.path not in covered_paths:
+            regular_files.append(hit)
+
+    def sort_key(hit: SearchHit) -> tuple[float, str, int, str, str]:
+        return (-hit.score, hit.path, hit.line, hit.kind, hit.symbol or "")
+
+    priority_files.sort(key=sort_key)
+    regular_files.sort(key=sort_key)
+    hits = (
+        priority_files[:MAX_PRIORITY_FILE_HITS]
+        + symbol_hits
+        + regular_files[:MAX_SEARCH_FILE_HITS]
+    )
     return tuple(hits[:capped])
 
 

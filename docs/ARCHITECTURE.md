@@ -80,8 +80,10 @@ choices, all covered by tests:
   only for unambiguous same-file calls; cross-file calls are intentionally not
   guessed.
 - **Retrieval** combines lexical match, resolved in-degree centrality, explicit
-  path proximity and entry/module bonuses; every budgeted payload reports its
-  measured size, the `chars4-wide-v1` estimator, and what was omitted.
+  path proximity, entry/module bonuses, and file-level path coverage/doc-config
+  priors; a bounded file window is emitted before the symbol stream and symbol
+  rows are capped per path. Every budgeted payload reports its measured size,
+  the `chars4-wide-v1` estimator, and what was omitted.
 - **Integration transports**: CLI (`cbi`), stdio MCP server, and a DSH plugin that
   drives the CLI over a versioned JSON stdio bridge. All three share `api.py` and
   return the same payloads.

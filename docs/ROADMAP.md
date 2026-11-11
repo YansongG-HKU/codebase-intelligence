@@ -40,7 +40,7 @@ performance/memory benchmarks remain open.
 - [x] Task query interface.
 - [x] Ranking and token-budget selection.
 - [x] Source excerpts with path and line citations.
-- [x] Benchmark retrieval relevance against baseline strategies. (`cbi eval-retrieval` file-level Recall@K/MRR@K/nDCG@K against path-only and symbol-name baselines on a 21-task multilingual fixture; external 169-file calibration recorded in [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md) exposed a real-repo ranking gap); cost/determinism/cache remain in [BENCHMARKS.md](BENCHMARKS.md)
+- [x] Benchmark retrieval relevance against baseline strategies. (`cbi eval-retrieval` file-level Recall@K/MRR@K/nDCG@K against path-only and symbol-name baselines on a 21-task multilingual fixture; external 169-file calibration recorded in [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md) now passes after file-level/prior ranker work); cost/determinism/cache remain in [BENCHMARKS.md](BENCHMARKS.md)
 
 ## Phase 4 — Agent integration
 - [x] MCP server exposing repository map, symbol lookup, graph traversal, and context retrieval.
@@ -63,7 +63,7 @@ A phase is complete only when tests, documented limitations, reproducible
 examples, and acceptance criteria are satisfied. Do not mark roadmap items
 complete merely because a design document exists.
 
-Current release gate status: `pytest` 414 passed / 7 skipped (symlink tests
+Current release gate status: `pytest` 416 passed / 7 skipped (symlink tests
 unavailable on the Windows host), `ruff` clean, strict `mypy src` clean,
 plugin `node --test` 106 passed, the fixture retrieval-quality gate passes,
 isolated DSH 0.2.2-rc.1 install + real model

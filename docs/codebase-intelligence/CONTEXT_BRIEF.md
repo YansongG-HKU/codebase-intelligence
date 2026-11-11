@@ -6,18 +6,18 @@ context: read it, do not edit it by hand.
 
 ## Snapshot
 
-- index fingerprint: `139102f98c43a6059fa04dc431254fb8d05d239e73b20776318e49bbd66b1da2`
+- index fingerprint: `4e263786a5eb437340b589180c34cca2756eadf88f74999b45249513967c29ae`
 - index schema: `1` (engine `0.1.0`)
 - policy fingerprint: `a8bce9a5ccfe9fd1075f9379011ac94db2551e270ea420e55c54988988f4cac7`
 - files: 185
-- symbols: 3910
-- relations: 5555
+- symbols: 3926
+- relations: 5585
 - parser issues: 1
 - generated directory: `docs/codebase-intelligence` (excluded from the next scan)
 
 ## Languages
 
-- python: 90 files, 1613 symbols
+- python: 90 files, 1629 symbols
 - javascript: 35 files, 2251 symbols
 - markdown: 31 files, 0 symbols
 - other: 8 files, 0 symbols
@@ -66,9 +66,9 @@ context: read it, do not edit it by hand.
 - `integrations/deepseek-harness/plugin/verify/harness.mjs` - 205 declaration(s), 1125 line(s)
 - `integrations/deepseek-harness/plugin/src/client/03-models.js` - 172 declaration(s), 729 line(s)
 - `src/codebase_intelligence/model/entities.py` - 135 declaration(s), 478 line(s)
+- `src/codebase_intelligence/retrieval/rank.py` - 119 declaration(s), 856 line(s)
 - `integrations/deepseek-harness/plugin/src/client/00-head.js` - 115 declaration(s), 759 line(s)
 - `src/codebase_intelligence/parsers/heuristic.py` - 108 declaration(s), 1071 line(s)
-- `src/codebase_intelligence/retrieval/rank.py` - 105 declaration(s), 753 line(s)
 - `integrations/deepseek-harness/plugin/lib/service.js` - 105 declaration(s), 560 line(s)
 - `integrations/deepseek-harness/plugin/lib/bridge.js` - 97 declaration(s), 651 line(s)
 - ... 126 more file(s)

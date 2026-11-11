@@ -174,6 +174,6 @@ fixture files present, nested `.git` fixture absent, `.hg/config` present.
 > styled to match the native host row and an extra Node test was added; the Node
 > suite is now 106 tests. This does not change the fixture/line-ending fix. The
 > export snapshot was regenerated for this working-tree state; before the next
-> commit, repeat the clean-clone gate. The current suite is 414 Python tests
+> commit, repeat the clean-clone gate. The current suite is 416 Python tests
 > after the retrieval-quality gate; the 408 values above remain the original
 > clone-run record.

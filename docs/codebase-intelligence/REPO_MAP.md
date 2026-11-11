@@ -1,14 +1,14 @@
 # Repository map
 
 - files: 185
-- symbols: 3910
-- relations: 5555
+- symbols: 3926
+- relations: 5585
 - parser issues: 1
 
 ## Top directories
 
-- tests: 86 files, 615 symbols
-- src: 40 files, 1052 symbols
+- tests: 86 files, 617 symbols
+- src: 40 files, 1066 symbols
 - integrations: 37 files, 2232 symbols
 - docs: 16 files, 0 symbols
 - .: 4 files, 0 symbols
@@ -47,7 +47,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/ARCHITECTURE.md (markdown, 89 lines)
+### docs/ARCHITECTURE.md (markdown, 91 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -75,7 +75,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/RETRIEVAL_EVAL.md (markdown, 165 lines)
+### docs/RETRIEVAL_EVAL.md (markdown, 182 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -87,7 +87,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/SPEC.md (markdown, 396 lines)
+### docs/SPEC.md (markdown, 402 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
