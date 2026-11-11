@@ -19,7 +19,7 @@ From the repository root:
 ```bash
 python scripts/eval_retrieval.py
 python scripts/eval_retrieval.py --root tests/fixtures/retrieval/repo --k 1 3 5
-python scripts/eval_retrieval.py --json-out /tmp/retrieval-evaluation.json
+python scripts/eval_retrieval.py --compare-baselines --json-out /tmp/retrieval-evaluation.json
 ```
 
 The runner uses the production index and `codebase_intelligence.retrieval.search`; it does not reimplement ranking and makes no model/API/network calls.
@@ -65,3 +65,15 @@ Aggregate values are macro averages across tasks. Duplicate paths are de-duplica
 3. Measure native tokenizer usage for selected model families.
 4. Evaluate downstream model answers for correctness, groundedness, and unsupported claims.
 5. Score source-line evidence correctness and report variance/confidence intervals where repeated evaluations are used.
+
+
+## Controlled baselines
+
+Pass `--compare-baselines` to compare the graph-aware production ranker against four internal controls on the same task set and K values:
+
+- **Tree-only:** path-token overlap only; source contents are not read.
+- **Keyword:** capped source-text term frequency over eligible indexed files.
+- **Pack-order:** all files in stable path order, deliberately unranked. This is a simple full-pack control, not a claim to reproduce every third-party packer.
+- **Basic symbol map:** lexical overlap against symbol names and qualified names only, with no graph centrality or dependency features.
+
+The graph-aware production file search and symbol ranker remain the top-level report. Baseline reports are grouped under `baselineComparisons`; file-only baselines explicitly mark symbol metrics as not applicable. The basic symbol-map baseline reports both file and symbol metrics. All strategies use the same reviewed gold task set and index snapshot. This is a controlled internal comparison, not a reproduction of external tools.
