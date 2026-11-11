@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import math
 from collections.abc import Callable, Iterable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -303,8 +303,13 @@ def evaluate_repository(
     *,
     cache_dir: str | Path | None = None,
     ks: Sequence[int] = (1, 3, 5),
+    compare_baselines: bool = False,
 ) -> dict[str, Any]:
-    """Run reviewed tasks against the production index, search, and ranker."""
+    """Run reviewed tasks against the production index, search, and ranker.
+
+    When requested, also run transparent tree-only, keyword, pack-order and
+    name-only symbol-map baselines against the same snapshot and task corpus.
+    """
 
     from codebase_intelligence import api
     from codebase_intelligence.retrieval import rank, search
@@ -333,4 +338,41 @@ def evaluate_repository(
     report["engineVersion"] = indexed.snapshot.engine_version
     report["indexFingerprint"] = indexed.snapshot.fingerprint()
     report["repository"] = repository.name
+
+    if compare_baselines:
+        from codebase_intelligence.evaluation.baselines import build_baseline_retrievers
+
+        baselines = build_baseline_retrievers(repository, indexed.snapshot)
+        file_only_tasks = tuple(
+            replace(task, relevant_symbols=(), symbol_evidence=()) for task in tasks
+        )
+        descriptions = {
+            "tree_only": "Path-token overlap only; repository file contents are not read.",
+            "keyword": "Capped source-text term frequency; no symbol or graph features.",
+            "pack_order": "All indexed files in deterministic path order; intentionally unranked.",
+            "basic_symbol_map": "Qualified symbol-name lexical overlap only; no graph features.",
+        }
+        comparisons: dict[str, Any] = {}
+        for key in ("tree_only", "keyword", "pack_order"):
+            comparisons[key] = {
+                "description": descriptions[key],
+                "symbolMetrics": "not_applicable",
+                "report": evaluate_tasks(file_only_tasks, baselines[key], ks=ks),
+            }
+        comparisons["basic_symbol_map"] = {
+            "description": descriptions["basic_symbol_map"],
+            "report": evaluate_tasks(
+                tasks,
+                baselines["basic_symbol_map_files"],
+                retrieve_symbols=baselines["basic_symbol_map_symbols"],
+                ks=ks,
+            ),
+        }
+        report["baselineComparisons"] = comparisons
+        report["comparisonContract"] = {
+            "sameTaskSet": True,
+            "sameKValues": list(sorted(set(ks))),
+            "productionMethod": "graph-aware search + symbol ranker",
+            "note": "Baselines are deliberately simple internal controls, not byte-for-byte reproductions of third-party tools.",
+        }
     return report
