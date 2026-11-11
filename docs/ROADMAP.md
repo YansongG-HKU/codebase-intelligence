@@ -10,9 +10,9 @@ item is only partially met, the note says exactly what remains.
 Phase 1 (local MVP), Phase 2 (relationship intelligence), Phase 3's first three
 items (task-aware context), Phase 4's core integration deliverables
 (MCP server + first-party DSH plugin), the interactive graph explorer and the
-eight-file deterministic export are implemented and verified. Phase 0 typing is
-enforced in CI; the formal retrieval-relevance benchmark and large-monorepo
-benchmarks remain open.
+eight-file deterministic export are implemented and verified. Phase 0 typing and
+the deterministic retrieval-quality gate are enforced in CI; large-monorepo
+performance/memory benchmarks remain open.
 
 ## Phase 0 — Foundation
 - [x] Define product requirements and non-goals. (README, VISION.md)
@@ -40,7 +40,7 @@ benchmarks remain open.
 - [x] Task query interface.
 - [x] Ranking and token-budget selection.
 - [x] Source excerpts with path and line citations.
-- [ ] Benchmark retrieval relevance against baseline strategies. (cost, determinism and cache behaviour are benchmarked; relevance quality is not)
+- [x] Benchmark retrieval relevance against baseline strategies. (`cbi eval-retrieval` file-level Recall@K/MRR@K/nDCG@K against path-only and symbol-name baselines on a deterministic fixture; see [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md); cost/determinism/cache remain in [BENCHMARKS.md](BENCHMARKS.md))
 
 ## Phase 4 — Agent integration
 - [x] MCP server exposing repository map, symbol lookup, graph traversal, and context retrieval.
@@ -63,9 +63,10 @@ A phase is complete only when tests, documented limitations, reproducible
 examples, and acceptance criteria are satisfied. Do not mark roadmap items
 complete merely because a design document exists.
 
-Current release gate status: `pytest` 408 passed / 7 skipped (symlink tests
+Current release gate status: `pytest` 414 passed / 7 skipped (symlink tests
 unavailable on the Windows host), `ruff` clean, strict `mypy src` clean,
-plugin `node --test` 106 passed, isolated DSH 0.2.2-rc.1 install + real model
+plugin `node --test` 106 passed, the fixture retrieval-quality gate passes,
+isolated DSH 0.2.2-rc.1 install + real model
 turn + right-sidebar panel + graph explorer + deterministic eight-file export
 verified, plus a real-project run on an external 169-file repository (engine CLI,
 MCP/bridge smoke, panel, JSON-stdio bridge, graph drilldown). See

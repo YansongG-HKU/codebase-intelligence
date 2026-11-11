@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "name": "retrieval-fixture-v1",
+  "k": 10,
+  "thresholds": {
+    "recallAtK": 0.85,
+    "mrrAtK": 0.85,
+    "ndcgAtK": 0.85
+  },
+  "tasks": [
+    {
+      "id": "bounded-context",
+      "query": "bounded context pack token budget",
+      "relevant": ["src/app/core.py", "src/app/model.py"]
+    },
+    {
+      "id": "lexical-ranking",
+      "query": "deterministic rank files lexical scoring",
+      "relevant": ["src/app/core.py"]
+    },
+    {
+      "id": "cli-entry-point",
+      "query": "command line entry point main argv",
+      "relevant": ["src/app/cli.py"]
+    },
+    {
+      "id": "build-output",
+      "query": "build fixture output",
+      "relevant": ["tools/build.py"]
+    },
+    {
+      "id": "context-model",
+      "query": "ContextPack total tokens immutable",
+      "relevant": ["src/app/model.py"]
+    },
+    {
+      "id": "chinese-budget",
+      "query": "有界 上下文 预算 token",
+      "relevant": ["src/app/core.py"]
+    },
+    {
+      "id": "core-imports",
+      "query": "import app.core build_context rank_files",
+      "relevant": ["src/app/cli.py", "src/app/core.py", "tools/build.py"]
+    },
+    {
+      "id": "fixture-guide",
+      "query": "fixture guide entry point ranking",
+      "relevant": ["docs/guide.md", "src/app/cli.py"]
+    }
+  ]
+}

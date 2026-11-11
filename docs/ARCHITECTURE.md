@@ -85,5 +85,5 @@ choices, all covered by tests:
 - **Integration transports**: CLI (`cbi`), stdio MCP server, and a DSH plugin that
   drives the CLI over a versioned JSON stdio bridge. All three share `api.py` and
   return the same payloads.
-- Not implemented yet: large-monorepo benchmarks and a formal retrieval-relevance
-  benchmark.
+- Not implemented yet: large-monorepo benchmarks. Retrieval relevance is covered
+  by the deterministic fixture gate in [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md).

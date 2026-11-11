@@ -24,12 +24,15 @@ The workflow now uses `actions/checkout@v7`, `actions/setup-python@v7` and
 4. `cbi export . --check` — the committed eight-file snapshot must be current.
 5. `cbi overview tests/fixtures/cli/demo_repo --json` plus budget/fingerprint
    assertions — fixture CLI smoke.
-6. `npm pack --pack-destination "$RUNNER_TEMP"` then `npm install` of the
+6. `cbi eval-retrieval tests/fixtures/retrieval/repo --tasks
+   tests/fixtures/retrieval/eval_tasks.json` — retrieval-quality gate with
+   Recall@K/MRR@K/nDCG@K thresholds.
+7. `npm pack --pack-destination "$RUNNER_TEMP"` then `npm install` of the
    tarball into a temporary project; asserts `client.js`, `cordis.patch.yml` and
    `locale/zh.json` are present in the installed package.
-7. Plugin gates on the same clean checkout: `npm run check`, `npm test`,
+8. Plugin gates on the same clean checkout: `npm run check`, `npm test`,
    `npm run smoke`, `npm run footprint`.
-8. `git diff --exit-code` / tracked-status check — the checks must not dirty the
+9. `git diff --exit-code` / tracked-status check — the checks must not dirty the
    checkout.
 
 The existing `python` job also runs the export check now; the pinned-action
@@ -43,6 +46,8 @@ python -m pip install -e ".[dev]"
 python -m pytest -q
 cbi export . --check
 cbi overview tests/fixtures/cli/demo_repo --json
+cbi eval-retrieval tests/fixtures/retrieval/repo `
+  --tasks tests/fixtures/retrieval/eval_tasks.json --json
 
 cd integrations/deepseek-harness/plugin
 npm run check

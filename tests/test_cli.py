@@ -54,6 +54,7 @@ def test_doctor_reports_available_modules(capsys: Any) -> None:
     assert payload["ok"] is True
     assert payload["modules"]["scanner"] == "available"
     assert payload["modules"]["retrieval"] == "available"
+    assert payload["modules"]["evaluation"] == "available"
     assert payload["defaults"]["tokenEstimator"] == "chars4-wide-v1"
 
 

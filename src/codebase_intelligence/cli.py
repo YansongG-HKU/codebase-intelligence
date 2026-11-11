@@ -137,6 +137,19 @@ def build_parser() -> argparse.ArgumentParser:
     impact.add_argument("--files", action="append", default=[], help="Changed file (repeatable or comma separated).")
     impact.add_argument("--symbols", action="append", default=[], help="Changed symbol (repeatable or comma separated).")
 
+    eval_retrieval = subparsers.add_parser(
+        "eval-retrieval",
+        help="Evaluate retrieval/ranking quality against deterministic baselines.",
+    )
+    _add_root_options(eval_retrieval)
+    _add_json(eval_retrieval)
+    _add_index_options(eval_retrieval)
+    eval_retrieval.add_argument(
+        "--tasks",
+        required=True,
+        help="Path to a JSON task file (queries plus file-level relevance labels).",
+    )
+
     report = subparsers.add_parser("report", help="Render the architecture report as Markdown.")
     _add_root_options(report)
     _add_json(report)
@@ -368,6 +381,19 @@ def _cmd_impact(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_eval_retrieval(args: argparse.Namespace) -> int:
+    from codebase_intelligence.evaluation import evaluate
+
+    payload = evaluate(
+        Path(_root_of(args)),
+        Path(args.tasks),
+        cache_dir=_cache_dir_of(args),
+        policy=_policy_of(args),
+    )
+    _emit(payload, as_json=getattr(args, "json", False))
+    return 0 if payload.get("passed") is True else 1
+
+
 def _cmd_report(args: argparse.Namespace) -> int:
     root = _root_of(args)
     markdown = api.report_markdown(root, cache_dir=_cache_dir_of(args), force=bool(getattr(args, "force", False)))
@@ -490,6 +516,7 @@ _COMMANDS = {
     "dependencies": _cmd_dependencies,
     "context": _cmd_context,
     "impact": _cmd_impact,
+    "eval-retrieval": _cmd_eval_retrieval,
     "report": _cmd_report,
     "export": _cmd_export,
     "mcp": _cmd_mcp,

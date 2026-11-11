@@ -10,14 +10,15 @@ right-sidebar panel) + deterministic export.
 | Area | Deliverable |
 |---|---|
 | Engine | `src/codebase_intelligence/` — canonical model, deterministic scanner (now with generation-dir exclusion), Python `ast` + heuristic parsers, import-resolution graph, incremental content-addressed index, budgeted retrieval/context, JSON/Markdown reporting |
-| Interfaces | `cbi` CLI (14 commands incl. `export` and `graph`), stdio MCP server, shared `api.py` operations |
+| Interfaces | `cbi` CLI (15 commands incl. `export`, `graph` and `eval-retrieval`), stdio MCP server, shared `api.py` operations |
 | DSH plugin (host) | `integrations/deepseek-harness/plugin/` — `dsh-codebase-intelligence` 0.1.0, six read-only tools, static prompt section, Python JSON-stdio bridge, panel/export/graph host routes, git read-only facts, isolated verify harness |
 | DSH plugin (client) | Right-sidebar tab `codebase-intelligence` + full-page fallback panel (Chinese default / EN toggle), seven views (概览/地图/项目图谱/搜索/依赖/上下文/生成), interactive bounded graph explorer with read-only source evidence, explicit-confirm export writer, read-only git status + copyable commit command; built from `src/client/*.js` into a single dependency-free `client.js` |
+| Retrieval quality | `cbi eval-retrieval` scores the shipped ranker on a deterministic fixture with Recall@K / MRR@K / nDCG@K against path-only and symbol-name baselines; threshold failures exit 1 and are a clean-checkout CI gate |
 | Export | `cbi export` deterministic eight-file snapshot under `docs/codebase-intelligence/` (including `graph.snapshot.json`); `--check` CI gate; generated dir excluded from scanning |
-| Tests | 408 Python tests + 106 Node tests (plugin host + panel + client + graph explorer), fixtures for scanner/parser/retrieval/CLI/plugin/export/graph |
-| Docs | `docs/SPEC.md`, `docs/SCANNER_POLICY.md`, `docs/EXPORT.md`, `docs/DSH_PLUGIN.md`, `docs/TOKENS.md`, `docs/BENCHMARKS.md`, plugin `PANEL_CONTRACT.md`, updated README/ROADMAP/ARCHITECTURE/integration README |
+| Tests | 414 Python tests + 106 Node tests (plugin host + panel + client + graph explorer), fixtures for scanner/parser/retrieval/evaluation/CLI/plugin/export/graph |
+| Docs | `docs/SPEC.md`, `docs/SCANNER_POLICY.md`, `docs/EXPORT.md`, `docs/DSH_PLUGIN.md`, `docs/TOKENS.md`, `docs/BENCHMARKS.md`, `docs/RETRIEVAL_EVAL.md`, plugin `PANEL_CONTRACT.md`, updated README/ROADMAP/ARCHITECTURE/integration README |
 | Bench | `scripts/bench.py` regenerates token/cache evidence; `bench/results.json` holds raw numbers |
-| CI | `.github/workflows/ci.yml` — Python lint, strict `mypy src`, tests, deterministic `cbi export --check` and CLI smoke + Node 22 plugin checks on Ubuntu and Windows (syntax, client build `--check`, 106 unit tests, Python bridge smoke, footprint) + a dedicated clean-checkout acceptance job that reinstalls the project, verifies fixtures/snapshot, packs and installs the plugin tarball, and runs the plugin gates |
+| CI | `.github/workflows/ci.yml` — Python lint, strict `mypy src`, tests, deterministic `cbi export --check` and CLI smoke + Node 22 plugin checks on Ubuntu and Windows (syntax, client build `--check`, 106 unit tests, Python bridge smoke, footprint) + a dedicated clean-checkout acceptance job that reinstalls the project, verifies fixtures/snapshot, runs the `eval-retrieval` quality gate, packs and installs the plugin tarball, and runs the plugin gates |
 
 Generated snapshot files, benchmark evidence and acceptance screenshots are part
 of the delivered commit; the final `cbi export . --check` gate passes. The plugin
@@ -29,9 +30,9 @@ itself never stages, commits or pushes; repository commit and push remain manual
 
 | Check | Command | Result |
 |---|---|---|
-| Python tests | `python -m pytest -q` | **408 passed, 7 skipped** (symlink creation is not permitted on this Windows host; POSIX CI executes those paths, containment is additionally covered by active guard tests) |
+| Python tests | `python -m pytest -q` | **414 passed, 7 skipped** (symlink creation is not permitted on this Windows host; POSIX CI executes those paths, containment is additionally covered by active guard tests) |
 | Python lint | `python -m ruff check .` | clean |
-| Python types | `python -m mypy src` | strict, clean (38 source files) |
+| Python types | `python -m mypy src` | strict, clean (40 source files) |
 | Plugin unit tests | `cd integrations/deepseek-harness/plugin && node --test "test/unit/*.test.mjs"` | **106 passed, 0 failed** (host bridge/panel/graph routes + client models/views/graph explorer) |
 | Plugin check chain | `npm run check` | syntax + `client.js` + `build-client --check` + harness/scripts syntax, clean |
 | Client build freshness | `node scripts/build-client.mjs --check` | up to date (6 fragments, **201,197 bytes**, **253 locale keys**) |
@@ -40,6 +41,7 @@ itself never stages, commits or pushes; repository commit and push remain manual
 | Export determinism | `cbi export . --json` twice + `--check` | byte-identical, second run all `unchanged`, `--check` exit 0 |
 | Scan exclusion | `cbi scan . --json --list-files` | no `docs/codebase-intelligence/*` entries; `generated-dir` skip counted |
 | Token/cache bench | `python scripts/bench.py --root . --plugin-dir integrations/deepseek-harness/plugin` | all six operations within budget, deterministic, warm cache hit (see `docs/BENCHMARKS.md`) |
+| Retrieval quality | `cbi eval-retrieval tests/fixtures/retrieval/repo --tasks tests/fixtures/retrieval/eval_tasks.json --json` | 8 tasks, k=10: engine Recall 0.9375 / MRR 1.0000 / nDCG 0.9450; baselines 0.3125/0.3750/0.3123 and 0.8750/0.8125/0.8105; gate passes |
 
 ### Real-project validation (external repository)
 
@@ -189,9 +191,9 @@ node verify/harness.mjs stop
 - Call edges exist only for unambiguous same-file Python calls; cross-file calls
   are intentionally not guessed.
 - `.gitignore` is a documented subset; there is no git-index/tracked-file view.
-  `mypy strict` now runs in CI (`mypy src`) and is clean locally (38 source files).
-- Retrieval quality is measured for cost/determinism/cache, not yet by a formal
-  relevance benchmark against baselines.
+  `mypy strict` now runs in CI (`mypy src`) and is clean locally (40 source files).
+- Retrieval relevance is measured by a deterministic 8-task fixture gate; it is
+  not a model-judged benchmark over arbitrary external repositories.
 - The DSH panel targets the web profile; headless profiles get the tools only.
   Writes require an explicit panel confirmation; the plugin never stages,
   commits or pushes. Custom generation directories are excluded only for the

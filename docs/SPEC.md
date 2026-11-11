@@ -313,7 +313,14 @@ diagnostics. Errors: JSON envelope + exit code (2 usage, 3 repository/index,
 4 internal). Commands:
 
 `version`, `doctor`, `scan`, `index`, `overview`, `map`, `search`,
-`dependencies`, `graph`, `context`, `impact`, `report`, `export`, `mcp`.
+`dependencies`, `graph`, `context`, `impact`, `eval-retrieval`, `report`,
+`export`, `mcp`.
+
+`eval-retrieval` is a CLI-only quality gate: it reads a JSON task file of queries
+and file-level relevance labels, compares the shipped ranker with path-only and
+symbol-name baselines, and reports Recall@K/MRR@K/nDCG@K plus threshold checks.
+It consumes no model tokens and is not part of the six model-facing tool schemas.
+See [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md).
 
 Tool-facing commands (`overview`, `map`, `search`, `dependencies`, `context`,
 `impact`) and the read-only `graph` command must be byte-stable for identical

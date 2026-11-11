@@ -1,16 +1,16 @@
 # Repository map
 
-- files: 170
-- symbols: 3831
-- relations: 5431
+- files: 175
+- symbols: 3873
+- relations: 5520
 - parser issues: 1
 
 ## Top directories
 
-- tests: 74 files, 567 symbols
-- src: 38 files, 1021 symbols
+- tests: 76 files, 578 symbols
+- src: 40 files, 1052 symbols
 - integrations: 37 files, 2232 symbols
-- docs: 15 files, 0 symbols
+- docs: 16 files, 0 symbols
 - .: 4 files, 0 symbols
 - scripts: 1 files, 11 symbols
 - bench: 1 files, 0 symbols
@@ -20,7 +20,7 @@
 - integrations/deepseek-harness/plugin/verify/bridge-smoke.mjs:73 function integrations.deepseek-harness.plugin.verify.bridge-smoke.main
 - integrations/deepseek-harness/plugin/verify/harness.mjs:1071 function integrations.deepseek-harness.plugin.verify.harness.main
 - scripts/bench.py:234 function scripts.bench.main
-- src/codebase_intelligence/cli.py:541 function src.codebase_intelligence.cli.main
+- src/codebase_intelligence/cli.py:568 function src.codebase_intelligence.cli.main
 - src/codebase_intelligence/mcp/__main__.py:13 function src.codebase_intelligence.mcp.__main__.main
 - src/codebase_intelligence/mcp/server.py:1 file entry point
 - tests/fixtures/cli/demo_repo/src/demo/core.py:29 function tests.fixtures.cli.demo_repo.src.demo.core.main
@@ -39,7 +39,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### README.md (markdown, 209 lines)
+### README.md (markdown, 213 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -55,7 +55,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/DELIVERY.md (markdown, 214 lines)
+### docs/DELIVERY.md (markdown, 216 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -75,7 +75,11 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/ROADMAP.md (markdown, 72 lines)
+### docs/RETRIEVAL_EVAL.md (markdown, 119 lines)
+
+- no declarations extracted (unsupported language or file-only index entry)
+
+### docs/ROADMAP.md (markdown, 73 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -83,7 +87,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/SPEC.md (markdown, 389 lines)
+### docs/SPEC.md (markdown, 396 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -95,11 +99,11 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/acceptance/CI_CLEAN_CHECKOUT.md (markdown, 69 lines)
+### docs/acceptance/CI_CLEAN_CHECKOUT.md (markdown, 74 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/acceptance/CLONE_REPRODUCIBILITY.md (markdown, 177 lines)
+### docs/acceptance/CLONE_REPRODUCIBILITY.md (markdown, 179 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 

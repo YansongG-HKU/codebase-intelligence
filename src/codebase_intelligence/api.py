@@ -398,7 +398,7 @@ def doctor_payload() -> dict[str, Any]:
         },
         "modules": {},
     }
-    for name in ("scanner", "parsers", "graph", "indexing", "retrieval", "reporting"):
+    for name in ("scanner", "parsers", "graph", "indexing", "retrieval", "reporting", "evaluation"):
         try:
             __import__(f"codebase_intelligence.{name}")
             payload["modules"][name] = "available"

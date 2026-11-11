@@ -24,6 +24,7 @@ plugin with six read-only, deterministic, token-budgeted tools.
 | Repository map | Summarize important files and symbols under a token budget | Implemented |
 | Dependency graph | Imports, inheritance, heuristic calls and references with evidence | Implemented |
 | Context retrieval | Select task-relevant context within an explicit budget | Implemented |
+| Retrieval quality gate | Evaluate ranking against labelled tasks and deterministic baselines | Implemented |
 | Architecture reports | Generate human-readable project documentation (Markdown) and JSON | Implemented |
 | Change impact | Estimate downstream impact with confidence labels | Implemented |
 | MCP integration | Expose repository intelligence to AI clients over stdio | Implemented |
@@ -37,7 +38,8 @@ Everything above is covered by the test suite and, for the DSH plugin, by a real
 isolated Harness run; the engine, bridge and panel were also exercised against a
 real external 169-file project (see [docs/DELIVERY.md](docs/DELIVERY.md)). The
 normative contract is [docs/SPEC.md](docs/SPEC.md); measured token/cache
-behaviour is in [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+behaviour is in [docs/BENCHMARKS.md](docs/BENCHMARKS.md); ranking quality is
+measured by [docs/RETRIEVAL_EVAL.md](docs/RETRIEVAL_EVAL.md).
 
 Open [the saved project graph](docs/codebase-intelligence/REPO_MAP.md#project-graph)
 for a repository-level diagram, or load [the graph snapshot](docs/codebase-intelligence/graph.snapshot.json)
@@ -76,6 +78,7 @@ cbi index .                             # build/refresh the local index
 cbi overview . --json                   # repository shape under a token budget
 cbi map . --max-tokens 1600             # ranked file/symbol map
 cbi search . --query "token budget"     # files and symbols with path:line evidence
+cbi eval-retrieval tests/fixtures/retrieval/repo --tasks tests/fixtures/retrieval/eval_tasks.json --json
 cbi dependencies . --target src/codebase_intelligence/api.py
 cbi graph . --focus "dir:src/codebase_intelligence/graph" --json   # bounded graph slice
 cbi graph . --source src/codebase_intelligence/api.py --line 40    # read-only source evidence
@@ -182,8 +185,9 @@ scripts/bench.py                 token-cache benchmark generator
 - Call edges exist only for unambiguous same-file Python calls; cross-file calls
   are intentionally not guessed.
 - `.gitignore` support is a documented subset (no git index / tracked-file view).
-- Retrieval quality is measured for cost and determinism, not yet by a formal
-  task-relevance benchmark.
+- Retrieval relevance is measured by the deterministic fixture gate
+  ([docs/RETRIEVAL_EVAL.md](docs/RETRIEVAL_EVAL.md)); it is not a model-judged
+  benchmark over arbitrary external repositories.
 - The DSH panel writes files only on explicit confirmation and never runs git;
   commit/push stay manual. Custom generation directories must be passed to
   `--exclude` for commands other than the export itself.
