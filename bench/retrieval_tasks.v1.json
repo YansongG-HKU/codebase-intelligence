@@ -5,28 +5,90 @@
     {
       "id": "cli-entrypoint",
       "query": "command line entry point CLI argv",
-      "relevantFiles": ["src/app/cli.py"],
-      "relevantSymbols": ["app.cli.main"],
-      "notes": "The CLI module defines main(argv) and delegates to core helpers."
+      "relevantFiles": [
+        "src/app/cli.py"
+      ],
+      "relevantSymbols": [
+        "app.cli.main"
+      ],
+      "notes": "The CLI module defines main(argv) and delegates to core helpers.",
+      "symbolEvidence": [
+        {
+          "qualifiedName": "app.cli.main",
+          "path": "src/app/cli.py",
+          "line": 6
+        }
+      ]
     },
     {
       "id": "bounded-context",
       "query": "build_context max_tokens bounded context pack",
-      "relevantFiles": ["src/app/core.py", "src/app/model.py"],
-      "relevantSymbols": ["app.core.build_context", "app.model.ContextPack"],
-      "notes": "Core builds a bounded context list; the model represents a context pack."
+      "relevantFiles": [
+        "src/app/core.py",
+        "src/app/model.py"
+      ],
+      "relevantSymbols": [
+        "app.core.build_context",
+        "app.model.ContextPack"
+      ],
+      "notes": "Core builds a bounded context list; the model represents a context pack.",
+      "symbolEvidence": [
+        {
+          "qualifiedName": "app.core.build_context",
+          "path": "src/app/core.py",
+          "line": 9
+        },
+        {
+          "qualifiedName": "app.model.ContextPack",
+          "path": "src/app/model.py",
+          "line": 3
+        }
+      ]
     },
     {
       "id": "dependency-consumer",
       "query": "tools build helper imports build_context from app core",
-      "relevantFiles": ["tools/build.py", "src/app/core.py"],
-      "notes": "The tools build entry imports and calls the core context builder."
+      "relevantFiles": [
+        "tools/build.py",
+        "src/app/core.py"
+      ],
+      "notes": "The tools build entry imports and calls the core context builder.",
+      "relevantSymbols": [
+        "tools.build.main"
+      ],
+      "symbolEvidence": [
+        {
+          "qualifiedName": "tools.build.main",
+          "path": "tools/build.py",
+          "line": 5
+        }
+      ]
     },
     {
       "id": "architecture-guide",
       "query": "fixture guide entry point ranking source app cli core",
-      "relevantFiles": ["docs/guide.md", "src/app/cli.py", "src/app/core.py"],
-      "notes": "The guide documents the fixture entry point and ranking module."
+      "relevantFiles": [
+        "docs/guide.md",
+        "src/app/cli.py",
+        "src/app/core.py"
+      ],
+      "notes": "The guide documents the fixture entry point and ranking module.",
+      "relevantSymbols": [
+        "app.cli.main",
+        "app.core.rank_files"
+      ],
+      "symbolEvidence": [
+        {
+          "qualifiedName": "app.cli.main",
+          "path": "src/app/cli.py",
+          "line": 6
+        },
+        {
+          "qualifiedName": "app.core.rank_files",
+          "path": "src/app/core.py",
+          "line": 5
+        }
+      ]
     }
   ]
 }

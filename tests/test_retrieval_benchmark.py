@@ -7,6 +7,8 @@ import pytest
 
 from codebase_intelligence.evaluation import (
     EvaluationTask,
+    SymbolEvidence,
+    evaluate_repository,
     evaluate_tasks,
     load_task_set,
     ndcg_at_k,
@@ -118,3 +120,86 @@ def test_default_task_set_is_non_empty_and_versioned() -> None:
     tasks = load_task_set(TASKS)
     assert len(tasks) >= 4
     assert all(task.relevant_files for task in tasks)
+
+
+
+def test_symbol_metrics_are_separate_from_file_metrics() -> None:
+    task = EvaluationTask(
+        "symbol-task",
+        "find main entry",
+        ("src/app.py",),
+        ("pkg.main",),
+    )
+
+    def retrieve_files(query: str) -> list[str]:
+        return ["src/app.py"]
+
+    def retrieve_symbols(query: str) -> list[str]:
+        return ["pkg.wrong", "pkg.main", "pkg.helper"]
+
+    report = evaluate_tasks((task,), retrieve_files, retrieve_symbols=retrieve_symbols, ks=(1, 2))
+    row = report["tasks"][0]
+    assert row["metricsAtK"]["1"]["recall"] == 1.0
+    assert row["symbolMetricsAtK"]["1"]["recall"] == 0.0
+    assert row["symbolMetricsAtK"]["2"]["recall"] == 1.0
+    assert row["symbolReciprocalRank"] == 0.5
+    assert report["symbolTaskCount"] == 1
+    assert report["symbolAggregate"]["2"]["recall"] == 1.0
+
+
+def test_symbol_metrics_reject_missing_retriever_and_keep_gold_identity_exact() -> None:
+    task = EvaluationTask("symbol-task", "find main", ("src/app.py",), ("pkg.main",))
+    with pytest.raises(ValueError, match="retrieve_symbols is required"):
+        evaluate_tasks((task,), lambda query: ["src/app.py"])
+    report = evaluate_tasks(
+        (task,),
+        lambda query: ["src/app.py"],
+        retrieve_symbols=lambda query: ["pkg.other"],
+        ks=(1,),
+    )
+    assert report["tasks"][0]["symbolMetricsAtK"]["1"]["recall"] == 0.0
+    assert report["meanSymbolReciprocalRank"] == 0.0
+
+
+def test_task_loader_validates_symbol_source_evidence(tmp_path: Path) -> None:
+    payload = {
+        "schemaVersion": 1,
+        "tasks": [
+            {
+                "id": "symbol",
+                "query": "find entry",
+                "relevantFiles": ["src/app.py"],
+                "relevantSymbols": ["app.main"],
+                "symbolEvidence": [
+                    {"qualifiedName": "app.main", "path": "src/app.py", "line": 12}
+                ],
+            }
+        ],
+    }
+    source = tmp_path / "tasks.json"
+    source.write_text(json.dumps(payload), encoding="utf-8")
+    task = load_task_set(source)[0]
+    assert task.symbol_evidence == (SymbolEvidence("app.main", "src/app.py", 12),)
+
+    payload["tasks"][0]["symbolEvidence"][0]["path"] = "../outside.py"
+    source.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="repository-relative"):
+        load_task_set(source)
+
+    payload["tasks"][0]["symbolEvidence"][0]["path"] = "src/app.py"
+    payload["tasks"][0]["symbolEvidence"][0]["line"] = 0
+    source.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="positive integer"):
+        load_task_set(source)
+
+
+def test_repository_runner_uses_production_file_and_symbol_rankers() -> None:
+    from codebase_intelligence.evaluation import load_task_set
+
+    tasks = load_task_set(TASKS)
+    report = evaluate_repository(ROOT / "tests" / "fixtures" / "retrieval" / "repo", tasks, ks=(1, 3))
+    assert report["evaluation"] == "retrieval-only"
+    assert report["taskCount"] == 4
+    assert report["symbolTaskCount"] == 4
+    assert set(report["symbolAggregate"]) == {"1", "3"}
+    assert all("retrievedSymbols" in task for task in report["tasks"])

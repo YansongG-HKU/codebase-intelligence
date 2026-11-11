@@ -43,4 +43,4 @@ DSH prompt section alone: 184 tokens (735 bytes, static hash `0b51a141f3f1c4ecf7
 
 ## Retrieval quality evaluation
 
-The first deterministic, file-level retrieval evaluation runner is available via `python scripts/eval_retrieval.py`. It uses a small fixture smoke corpus and production search pipeline. It measures Precision@K, Recall@K, nDCG@K and MRR. This does not yet establish broad retrieval quality, symbol recall, native-tokenizer savings or downstream answer correctness. See [RETRIEVAL_EVALUATION.md](RETRIEVAL_EVALUATION.md).
+The deterministic file- and symbol-level retrieval evaluation runner is available via `python scripts/eval_retrieval.py`. It uses a small fixture smoke corpus and production search pipeline. It measures Precision@K, Recall@K, nDCG@K and MRR separately for files and qualified symbols when symbol gold evidence is present. This does not yet establish broad retrieval quality, symbol recall, native-tokenizer savings or downstream answer correctness. See [RETRIEVAL_EVALUATION.md](RETRIEVAL_EVALUATION.md).
