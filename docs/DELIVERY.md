@@ -17,12 +17,11 @@ right-sidebar panel) + deterministic export.
 | Tests | 408 Python tests + 106 Node tests (plugin host + panel + client + graph explorer), fixtures for scanner/parser/retrieval/CLI/plugin/export/graph |
 | Docs | `docs/SPEC.md`, `docs/SCANNER_POLICY.md`, `docs/EXPORT.md`, `docs/DSH_PLUGIN.md`, `docs/TOKENS.md`, `docs/BENCHMARKS.md`, plugin `PANEL_CONTRACT.md`, updated README/ROADMAP/ARCHITECTURE/integration README |
 | Bench | `scripts/bench.py` regenerates token/cache evidence; `bench/results.json` holds raw numbers |
-| CI | `.github/workflows/ci.yml` — Python lint, strict `mypy src`, test and CLI smoke + Node 22 plugin check on Ubuntu and Windows (syntax, client build `--check`, 106 unit tests, Python bridge smoke, footprint) |
+| CI | `.github/workflows/ci.yml` — Python lint, strict `mypy src`, tests, deterministic `cbi export --check` and CLI smoke + Node 22 plugin checks on Ubuntu and Windows (syntax, client build `--check`, 106 unit tests, Python bridge smoke, footprint) + a dedicated clean-checkout acceptance job that reinstalls the project, verifies fixtures/snapshot, packs and installs the plugin tarball, and runs the plugin gates |
 
 Generated snapshot files, benchmark evidence and acceptance screenshots are part
-of this working-tree delivery; the final `cbi export . --check` gate passes.
-The plugin itself never stages, commits or pushes; repository commit and push
-remain manual and are intentionally not performed by the verification run.
+of the delivered commit; the final `cbi export . --check` gate passes. The plugin
+itself never stages, commits or pushes; repository commit and push remain manual.
 
 ## Verification evidence
 
@@ -80,7 +79,8 @@ plugin junctioned into the profile, port 3098 only, real desktop app untouched:
 
 Screenshots (kept in [docs/acceptance/](acceptance/)):
 
-- [Right-sidebar Start guide — native-style plugin entry](acceptance/cbi-guide-entry.png)
+- [Right-sidebar Start guide — native-style plugin entry (light)](acceptance/cbi-guide-entry.png)
+- [Right-sidebar Start guide — native-style plugin entry (dark)](acceptance/cbi-guide-entry-dark.png)
 - [Right-sidebar panel — overview](acceptance/cbi-panel-overview.png)
 - [Right-sidebar panel — eight-file export preview](acceptance/cbi-panel-export-8.png)
 - [Right-sidebar panel — interactive graph explorer](acceptance/cbi-panel-graph.png)

@@ -8,19 +8,23 @@ not visually break the host list.
 
 ## Target measured from the host
 
-Measured live in the isolated DSH at 1280×800, light theme:
+Measured live in the isolated DSH at 1280×800:
 
 | Property | Native DSH row (`.geFEbW_entry`) |
 |---|---|
 | Box | 380 × 68 px |
 | Layout | `display: flex`, row, centered |
 | Gap / padding | `14px` / `14px 20px` |
-| Border | `1px solid rgba(0, 0, 0, 0.12)` |
+| Border (light) | `1px solid rgba(0, 0, 0, 0.12)` |
+| Border (dark) | `1px solid rgba(255, 255, 255, 0.16)` |
 | Radius | `20px` |
-| Background | `--dsw-alias-bg-layer-1` (white in light) |
+| Background | `--dsw-alias-bg-layer-1` (white in light, `#232324` in dark) |
 | Icon | 26 × 26 px, left |
 | Title | 14 px / 400 / 19.6 px line-height |
 | Description | 11 px / 15.4 px line-height, tertiary label |
+
+The border values are exactly DSH `border-l3` in both themes; the row uses
+`bg-layer-1`, `label-primary` and `label-tertiary` for the rest.
 
 ## What changed
 
@@ -32,8 +36,9 @@ Measured live in the isolated DSH at 1280×800, light theme:
 2. `src/client/01-styles.js` shares the `--cbi-*` token declarations between
    `.cbi-root` and `.cbi-guide-entry`, then styles the guide as a host row:
    26 px icon, title/description stack, 14 px gap, 14/20 px padding, 20 px
-   radius, one-line ellipsis, token-based hover and focus-visible states.
-3. `GuideEntryCard` markup now mirrors the native row hierarchy:
+   radius, `border-l3`, one-line ellipsis, token-based hover and focus-visible
+   states.
+3. `GuideEntryCard` markup mirrors the native row hierarchy:
    `.cbi-guide-entry > .cbi-guide-icon + .cbi-guide-text >
    .cbi-guide-title + .cbi-guide-desc` (the old flat title/description stack
    did not match the host's row language).
@@ -44,22 +49,36 @@ Measured live in the isolated DSH at 1280×800, light theme:
 
 Measured after the change in the same live page:
 
-| Property | Plugin row | Native row |
+| Property | Plugin row (light) | Native row (light) |
 |---|---|---|
 | Box | 380 × 68 px | 380 × 68 px |
 | Display / direction / align | flex / row / center | flex / row / center |
 | Gap / padding | 14 / 14px 20px | 14 / 14px 20px |
 | Radius | 20px | 20px |
-| Border | 1px rgba(0, 0, 0, 0.10) (DSH `border-l2` token) | 1px rgba(0, 0, 0, 0.12) |
-| Background | `--dsw-alias-bg-layer-1` | `--dsw-alias-bg-layer-1` |
+| Border | 1px rgba(0, 0, 0, 0.12) | 1px rgba(0, 0, 0, 0.12) |
+| Background | `--dsw-alias-bg-layer-1` (white) | `--dsw-alias-bg-layer-1` (white) |
 | Icon | 26 × 26 px | 26 × 26 px |
 
-The remaining border-alpha difference is the DSH token value nearest to the
-host's literal; using the token keeps dark and light themes consistent instead
-of hard-coding a colour. The isolated instance is in light theme; the same row
-uses `--dsw-*` tokens in dark theme.
+Dark theme was then selected through the host Settings → 通用设置 → 外观 →
+深色 (no CSS injection):
 
-![Start-guide row after the style fix](cbi-guide-entry.png)
+| Property | Plugin row (dark) | Native row (dark) |
+|---|---|---|
+| Box | 380 × 68 px | 380 × 68 px |
+| Gap / padding | 14 / 14px 20px | 14 / 14px 20px |
+| Radius | 20px | 20px |
+| Border | 1px rgba(255, 255, 255, 0.16) | 1px rgba(255, 255, 255, 0.16) |
+| Background | `rgb(35, 35, 36)` (`bg-layer-1`) | `rgb(35, 35, 36)` |
+| Title | 14 px, `rgb(249, 250, 251)` | 14 px, `rgb(249, 250, 251)` |
+| Description | 11 px, `rgb(173, 178, 184)` | 11 px, `rgb(173, 178, 184)` |
+
+Light theme screenshot:
+
+![Start-guide row in light theme](cbi-guide-entry.png)
+
+Dark theme screenshot:
+
+![Start-guide row in dark theme](cbi-guide-entry-dark.png)
 
 ## Verification
 
@@ -71,5 +90,6 @@ uses `--dsw-*` tokens in dark theme.
 - `node scripts/footprint.mjs` — tool schema **1189** + prompt **184** = **1373**
   estimated tokens; unchanged by this UI-only fix.
 - `cbi export . --check` — exit 0 after the snapshot regeneration.
-- The screenshot was captured from the isolated DSH instance (port 3098) with
-  the final client bundle, then the instance was stopped.
+- Both screenshots were captured from the isolated DSH instance (port 3098)
+  with the final client bundle; the theme switch was made in DSH's own
+  Appearance settings.

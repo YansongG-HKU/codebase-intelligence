@@ -1299,7 +1299,7 @@ window.__ModuleLoader__.load({
   height: auto;
   min-height: 68px;
   padding: 14px 20px;
-  border: 1px solid var(--cbi-border2);
+  border: 1px solid var(--cbi-border3);
   border-radius: 20px;
   background: var(--cbi-layer1);
   color: var(--cbi-ink);

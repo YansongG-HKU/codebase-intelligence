@@ -99,7 +99,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/acceptance/GUIDE_STYLE.md (markdown, 75 lines)
+### docs/acceptance/GUIDE_STYLE.md (markdown, 95 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
