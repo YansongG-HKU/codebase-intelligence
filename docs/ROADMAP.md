@@ -40,7 +40,7 @@ benchmarks remain open.
 - [x] Task query interface.
 - [x] Ranking and token-budget selection.
 - [x] Source excerpts with path and line citations.
-- [ ] Benchmark retrieval relevance against baseline strategies. (the first deterministic file-level retrieval smoke runner is implemented; reviewed task breadth, baselines, symbol metrics and answer quality remain open)
+- [ ] Benchmark retrieval relevance against baseline strategies. (the deterministic file- and symbol-level retrieval smoke runner is implemented; reviewed task breadth, baselines and answer quality remain open)
 
 ## Phase 4 — Agent integration
 - [x] MCP server exposing repository map, symbol lookup, graph traversal, and context retrieval.
@@ -74,6 +74,6 @@ MCP/bridge smoke, panel, JSON-stdio bridge, graph drilldown). See
 
 ## Retrieval evaluation implementation slice
 - [x] Versioned gold-task JSON schema and deterministic file-level Precision/Recall/MRR/nDCG runner (see [RETRIEVAL_EVALUATION.md](RETRIEVAL_EVALUATION.md), [Issue #21](https://github.com/YansongG-HKU/codebase-intelligence/issues/21)).
-- [ ] Expand reviewed task corpus and add symbol-level evidence metrics.
+- [x] Add symbol-level gold evidence and Symbol Precision/Recall/MRR/nDCG metrics.
 - [ ] Add keyword/tree/full-pack baselines and native tokenizer comparisons.
 - [ ] Add downstream model-answer quality evaluation.
