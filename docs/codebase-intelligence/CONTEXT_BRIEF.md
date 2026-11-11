@@ -6,7 +6,7 @@ context: read it, do not edit it by hand.
 
 ## Snapshot
 
-- index fingerprint: `4e263786a5eb437340b589180c34cca2756eadf88f74999b45249513967c29ae`
+- index fingerprint: `4d977da5d7a118da7f78355deb9fb7eb95a428b8d56c2c8d0e56e17b2a55ba1b`
 - index schema: `1` (engine `0.1.0`)
 - policy fingerprint: `a8bce9a5ccfe9fd1075f9379011ac94db2551e270ea420e55c54988988f4cac7`
 - files: 185
