@@ -196,7 +196,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md) before openin
 a pull request. The normative implementation contract is
 [docs/SPEC.md](docs/SPEC.md).
 
-## Research references
+## Retrieval evaluation\n\nRun `python scripts/eval_retrieval.py` for the deterministic file-retrieval smoke benchmark. Its task schema, metric definitions, limitations, and expansion plan are documented in [docs/RETRIEVAL_EVALUATION.md](docs/RETRIEVAL_EVALUATION.md). This small fixture corpus validates the evaluation harness; it is not evidence of general retrieval quality.\n\n## Research references
 
 See [docs/RESEARCH.md](docs/RESEARCH.md); this implementation borrows ideas from
 Aider's repository map (ranked symbol map), Repomix (packaging/ignore/token
