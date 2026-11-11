@@ -6,18 +6,18 @@ context: read it, do not edit it by hand.
 
 ## Snapshot
 
-- index fingerprint: `3a9d56d4389b2d504a6764ee5d98a727e059d2159684e8a4a34f9ccb487d5a53`
+- index fingerprint: `d437870d1b7a84891b54f4ae08a4fd39dfc677fdeca3c5a3bcc89a79ee4bece8`
 - index schema: `1` (engine `0.1.0`)
 - policy fingerprint: `a8bce9a5ccfe9fd1075f9379011ac94db2551e270ea420e55c54988988f4cac7`
-- files: 176
-- symbols: 3881
-- relations: 5522
+- files: 178
+- symbols: 3901
+- relations: 5563
 - parser issues: 1
 - generated directory: `docs/codebase-intelligence` (excluded from the next scan)
 
 ## Languages
 
-- python: 90 files, 1619 symbols
+- python: 92 files, 1639 symbols
 - javascript: 34 files, 2244 symbols
 - markdown: 30 files, 0 symbols
 - other: 8 files, 0 symbols
@@ -53,7 +53,7 @@ context: read it, do not edit it by hand.
 - `src/codebase_intelligence/mcp/server.py` - imported by 5 file(s), imports 3
 - `integrations/deepseek-harness/plugin/test/unit/_helpers.mjs` - imported by 5 file(s), imports 1
 - `src/codebase_intelligence/parsers/__init__.py` - imported by 4 file(s), imports 5
-- ... 50 more module(s)
+- ... 51 more module(s)
 
 ## Files with the most declarations
 
@@ -67,7 +67,7 @@ context: read it, do not edit it by hand.
 - `src/codebase_intelligence/retrieval/rank.py` - 105 declaration(s), 753 line(s)
 - `integrations/deepseek-harness/plugin/lib/service.js` - 105 declaration(s), 560 line(s)
 - `integrations/deepseek-harness/plugin/lib/bridge.js` - 97 declaration(s), 651 line(s)
-- ... 119 more file(s)
+- ... 121 more file(s)
 
 ## How to query this codebase
 

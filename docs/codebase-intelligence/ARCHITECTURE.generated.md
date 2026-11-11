@@ -2,14 +2,14 @@
 
 ## Summary
 
-- files: 176
-- symbols: 3881
-- relations: 5522
+- files: 178
+- symbols: 3901
+- relations: 5563
 - parser issues: 1
 
 ## Languages
 
-- python: 90 files, 1619 symbols
+- python: 92 files, 1639 symbols
 - javascript: 34 files, 2244 symbols
 - markdown: 30 files, 0 symbols
 - other: 8 files, 0 symbols
@@ -48,7 +48,7 @@
 
 ## Unresolved and external imports
 
-- 296 edges kept unresolved/external (ambiguous: 2, external: 291, unresolved: 3)
+- 305 edges kept unresolved/external (ambiguous: 2, external: 300, unresolved: 3)
 - `integrations/deepseek-harness/plugin/client.js:16` imports `react` (external)
 - `integrations/deepseek-harness/plugin/lib/bridge.js:21` imports `node:child_process` (external)
 - `integrations/deepseek-harness/plugin/lib/bridge.js:22` imports `node:fs` (external)
@@ -66,7 +66,7 @@
 
 ## Confidence and evidence
 
-- heuristic relations (regex-derived edges): 3411
+- heuristic relations (regex-derived edges): 3424
 - heuristic symbols (regex-derived declarations): 2262
 - resolved edges are parser/resolver facts; everything else is labelled
 
