@@ -28,8 +28,8 @@ def test_precision_recall_and_rr_use_unique_ranked_paths() -> None:
 
 
 def test_ndcg_matches_hand_calculated_binary_gain() -> None:
-    # Relevant result at rank 2: DCG = 1/log2(3); ideal DCG@3 = 1 + 1/log2(3).
-    expected = (1 / 1.584962500721156) / (1 + 1 / 1.584962500721156)
+    # One relevant result at rank 2: DCG / IDCG = 1 / log2(3).
+    expected = 1 / 1.584962500721156
     assert ndcg_at_k(["noise.py", "gold.py", "other.py"], {"gold.py"}, 3) == pytest.approx(expected)
 
 
