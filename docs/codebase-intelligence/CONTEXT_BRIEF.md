@@ -6,22 +6,22 @@ context: read it, do not edit it by hand.
 
 ## Snapshot
 
-- index fingerprint: `68566f53453e8bccbb31efcf92e7d51a504ce2c1e80706fe08ade33508561bbd`
+- index fingerprint: `a2059dc26991ddd47016d6c68b97bda07fff01be26ad59f9662dcc771e08710a`
 - index schema: `1` (engine `0.1.0`)
 - policy fingerprint: `a8bce9a5ccfe9fd1075f9379011ac94db2551e270ea420e55c54988988f4cac7`
-- files: 170
-- symbols: 3831
-- relations: 5431
+- files: 176
+- symbols: 3867
+- relations: 5498
 - parser issues: 1
 - generated directory: `docs/codebase-intelligence` (excluded from the next scan)
 
 ## Languages
 
-- python: 86 files, 1569 symbols
+- python: 90 files, 1605 symbols
 - javascript: 34 files, 2244 symbols
-- markdown: 29 files, 0 symbols
+- markdown: 30 files, 0 symbols
 - other: 8 files, 0 symbols
-- json: 5 files, 0 symbols
+- json: 6 files, 0 symbols
 - typescript: 4 files, 13 symbols
 - go: 2 files, 5 symbols
 - toml: 1 files, 0 symbols
@@ -32,28 +32,28 @@ context: read it, do not edit it by hand.
 - `integrations/deepseek-harness/plugin/verify/bridge-smoke.mjs:73` function integrations.deepseek-harness.plugin.verify.bridge-smoke.main
 - `integrations/deepseek-harness/plugin/verify/harness.mjs:1071` function integrations.deepseek-harness.plugin.verify.harness.main
 - `scripts/bench.py:234` function scripts.bench.main
+- `scripts/eval_retrieval.py:20` function scripts.eval_retrieval.main
 - `src/codebase_intelligence/cli.py:541` function src.codebase_intelligence.cli.main
 - `src/codebase_intelligence/mcp/__main__.py:13` function src.codebase_intelligence.mcp.__main__.main
 - `src/codebase_intelligence/mcp/server.py:1` file entry point
 - `tests/fixtures/cli/demo_repo/src/demo/core.py:29` function tests.fixtures.cli.demo_repo.src.demo.core.main
 - `tests/fixtures/cli/demo_repo/web/index.ts:3` function tests.fixtures.cli.demo_repo.web.index.main
 - `tests/fixtures/parser/go/service/main.go:9` function tests.fixtures.parser.go.service.main.main
-- `tests/fixtures/parser/python_pkg/app.py:18` function tests.fixtures.parser.python_pkg.app.main
-- ... 7 more entry point(s) (name heuristic)
+- ... 8 more entry point(s) (name heuristic)
 
 ## Top modules by resolved in-degree
 
 - `src/codebase_intelligence/util.py` - imported by 34 file(s), imports 0
 - `src/codebase_intelligence/model/__init__.py` - imported by 30 file(s), imports 1
 - `src/codebase_intelligence/errors.py` - imported by 16 file(s), imports 0
-- `src/codebase_intelligence/__init__.py` - imported by 11 file(s), imports 1
+- `src/codebase_intelligence/__init__.py` - imported by 12 file(s), imports 1
 - `integrations/deepseek-harness/plugin/lib/config.js` - imported by 10 file(s), imports 0
 - `integrations/deepseek-harness/plugin/lib/util.js` - imported by 8 file(s), imports 0
 - `src/codebase_intelligence/scanner/__init__.py` - imported by 6 file(s), imports 2
 - `src/codebase_intelligence/mcp/server.py` - imported by 5 file(s), imports 3
 - `integrations/deepseek-harness/plugin/test/unit/_helpers.mjs` - imported by 5 file(s), imports 1
 - `src/codebase_intelligence/parsers/__init__.py` - imported by 4 file(s), imports 5
-- ... 48 more module(s)
+- ... 50 more module(s)
 
 ## Files with the most declarations
 
@@ -67,7 +67,7 @@ context: read it, do not edit it by hand.
 - `src/codebase_intelligence/retrieval/rank.py` - 105 declaration(s), 753 line(s)
 - `integrations/deepseek-harness/plugin/lib/service.js` - 105 declaration(s), 560 line(s)
 - `integrations/deepseek-harness/plugin/lib/bridge.js` - 97 declaration(s), 651 line(s)
-- ... 115 more file(s)
+- ... 119 more file(s)
 
 ## How to query this codebase
 

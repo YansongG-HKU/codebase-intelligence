@@ -2,18 +2,18 @@
 
 ## Summary
 
-- files: 170
-- symbols: 3831
-- relations: 5431
+- files: 176
+- symbols: 3867
+- relations: 5498
 - parser issues: 1
 
 ## Languages
 
-- python: 86 files, 1569 symbols
+- python: 90 files, 1605 symbols
 - javascript: 34 files, 2244 symbols
-- markdown: 29 files, 0 symbols
+- markdown: 30 files, 0 symbols
 - other: 8 files, 0 symbols
-- json: 5 files, 0 symbols
+- json: 6 files, 0 symbols
 - typescript: 4 files, 13 symbols
 - go: 2 files, 5 symbols
 - toml: 1 files, 0 symbols
@@ -24,21 +24,21 @@
 - integrations/deepseek-harness/plugin/verify/bridge-smoke.mjs:73 function integrations.deepseek-harness.plugin.verify.bridge-smoke.main
 - integrations/deepseek-harness/plugin/verify/harness.mjs:1071 function integrations.deepseek-harness.plugin.verify.harness.main
 - scripts/bench.py:234 function scripts.bench.main
+- scripts/eval_retrieval.py:20 function scripts.eval_retrieval.main
 - src/codebase_intelligence/cli.py:541 function src.codebase_intelligence.cli.main
 - src/codebase_intelligence/mcp/__main__.py:13 function src.codebase_intelligence.mcp.__main__.main
 - src/codebase_intelligence/mcp/server.py:1 file entry point
 - tests/fixtures/cli/demo_repo/src/demo/core.py:29 function tests.fixtures.cli.demo_repo.src.demo.core.main
 - tests/fixtures/cli/demo_repo/web/index.ts:3 function tests.fixtures.cli.demo_repo.web.index.main
 - tests/fixtures/parser/go/service/main.go:9 function tests.fixtures.parser.go.service.main.main
-- tests/fixtures/parser/python_pkg/app.py:18 function tests.fixtures.parser.python_pkg.app.main
-- ... 7 more entry points
+- ... 8 more entry points
 
 ## Dependency hubs
 
 - `src/codebase_intelligence/util.py` - imported by 34 file(s), imports 0
 - `src/codebase_intelligence/model/__init__.py` - imported by 30 file(s), imports 1
 - `src/codebase_intelligence/errors.py` - imported by 16 file(s), imports 0
-- `src/codebase_intelligence/__init__.py` - imported by 11 file(s), imports 1
+- `src/codebase_intelligence/__init__.py` - imported by 12 file(s), imports 1
 - `integrations/deepseek-harness/plugin/lib/config.js` - imported by 10 file(s), imports 0
 - `integrations/deepseek-harness/plugin/lib/util.js` - imported by 8 file(s), imports 0
 - `src/codebase_intelligence/scanner/__init__.py` - imported by 6 file(s), imports 2
@@ -48,7 +48,7 @@
 
 ## Unresolved and external imports
 
-- 280 edges kept unresolved/external (ambiguous: 2, external: 275, unresolved: 3)
+- 296 edges kept unresolved/external (ambiguous: 2, external: 291, unresolved: 3)
 - `integrations/deepseek-harness/plugin/client.js:16` imports `react` (external)
 - `integrations/deepseek-harness/plugin/lib/bridge.js:21` imports `node:child_process` (external)
 - `integrations/deepseek-harness/plugin/lib/bridge.js:22` imports `node:fs` (external)
@@ -66,7 +66,7 @@
 
 ## Confidence and evidence
 
-- heuristic relations (regex-derived edges): 3388
+- heuristic relations (regex-derived edges): 3402
 - heuristic symbols (regex-derived declarations): 2262
 - resolved edges are parser/resolver facts; everything else is labelled
 

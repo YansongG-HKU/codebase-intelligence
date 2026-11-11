@@ -39,3 +39,8 @@ DSH prompt section alone: 184 tokens (735 bytes, static hash `0b51a141f3f1c4ecf7
 - The DSH prompt section is a static string (no interpolation); tool schemas are static.
 - The index cache is content-addressed: warm runs reuse unchanged files without changing output bytes.
 
+
+
+## Retrieval quality evaluation
+
+The first deterministic, file-level retrieval evaluation runner is available via `python scripts/eval_retrieval.py`. It uses a small fixture smoke corpus and production search pipeline. It measures Precision@K, Recall@K, nDCG@K and MRR. This does not yet establish broad retrieval quality, symbol recall, native-tokenizer savings or downstream answer correctness. See [RETRIEVAL_EVALUATION.md](RETRIEVAL_EVALUATION.md).

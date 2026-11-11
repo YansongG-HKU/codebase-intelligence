@@ -1,33 +1,33 @@
 # Repository map
 
-- files: 170
-- symbols: 3831
-- relations: 5431
+- files: 176
+- symbols: 3867
+- relations: 5498
 - parser issues: 1
 
 ## Top directories
 
-- tests: 74 files, 567 symbols
-- src: 38 files, 1021 symbols
+- tests: 75 files, 580 symbols
+- src: 40 files, 1040 symbols
 - integrations: 37 files, 2232 symbols
-- docs: 15 files, 0 symbols
+- docs: 16 files, 0 symbols
 - .: 4 files, 0 symbols
-- scripts: 1 files, 11 symbols
-- bench: 1 files, 0 symbols
+- scripts: 2 files, 15 symbols
+- bench: 2 files, 0 symbols
 
 ## Entry points
 
 - integrations/deepseek-harness/plugin/verify/bridge-smoke.mjs:73 function integrations.deepseek-harness.plugin.verify.bridge-smoke.main
 - integrations/deepseek-harness/plugin/verify/harness.mjs:1071 function integrations.deepseek-harness.plugin.verify.harness.main
 - scripts/bench.py:234 function scripts.bench.main
+- scripts/eval_retrieval.py:20 function scripts.eval_retrieval.main
 - src/codebase_intelligence/cli.py:541 function src.codebase_intelligence.cli.main
 - src/codebase_intelligence/mcp/__main__.py:13 function src.codebase_intelligence.mcp.__main__.main
 - src/codebase_intelligence/mcp/server.py:1 file entry point
 - tests/fixtures/cli/demo_repo/src/demo/core.py:29 function tests.fixtures.cli.demo_repo.src.demo.core.main
 - tests/fixtures/cli/demo_repo/web/index.ts:3 function tests.fixtures.cli.demo_repo.web.index.main
 - tests/fixtures/parser/go/service/main.go:9 function tests.fixtures.parser.go.service.main.main
-- tests/fixtures/parser/python_pkg/app.py:18 function tests.fixtures.parser.python_pkg.app.main
-- ... 7 more entry points
+- ... 8 more entry points
 
 ## Files
 
@@ -39,7 +39,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### README.md (markdown, 209 lines)
+### README.md (markdown, 213 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -47,11 +47,15 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
+### bench/retrieval_tasks.v1.json (json, 32 lines)
+
+- no declarations extracted (unsupported language or file-only index entry)
+
 ### docs/ARCHITECTURE.md (markdown, 89 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/BENCHMARKS.md (markdown, 41 lines)
+### docs/BENCHMARKS.md (markdown, 46 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -75,7 +79,11 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/ROADMAP.md (markdown, 72 lines)
+### docs/RETRIEVAL_EVALUATION.md (markdown, 65 lines)
+
+- no declarations extracted (unsupported language or file-only index entry)
+
+### docs/ROADMAP.md (markdown, 79 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -186,7 +194,6 @@
 - integrations/deepseek-harness/plugin/lib/panel.js:29 constant integrations.deepseek-harness.plugin.lib.panel.ROUTE_PREFIX `export const ROUTE_PREFIX =` [heuristic]
 - integrations/deepseek-harness/plugin/lib/panel.js:31 constant integrations.deepseek-harness.plugin.lib.panel.MAX_BODY_BYTES `export const MAX_BODY_BYTES =` [heuristic]
 - integrations/deepseek-harness/plugin/lib/panel.js:33 constant integrations.deepseek-harness.plugin.lib.panel.GET `const GET =` [heuristic]
-- integrations/deepseek-harness/plugin/lib/panel.js:34 constant integrations.deepseek-harness.plugin.lib.panel.POST `const POST =` [heuristic]
 - ... truncated: document size bound reached.
 
 ## Project graph
