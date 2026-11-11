@@ -2,6 +2,7 @@
 
 from codebase_intelligence.evaluation.retrieval import (
     EvaluationTask,
+    evaluate_repository,
     evaluate_tasks,
     load_task_set,
     ndcg_at_k,
@@ -12,6 +13,7 @@ from codebase_intelligence.evaluation.retrieval import (
 
 __all__ = [
     "EvaluationTask",
+    "evaluate_repository",
     "evaluate_tasks",
     "load_task_set",
     "ndcg_at_k",
