@@ -1,52 +1,167 @@
 {
   "version": 1,
-  "name": "retrieval-fixture-v1",
+  "name": "retrieval-fixture-v2",
   "k": 10,
   "thresholds": {
-    "recallAtK": 0.85,
-    "mrrAtK": 0.85,
-    "ndcgAtK": 0.85
+    "recallAtK": 0.9,
+    "mrrAtK": 0.9,
+    "ndcgAtK": 0.9
   },
   "tasks": [
     {
       "id": "bounded-context",
       "query": "bounded context pack token budget",
-      "relevant": ["src/app/core.py", "src/app/model.py"]
+      "relevant": [
+        "src/app/core.py",
+        "src/app/model.py"
+      ]
     },
     {
       "id": "lexical-ranking",
       "query": "deterministic rank files lexical scoring",
-      "relevant": ["src/app/core.py"]
+      "relevant": [
+        "src/app/core.py"
+      ]
     },
     {
       "id": "cli-entry-point",
       "query": "command line entry point main argv",
-      "relevant": ["src/app/cli.py"]
+      "relevant": [
+        "src/app/cli.py"
+      ]
     },
     {
       "id": "build-output",
       "query": "build fixture output",
-      "relevant": ["tools/build.py"]
+      "relevant": [
+        "tools/build.py"
+      ]
     },
     {
       "id": "context-model",
       "query": "ContextPack total tokens immutable",
-      "relevant": ["src/app/model.py"]
+      "relevant": [
+        "src/app/model.py"
+      ]
     },
     {
       "id": "chinese-budget",
       "query": "有界 上下文 预算 token",
-      "relevant": ["src/app/core.py"]
+      "relevant": [
+        "src/app/core.py"
+      ]
     },
     {
       "id": "core-imports",
       "query": "import app.core build_context rank_files",
-      "relevant": ["src/app/cli.py", "src/app/core.py", "tools/build.py"]
+      "relevant": [
+        "src/app/cli.py",
+        "src/app/core.py",
+        "tools/build.py"
+      ]
     },
     {
       "id": "fixture-guide",
       "query": "fixture guide entry point ranking",
-      "relevant": ["docs/guide.md", "src/app/cli.py"]
+      "relevant": [
+        "docs/guide.md",
+        "src/app/cli.py"
+      ]
+    },
+    {
+      "id": "typescript-dashboard",
+      "query": "dashboard render TypeScript component",
+      "relevant": [
+        "web/dashboard.ts"
+      ]
+    },
+    {
+      "id": "javascript-client",
+      "query": "API client fetch endpoint",
+      "relevant": [
+        "web/client.js"
+      ]
+    },
+    {
+      "id": "go-worker",
+      "query": "process jobs worker queue",
+      "relevant": [
+        "services/worker.go"
+      ]
+    },
+    {
+      "id": "rust-aggregate",
+      "query": "aggregate metric values rust",
+      "relevant": [
+        "native/metrics.rs"
+      ]
+    },
+    {
+      "id": "java-catalog",
+      "query": "catalog list symbols java",
+      "relevant": [
+        "java/Catalog.java"
+      ]
+    },
+    {
+      "id": "c-buffer",
+      "query": "resize buffer write metric C",
+      "relevant": [
+        "native/buffer.c"
+      ]
+    },
+    {
+      "id": "shell-deploy",
+      "query": "deploy service release script",
+      "relevant": [
+        "automation/deploy.sh"
+      ]
+    },
+    {
+      "id": "deployment-runbook",
+      "query": "runbook documentation",
+      "relevant": [
+        "docs/runbook.md"
+      ]
+    },
+    {
+      "id": "config-budget",
+      "query": "config settings max tokens budget",
+      "relevant": [
+        "config/settings.yaml",
+        "src/app/core.py"
+      ]
+    },
+    {
+      "id": "multilingual-test",
+      "query": "dashboard render test",
+      "relevant": [
+        "tests/test_dashboard.py",
+        "web/dashboard.ts"
+      ]
+    },
+    {
+      "id": "identifier-render",
+      "query": "renderDashboard",
+      "relevant": [
+        "web/dashboard.ts"
+      ]
+    },
+    {
+      "id": "chinese-dashboard",
+      "query": "dashboard 渲染 测试",
+      "relevant": [
+        "tests/test_dashboard.py",
+        "web/dashboard.ts"
+      ]
+    },
+    {
+      "id": "cross-language-dashboard",
+      "query": "dashboard API client endpoint",
+      "relevant": [
+        "web/dashboard.ts",
+        "web/client.js"
+      ]
     }
   ]
 }

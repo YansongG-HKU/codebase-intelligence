@@ -41,7 +41,7 @@ itself never stages, commits or pushes; repository commit and push remain manual
 | Export determinism | `cbi export . --json` twice + `--check` | byte-identical, second run all `unchanged`, `--check` exit 0 |
 | Scan exclusion | `cbi scan . --json --list-files` | no `docs/codebase-intelligence/*` entries; `generated-dir` skip counted |
 | Token/cache bench | `python scripts/bench.py --root . --plugin-dir integrations/deepseek-harness/plugin` | all six operations within budget, deterministic, warm cache hit (see `docs/BENCHMARKS.md`) |
-| Retrieval quality | `cbi eval-retrieval tests/fixtures/retrieval/repo --tasks tests/fixtures/retrieval/eval_tasks.json --json` | 8 tasks, k=10: engine Recall 0.9375 / MRR 1.0000 / nDCG 0.9450; baselines 0.3125/0.3750/0.3123 and 0.8750/0.8125/0.8105; gate passes |
+| Retrieval quality | `cbi eval-retrieval tests/fixtures/retrieval/repo --tasks tests/fixtures/retrieval/eval_tasks.json --json` | 21 multilingual tasks, k=10: engine Recall 0.9762 / MRR 1.0000 / nDCG 0.9752; baselines 0.7143/0.6905/0.6699 and 0.8810/0.8571/0.8365; thresholds 0.90 pass |
 
 ### Real-project validation (external repository)
 
@@ -192,8 +192,10 @@ node verify/harness.mjs stop
   are intentionally not guessed.
 - `.gitignore` is a documented subset; there is no git-index/tracked-file view.
   `mypy strict` now runs in CI (`mypy src`) and is clean locally (40 source files).
-- Retrieval relevance is measured by a deterministic 8-task fixture gate; it is
-  not a model-judged benchmark over arbitrary external repositories.
+- Retrieval relevance is measured by a deterministic 21-task multilingual
+  fixture gate; an external 169-file calibration exposed a real-repo ranking gap
+  (recorded in [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md)) that is separate from the
+  fixture gate and requires ranker work.
 - The DSH panel targets the web profile; headless profiles get the tools only.
   Writes require an explicit panel confirmation; the plugin never stages,
   commits or pushes. Custom generation directories are excluded only for the

@@ -1,7 +1,7 @@
 # Retrieval-quality evaluation
 
-`cbi eval-retrieval` measures the shipped ranking pipeline on a deterministic
-file-level relevance task set and compares it with two intentionally simple
+`cbi eval-retrieval` measures the shipped ranking pipeline on deterministic
+file-level relevance tasks and compares it with two intentionally simple
 baselines. It is a CI gate, not a model benchmark: the same index, query tokens
 and result ordering are used by the model-facing tools.
 
@@ -45,22 +45,33 @@ The baselines are reported for context; the gate itself requires the `engine`
 metrics to meet the thresholds from the task file. This prevents a future change
 from passing by lowering the bar through a broken baseline.
 
-## Task file
+## Expanded fixture (v2)
 
-See [tests/fixtures/retrieval/eval_tasks.json](../tests/fixtures/retrieval/eval_tasks.json)
-for the checked-in fixture. Minimal shape:
+The checked-in fixture at
+[tests/fixtures/retrieval/eval_tasks.json](../tests/fixtures/retrieval/eval_tasks.json)
+now contains **21 tasks** over a small multilingual repository:
+
+| Dimension | Covered values |
+|---|---|
+| Languages | Python, JavaScript, TypeScript, Go, Rust, Java, C, Shell, Markdown, YAML |
+| Task families | code/symbol lookup, file/path lookup, docs/runbook, config, tests, shell automation, cross-language, Chinese natural language |
+| Query styles | natural language, identifiers (`renderDashboard`), path fragments, multi-relevant tasks |
+| Thresholds | Recall@K 0.90, MRR@K 0.90, nDCG@K 0.90 |
+| `k` | 10 |
+
+Example shape:
 
 ```json
 {
   "version": 1,
-  "name": "retrieval-fixture-v1",
+  "name": "retrieval-fixture-v2",
   "k": 10,
-  "thresholds": {"recallAtK": 0.85, "mrrAtK": 0.85, "ndcgAtK": 0.85},
+  "thresholds": {"recallAtK": 0.90, "mrrAtK": 0.90, "ndcgAtK": 0.90},
   "tasks": [
     {
-      "id": "bounded-context",
-      "query": "bounded context pack token budget",
-      "relevant": ["src/app/core.py", "src/app/model.py"]
+      "id": "typescript-dashboard",
+      "query": "dashboard render TypeScript component",
+      "relevant": ["web/dashboard.ts"]
     }
   ]
 }
@@ -71,7 +82,7 @@ and 5–20 for `k`. Unknown fields are ignored; malformed values fail with
 `invalid_arguments` (exit 2). A failing threshold returns the structured payload
 and exit 1, so CI can archive it.
 
-## Current fixture result
+## Checked-in fixture result
 
 Command:
 
@@ -82,25 +93,54 @@ python -m codebase_intelligence.cli eval-retrieval `
   --tasks tests/fixtures/retrieval/eval_tasks.json --json
 ```
 
-Result on the checked-in fixture (8 tasks, `k=10`):
+Result on the checked-in fixture (21 tasks, `k=10`):
 
 | Method | Recall@K | MRR@K | nDCG@K |
 |---|---:|---:|---:|
-| **engine** | **0.9375** | **1.0000** | **0.9450** |
-| path-only baseline | 0.3125 | 0.3750 | 0.3123 |
-| symbol-name baseline | 0.8750 | 0.8125 | 0.8105 |
+| **engine** | **0.9762** | **1.0000** | **0.9752** |
+| path-only baseline | 0.7143 | 0.6905 | 0.6699 |
+| symbol-name baseline | 0.8810 | 0.8571 | 0.8365 |
 
-Gate thresholds: Recall 0.85, MRR 0.85, nDCG 0.85 → **pass**.
+Gate thresholds: Recall 0.90, MRR 0.90, nDCG 0.90 → **pass**; the engine leads
+both baselines on all three aggregate metrics.
 
-The engine's lead over the path-only baseline is large; the symbol-name baseline
-is intentionally strong on this small fixture because most relevance is attached
-to named Python symbols. The fixture is a regression gate, not a claim about
-generalisation to arbitrary external repositories.
+## Real-repository calibration (2026-11-11)
+
+A local external copy of `dsh-sci-plot` was used as a calibration target because
+it is a real mixed-language project already used in the delivery acceptance:
+
+- 169 indexed files, 3,188 symbols, 3,961 relations; 6 indexed languages
+  (Python, JavaScript, Markdown, JSON, YAML, plus file-only other assets).
+- 15-task file (kept out of this repository because it labels an external
+  workspace), `k=10`, same metrics and the same path/symbol baselines.
+- Calibration threshold was 0.85 for each aggregate metric.
+
+Observed data:
+
+| Method | Recall@K | MRR@K | nDCG@K |
+|---|---:|---:|---:|
+| engine | 0.7333 | 0.4744 | 0.5026 |
+| path-only baseline | 0.9000 | 0.9000 | 0.8871 |
+| symbol-name baseline | 0.7667 | 0.6333 | 0.6452 |
+
+**Calibration result: failed** (all three engine metrics below 0.85, and the
+path baseline leads). Zero-hit tasks included `design-doc`, `panel-contract` and
+`demo-catalog`; `palette-theme`, `client-gallery`, `client-data-settings` and
+`build-client` were partial. The relevant paths exist in the index; the engine's
+top-10 was crowded by symbol-heavy JavaScript files and file-level path matching
+did not promote the documentation/config targets.
+
+This is recorded as a calibration finding, not hidden by lowering the gate.
+Fixing it requires ranker/large-repo work (larger candidate windows, better
+file-level aggregation, path/doc priors), which is explicitly out of scope for
+this fixture-only change. The checked-in fixture gate remains green and catches
+regressions on the covered multilingual/task-type set.
 
 ## CI and local use
 
-The `clean-checkout acceptance` CI job runs the same command with a temporary
-cache after reinstalling the engine and verifying the export snapshot. Locally:
+The `clean-checkout acceptance` CI job runs the checked-in command with a
+temporary cache after reinstalling the engine and verifying the export snapshot.
+Locally:
 
 ```powershell
 python -m pytest -q tests/test_evaluation.py
@@ -108,12 +148,18 @@ cbi eval-retrieval tests/fixtures/retrieval/repo `
   --tasks tests/fixtures/retrieval/eval_tasks.json --json
 ```
 
-To evaluate a real repository, point the positional root at it and provide a task
-file with repository-relative labels:
+To evaluate a real repository, point the positional root at it and provide a
+task file with repository-relative labels:
 
 ```powershell
-cbi eval-retrieval /path/to/repo --tasks /path/to/tasks.json --cache-dir /tmp/cbi-eval --json
+cbi eval-retrieval /path/to/repo --tasks /path/to/tasks.json `
+  --cache-dir /tmp/cbi-eval --json
 ```
 
 No model tokens are consumed by the evaluation; it uses the same local index as
 `cbi search`/`cbi context`.
+
+## Not included in this change
+
+A large-monorepo performance/memory benchmark is **not** part of this round. The
+calibration target is 169 files; scale work remains open on the roadmap.

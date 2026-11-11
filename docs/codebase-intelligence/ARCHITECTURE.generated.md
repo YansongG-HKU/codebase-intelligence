@@ -2,22 +2,26 @@
 
 ## Summary
 
-- files: 175
-- symbols: 3873
-- relations: 5520
+- files: 185
+- symbols: 3910
+- relations: 5555
 - parser issues: 1
 
 ## Languages
 
-- python: 89 files, 1611 symbols
-- javascript: 34 files, 2244 symbols
-- markdown: 30 files, 0 symbols
+- python: 90 files, 1613 symbols
+- javascript: 35 files, 2251 symbols
+- markdown: 31 files, 0 symbols
 - other: 8 files, 0 symbols
 - json: 6 files, 0 symbols
-- typescript: 4 files, 13 symbols
-- go: 2 files, 5 symbols
+- typescript: 5 files, 21 symbols
+- go: 3 files, 9 symbols
+- yaml: 2 files, 0 symbols
+- java: 1 files, 6 symbols
+- rust: 1 files, 4 symbols
+- c: 1 files, 3 symbols
+- shell: 1 files, 3 symbols
 - toml: 1 files, 0 symbols
-- yaml: 1 files, 0 symbols
 
 ## Entry points
 
@@ -48,7 +52,7 @@
 
 ## Unresolved and external imports
 
-- 291 edges kept unresolved/external (ambiguous: 2, external: 286, unresolved: 3)
+- 296 edges kept unresolved/external (ambiguous: 2, external: 287, unresolved: 7)
 - `integrations/deepseek-harness/plugin/client.js:16` imports `react` (external)
 - `integrations/deepseek-harness/plugin/lib/bridge.js:21` imports `node:child_process` (external)
 - `integrations/deepseek-harness/plugin/lib/bridge.js:22` imports `node:fs` (external)
@@ -66,8 +70,8 @@
 
 ## Confidence and evidence
 
-- heuristic relations (regex-derived edges): 3417
-- heuristic symbols (regex-derived declarations): 2262
+- heuristic relations (regex-derived edges): 3449
+- heuristic symbols (regex-derived declarations): 2297
 - resolved edges are parser/resolver facts; everything else is labelled
 
 ## Limitations

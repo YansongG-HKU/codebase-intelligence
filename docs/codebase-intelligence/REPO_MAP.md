@@ -1,13 +1,13 @@
 # Repository map
 
-- files: 175
-- symbols: 3873
-- relations: 5520
+- files: 185
+- symbols: 3910
+- relations: 5555
 - parser issues: 1
 
 ## Top directories
 
-- tests: 76 files, 578 symbols
+- tests: 86 files, 615 symbols
 - src: 40 files, 1052 symbols
 - integrations: 37 files, 2232 symbols
 - docs: 16 files, 0 symbols
@@ -43,7 +43,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### bench/results.json (json, 274 lines)
+### bench/results.json (json, 314 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -55,7 +55,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/DELIVERY.md (markdown, 216 lines)
+### docs/DELIVERY.md (markdown, 218 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 
@@ -75,7 +75,7 @@
 
 - no declarations extracted (unsupported language or file-only index entry)
 
-### docs/RETRIEVAL_EVAL.md (markdown, 119 lines)
+### docs/RETRIEVAL_EVAL.md (markdown, 165 lines)
 
 - no declarations extracted (unsupported language or file-only index entry)
 

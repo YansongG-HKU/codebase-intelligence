@@ -6,26 +6,30 @@ context: read it, do not edit it by hand.
 
 ## Snapshot
 
-- index fingerprint: `c7b65ba8c4a4f1319046e98ed55ecf5c3b9dfa49abf523a25a2e7580559643a3`
+- index fingerprint: `5df069a2c74af0c56fffe87ac08804cfc3391132b0840d9139e58d6725c44eff`
 - index schema: `1` (engine `0.1.0`)
 - policy fingerprint: `a8bce9a5ccfe9fd1075f9379011ac94db2551e270ea420e55c54988988f4cac7`
-- files: 175
-- symbols: 3873
-- relations: 5520
+- files: 185
+- symbols: 3910
+- relations: 5555
 - parser issues: 1
 - generated directory: `docs/codebase-intelligence` (excluded from the next scan)
 
 ## Languages
 
-- python: 89 files, 1611 symbols
-- javascript: 34 files, 2244 symbols
-- markdown: 30 files, 0 symbols
+- python: 90 files, 1613 symbols
+- javascript: 35 files, 2251 symbols
+- markdown: 31 files, 0 symbols
 - other: 8 files, 0 symbols
 - json: 6 files, 0 symbols
-- typescript: 4 files, 13 symbols
-- go: 2 files, 5 symbols
-- toml: 1 files, 0 symbols
-- yaml: 1 files, 0 symbols
+- typescript: 5 files, 21 symbols
+- go: 3 files, 9 symbols
+- yaml: 2 files, 0 symbols
+- java: 1 files, 6 symbols
+- rust: 1 files, 4 symbols
+- c: 1 files, 3 symbols
+- shell: 1 files, 3 symbols
+- ... 1 more language(s)
 
 ## Entry points
 
@@ -53,7 +57,7 @@ context: read it, do not edit it by hand.
 - `src/codebase_intelligence/mcp/server.py` - imported by 5 file(s), imports 3
 - `src/codebase_intelligence/retrieval/rank.py` - imported by 5 file(s), imports 2
 - `integrations/deepseek-harness/plugin/test/unit/_helpers.mjs` - imported by 5 file(s), imports 1
-- ... 50 more module(s)
+- ... 51 more module(s)
 
 ## Files with the most declarations
 
@@ -67,7 +71,7 @@ context: read it, do not edit it by hand.
 - `src/codebase_intelligence/retrieval/rank.py` - 105 declaration(s), 753 line(s)
 - `integrations/deepseek-harness/plugin/lib/service.js` - 105 declaration(s), 560 line(s)
 - `integrations/deepseek-harness/plugin/lib/bridge.js` - 97 declaration(s), 651 line(s)
-- ... 118 more file(s)
+- ... 126 more file(s)
 
 ## How to query this codebase
 

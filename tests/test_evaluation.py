@@ -26,11 +26,27 @@ def _write_tasks(tmp_path: Path, payload: dict[str, Any]) -> Path:
 
 def test_load_tasks_bounds_and_normalizes(tmp_path: Path) -> None:
     spec = load_tasks(TASKS)
-    assert spec.name == "retrieval-fixture-v1"
+    assert spec.name == "retrieval-fixture-v2"
     assert spec.k == 10
-    assert len(spec.tasks) == 8
-    assert spec.thresholds == {"recallAtK": 0.85, "mrrAtK": 0.85, "ndcgAtK": 0.85}
+    assert len(spec.tasks) == 21
+    assert spec.thresholds == {"recallAtK": 0.90, "mrrAtK": 0.90, "ndcgAtK": 0.90}
     assert all(task.relevant for task in spec.tasks)
+    task_ids = {task.id for task in spec.tasks}
+    assert {
+        "typescript-dashboard",
+        "javascript-client",
+        "go-worker",
+        "rust-aggregate",
+        "java-catalog",
+        "c-buffer",
+        "shell-deploy",
+        "deployment-runbook",
+        "config-budget",
+        "multilingual-test",
+        "chinese-dashboard",
+        "identifier-render",
+        "cross-language-dashboard",
+    } <= task_ids
 
     invalid = _write_tasks(tmp_path, {"tasks": []})
     with pytest.raises(UsageError, match="non-empty tasks"):
@@ -41,14 +57,18 @@ def test_evaluate_passes_and_engine_leads_baselines(tmp_path: Path) -> None:
     payload = evaluate(REPO, TASKS, cache_dir=tmp_path / "cache")
     assert payload["ok"] is True
     assert payload["passed"] is True
-    assert payload["tasks"] == 8
+    assert payload["tasks"] == 21
     assert payload["k"] == 10
     engine = payload["aggregate"]["engine"]
     assert engine["recallAtK"] >= payload["thresholds"]["recallAtK"]
     assert engine["mrrAtK"] >= payload["thresholds"]["mrrAtK"]
     assert engine["ndcgAtK"] >= payload["thresholds"]["ndcgAtK"]
     assert engine["recallAtK"] > payload["aggregate"]["path"]["recallAtK"]
-    assert engine["mrrAtK"] >= payload["aggregate"]["symbol"]["mrrAtK"]
+    assert engine["recallAtK"] > payload["aggregate"]["symbol"]["recallAtK"]
+    assert engine["mrrAtK"] > payload["aggregate"]["path"]["mrrAtK"]
+    assert engine["mrrAtK"] > payload["aggregate"]["symbol"]["mrrAtK"]
+    assert engine["ndcgAtK"] > payload["aggregate"]["path"]["ndcgAtK"]
+    assert engine["ndcgAtK"] > payload["aggregate"]["symbol"]["ndcgAtK"]
     assert payload["checks"]
     assert all(check["passed"] for check in payload["checks"])
     rendered = canonical_json(payload)

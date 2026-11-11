@@ -1,0 +1,7 @@
+retrieval:
+  max_tokens: 2200
+  budget_estimator: chars4-wide-v1
+  default_context_task: bounded context pack
+worker:
+  queue: dashboard-metrics
+  batch_size: 16

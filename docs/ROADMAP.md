@@ -40,7 +40,7 @@ performance/memory benchmarks remain open.
 - [x] Task query interface.
 - [x] Ranking and token-budget selection.
 - [x] Source excerpts with path and line citations.
-- [x] Benchmark retrieval relevance against baseline strategies. (`cbi eval-retrieval` file-level Recall@K/MRR@K/nDCG@K against path-only and symbol-name baselines on a deterministic fixture; see [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md); cost/determinism/cache remain in [BENCHMARKS.md](BENCHMARKS.md))
+- [x] Benchmark retrieval relevance against baseline strategies. (`cbi eval-retrieval` file-level Recall@K/MRR@K/nDCG@K against path-only and symbol-name baselines on a 21-task multilingual fixture; external 169-file calibration recorded in [RETRIEVAL_EVAL.md](RETRIEVAL_EVAL.md) exposed a real-repo ranking gap); cost/determinism/cache remain in [BENCHMARKS.md](BENCHMARKS.md)
 
 ## Phase 4 — Agent integration
 - [x] MCP server exposing repository map, symbol lookup, graph traversal, and context retrieval.
