@@ -92,6 +92,7 @@ jobs:
           npm test
           npm run smoke
           npm run footprint
+      # Keep generated repository maps in sync with the exact PR source tree.
       - name: Commit refreshed generated snapshot to PR branch
         if: github.event_name == 'pull_request'
         run: |
