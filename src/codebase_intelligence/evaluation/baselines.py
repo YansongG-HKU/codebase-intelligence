@@ -14,7 +14,7 @@ MAX_BASELINE_FILE_BYTES = 1_048_576
 def query_terms(value: str) -> tuple[str, ...]:
     """Normalize a query into deterministic Unicode word tokens."""
 
-    return tuple(sorted(set(re.findall(r"[\w]+", value.casefold(), flags=re.UNICODE))))
+    return tuple(sorted(set(re.findall(r"[^\W_]+", value.casefold(), flags=re.UNICODE))))
 
 
 def tree_only_rank(paths: Sequence[str], query: str) -> tuple[str, ...]:
