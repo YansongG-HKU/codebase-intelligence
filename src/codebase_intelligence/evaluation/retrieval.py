@@ -31,7 +31,7 @@ def _repository_path(value: Any, *, field: str) -> str:
         raise ValueError(f"{field} entries must be non-empty strings")
     raw = value.strip().replace("\\", "/")
     path = PurePosixPath(raw)
-    if path.is_absolute() or any(part in {".", ".."} for part in path.parts):
+    if raw in {".", "./"} or path.is_absolute() or any(part in {".", ".."} for part in path.parts):
         raise ValueError(f"{field} entries must be normalized repository-relative paths: {value!r}")
     if raw.startswith("~") or ":" in path.parts[0]:
         raise ValueError(f"{field} entries must be repository-relative paths: {value!r}")
