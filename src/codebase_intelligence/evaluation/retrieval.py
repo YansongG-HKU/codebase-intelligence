@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import math
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -69,14 +69,16 @@ def load_task_set(path: str | Path) -> tuple[EvaluationTask, ...]:
         if not isinstance(files, list) or not files:
             raise ValueError(f"tasks[{index}].relevantFiles must be a non-empty array")
         symbols = row.get("relevantSymbols", [])
-        if not isinstance(symbols, list):
-            raise ValueError(f"tasks[{index}].relevantSymbols must be an array")
+        if not isinstance(symbols, list) or any(
+            not isinstance(item, str) or not item.strip() for item in symbols
+        ):
+            raise ValueError(f"tasks[{index}].relevantSymbols must contain non-empty strings")
         notes = row.get("notes", "")
         if not isinstance(notes, str):
             raise ValueError(f"tasks[{index}].notes must be a string")
         relevant_files = tuple(sorted({_repository_path(item, field=f"tasks[{index}].relevantFiles") for item in files}))
-        relevant_symbols = tuple(sorted({item.strip() for item in symbols if isinstance(item, str) and item.strip()}))
-        if len(relevant_symbols) != len([item for item in symbols if isinstance(item, str) and item.strip()]):
+        relevant_symbols = tuple(sorted({item.strip() for item in symbols}))
+        if len(relevant_symbols) != len(symbols):
             raise ValueError(f"tasks[{index}].relevantSymbols contains duplicate symbols")
         seen_ids.add(task_id)
         tasks.append(EvaluationTask(task_id, query.strip(), relevant_files, relevant_symbols, notes))
